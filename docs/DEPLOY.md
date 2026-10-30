@@ -6,9 +6,9 @@ CI does not deploy. A person deploys by hand, and an agent never deploys without
 
 ## deploy.json
 
-Each zap folder has a `deploy.json` that declares its deployment, so changes to it are reviewed like code:
+Each complex zap has a `deploy.json` that declares its deployment, so changes to it are reviewed like code:
 
-- `files`: the source files to publish. Tests are not included.
+- `files`: the source files to publish, as paths relative to the zap folder. Tests are not included.
 - `connections`: each connection alias the code uses, mapped to the Zapier connection ID it is bound to. Connection IDs identify a connection and are not credentials, but they belong to the account that created them, so a contributed zap should leave them for the deployer to fill in.
 - `workflows`: each workflow's ID and its trigger (the app, the action, the settings, and which connection authenticates it). A workflow with no trigger is published as on-demand.
 
@@ -33,7 +33,7 @@ pnpm zap:deploy <zap-folder> --dry-run   # plan only
 pnpm zap:deploy <zap-folder>             # asks before publishing each workflow
 ```
 
-For each workflow the script publishes a new version with the pinned dependencies and the connections and trigger from `deploy.json`, then checks that the workflow is enabled, its trigger is active with no error, and the new version is current. Publishing succeeds even when a trigger fails to attach, which is why the script checks. It exits with an error if any check fails.
+For each workflow the script publishes a new version with the dependencies pinned in the zap's `package.json` and the connections and trigger from `deploy.json`, then checks that the workflow is enabled, its trigger is active with no error, and the new version is current. Publishing succeeds even when a trigger fails to attach, which is why the script checks. It exits with an error if any check fails.
 
 ## Checking status
 

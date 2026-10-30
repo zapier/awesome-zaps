@@ -6,6 +6,12 @@
     // run by `pnpm zap:deploy` and `pnpm zap:status`, so nothing imports it
     "packages/zaps/scripts/zap.ts",
   ],
+  // A simple zap (no package.json) deploys as one self-contained workflow.ts, so zaps repeat small helpers by
+  // design; catalog.test.ts checks those folders instead. Fallow globs cannot see package.json, so each complex
+  // zap un-ignores its entry point with a "!packages/zaps/<zap>/workflow.ts" line, which catalog.test.ts enforces.
+  // Fallow also warns that the "packages/zaps/*" workspace glob matches folders with no package.json: those are the
+  // simple zaps, so the warning is expected.
+  "ignorePatterns": ["packages/zaps/*/workflow.ts"],
   "production": {
     // removing test files from code quality checks
     "health": true,

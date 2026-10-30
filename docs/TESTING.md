@@ -1,6 +1,6 @@
 # Testing zaps
 
-A zap is tested in two layers. Unit tests cover the decisions in `logic.ts` and run in CI. A test run executes the whole zap on Zapier against real connections, and that is the only way to see its side effects. Test runs are manual.
+A complex zap is tested in two layers. Unit tests cover the decisions in `logic.ts` and run in CI. A test run executes the whole zap on Zapier against real connections, and that is the only way to see its side effects. Test runs are manual.
 
 ## Test targets
 
@@ -34,15 +34,15 @@ A test run executes real side effects that cannot be taken back, so it must neve
 4. Bundle the zap's source files. Include every file `workflow.ts` imports, and leave out the tests:
 
    ```bash
-   cd packages/zaps/<zap-name>
+   ZAP=packages/zaps/<zap-name>
    SOURCE_FILES=$(jq -n \
-     --rawfile workflow workflow.ts \
-     --rawfile logic logic.ts \
-     --rawfile config config.ts \
+     --rawfile workflow "$ZAP/workflow.ts" \
+     --rawfile logic "$ZAP/logic.ts" \
+     --rawfile config "$ZAP/config.ts" \
      '{"workflow.ts": $workflow, "logic.ts": $logic, "config.ts": $config}')
    ```
 
-5. Start the run with `test: true` in the input. Use the exact versions pinned in `packages/zaps/package.json`. The sandbox rejects any dependency published less than 24 hours ago.
+5. Start the run with `test: true` in the input. Use the exact versions pinned in the zap's `package.json`. The sandbox rejects any dependency published less than 24 hours ago.
 
    ```bash
    zapier-sdk --stability experimental run-durable "$SOURCE_FILES" \

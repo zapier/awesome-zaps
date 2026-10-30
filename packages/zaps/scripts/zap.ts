@@ -63,9 +63,7 @@ const readZap = (zap: string) => {
   const files = Object.fromEntries(
     config.files.map((name) => [name, readFileSync(`${dir}/${name}`, "utf8")]),
   );
-  const pkg: unknown = JSON.parse(
-    readFileSync(`${ZAPS_DIR}package.json`, "utf8"),
-  );
+  const pkg: unknown = JSON.parse(readFileSync(`${dir}/package.json`, "utf8"));
   return { config, files, pin: pins(pkg) };
 };
 

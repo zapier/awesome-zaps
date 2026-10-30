@@ -6,15 +6,15 @@ This repo holds Zaps written as code (Zapier SDK durables). This file holds the 
 
 ## Where to work
 
-| Path                     | What lives here                                                                              |
-| ------------------------ | -------------------------------------------------------------------------------------------- |
-| `packages/zaps/<zap>/`   | One zap: `workflow.ts`, `logic.ts`, `config.ts`, `logic.test.ts`, `deploy.json`, `README.md` |
-| `packages/zaps/scripts/` | The `zap:deploy` and `zap:status` scripts                                                    |
-| `docs/TESTING.md`        | How to test a zap against Zapier                                                             |
-| `docs/DEPLOY.md`         | What to expect when deploying a zap                                                          |
-| `eslint.config.js`       | ESLint rules                                                                                 |
-| `.fallowrc.jsonc`        | Fallow entry points and settings                                                             |
-| `.github/workflows/`     | CI                                                                                           |
+| Path                     | What lives here                                                                                                                                                                                            |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/zaps/<zap>/`   | A simple zap: `workflow.ts`, `SKILL.md`, `README.md`. A complex zap: `package.json`, `tsconfig.json` (with `include`), `workflow.ts`, `logic.ts`, `config.ts`, `logic.test.ts`, `deploy.json`, `README.md` |
+| `packages/zaps/scripts/` | The `zap:deploy` and `zap:status` scripts                                                                                                                                                                  |
+| `docs/TESTING.md`        | How to test a zap against Zapier                                                                                                                                                                           |
+| `docs/DEPLOY.md`         | What to expect when deploying a zap                                                                                                                                                                        |
+| `eslint.config.js`       | ESLint rules                                                                                                                                                                                               |
+| `.fallowrc.jsonc`        | Fallow entry points and settings                                                                                                                                                                           |
+| `.github/workflows/`     | CI                                                                                                                                                                                                         |
 
 ## Commands
 
@@ -30,7 +30,7 @@ This repo holds Zaps written as code (Zapier SDK durables). This file holds the 
 | Dead code, duplication, health score of 100     | `pnpm fallow`                                                                       |
 | Preview a deploy, deploy, check status          | `pnpm zap:deploy <zap> --dry-run`, `pnpm zap:deploy <zap>`, `pnpm zap:status <zap>` |
 
-Everything else is in the root and `packages/zaps` `package.json`. Read them there.
+Everything else is in the root, `packages/zaps` and each complex zap's `package.json`. Read them there.
 
 ## Before you start
 
@@ -42,7 +42,7 @@ Everything else is in the root and `packages/zaps` `package.json`. Read them the
 
 - **Change only what the task asks for.** No opportunistic renames, reformatting, dependency bumps, or refactors riding along in the same change. Spotted something worth fixing? Name it in the PR description and leave it.
 - **If the task turns into a refactor or a redesign, stop and ask** before continuing.
-- **Do not add a dependency, create a directory, or introduce a new pattern without asking.**
+- **Do not add a dependency, create a directory, or introduce a new pattern without asking.** A new zap's own folder and the dependencies its `package.json` pins are part of adding that zap.
 
 ## Requirements
 
@@ -55,6 +55,8 @@ Everything else is in the root and `packages/zaps` `package.json`. Read them the
 
 ### Workflows
 
+These rules are for complex zaps, the zap folders with a `package.json`. A simple zap has none: it is one self-contained `workflow.ts` that an agent deploys as is, next to its `SKILL.md`, and `scripts/catalog.test.ts` checks it instead of types, lint and fallow.
+
 - **`workflow.ts` only wires the SDK together.** Anything that makes a decision belongs in `logic.ts`, where tests cover it.
 - **Parse the input with zod on the first line of the handler.** That schema is the contract for what the trigger delivers.
 - **Wrap each side effect in its own `ctx.step`**, and end the step name with the record's primary id so a retry skips work that already succeeded. Never use an array index as the suffix.
@@ -63,7 +65,7 @@ Everything else is in the root and `packages/zaps` `package.json`. Read them the
 
 ### New code
 
-- **Everything you add has a caller in this change.** No exported helper nothing imports, no config constant nothing reads, no abstraction with one implementation. Fallow treats only `packages/zaps/*/workflow.ts` and `packages/zaps/scripts/zap.ts` as entry points, so a file they do not reach is reported as dead code.
+- **Everything you add has a caller in this change.** No exported helper nothing imports, no config constant nothing reads, no abstraction with one implementation. Fallow treats only a complex zap's `workflow.ts` and `packages/zaps/scripts/zap.ts` as entry points, so a file they do not reach is reported as dead code.
 - **Delete what you replaced.** If your change supersedes an implementation, remove it in the same change. Never leave both.
 - **Search before you write.** The helper probably exists in another zap or in the SDK.
 - **No defensive branch for a state that cannot occur here.** An empty `catch`, a null check the types already rule out, or validation for a shape no trigger sends looks careful and hides the real failure.
@@ -99,7 +101,7 @@ There are no baselines and no suppression files, so nothing is grandfathered in.
 - **Test error paths, success paths, and validation logic.**
 - **A test's name must describe exactly the inputs and assertions in its body**, no more and no less. Re-read the name whenever you change the body, its inputs, or any identifier the name mentions.
 - **Mock setup must match the calls the code path really makes.** Trace the path, queue only the responses it consumes, and delete mocks nothing uses after a refactor.
-- **A test file sits directly inside its zap's folder.** Vitest only matches `packages/zaps/*/*.test.ts`.
+- **A test file sits directly inside its complex zap's folder**, which runs it with its own `test` script.
 
 ### Pull requests
 

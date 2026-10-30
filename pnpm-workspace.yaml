@@ -1,2 +1,4 @@
 packages:
   - "packages/*"
+  # A complex zap is a package of its own. A zap folder with no package.json is a simple zap.
+  - "packages/zaps/*"

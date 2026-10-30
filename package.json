@@ -4,8 +4,8 @@
   "packageManager": "pnpm@12.15.0",
   "type": "module",
   "scripts": {
-    "types": "pnpm -r run types",
-    "test": "pnpm -r run test",
+    "types": "pnpm -r --no-bail run types",
+    "test": "pnpm -r --no-bail run test",
     "lint": "eslint --max-warnings 0 .",
     "lint:fix": "eslint --fix .",
     "fmt": "prettier --write .",
