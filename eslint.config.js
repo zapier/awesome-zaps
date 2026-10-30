@@ -2,7 +2,17 @@ import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: [".asdf/", ".fallow/", ".pnpm-store/", "**/node_modules/"] },
+  {
+    ignores: [
+      ".asdf/",
+      ".fallow/",
+      ".pnpm-store/",
+      "**/node_modules/",
+      // A zap is one self-contained workflow.ts that an agent deploys as is. scripts/catalog.test.ts checks it instead.
+      "packages/zaps/*/",
+      "!packages/zaps/scripts/",
+    ],
+  },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
   {

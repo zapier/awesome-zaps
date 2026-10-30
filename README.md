@@ -4,11 +4,11 @@ A collection of Zaps written as code (Next Gen Zaps built on the Zapier SDK), op
 
 ## Layout
 
-| Path                     | What lives here                                             |
-| ------------------------ | ----------------------------------------------------------- |
-| `packages/zaps/<zap>/`   | One zap per folder, with its source, tests, and `README.md` |
-| `packages/zaps/scripts/` | Scripts for deploying a zap and checking its status         |
-| `docs/`                  | How to test and deploy a zap                                |
+| Path                     | What lives here                                               |
+| ------------------------ | ------------------------------------------------------------- |
+| `packages/zaps/<zap>/`   | One zap per folder: `workflow.ts`, `SKILL.md` and `README.md` |
+| `packages/zaps/scripts/` | Scripts for deploying a zap and checking its status           |
+| `docs/`                  | How to test and deploy a zap                                  |
 
 ## Getting started
 

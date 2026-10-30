@@ -20,11 +20,10 @@ This is a pnpm workspace. Packages live in `packages/*`, and each one defines `t
 
 ## Adding a zap
 
-1. Add a folder under `packages/zaps/` named `<source>-<item>-to-<destination>-<item>` in kebab-case, such as `form-submission-to-spreadsheet-row`. The `defineDurable` name is the workflow's name on Zapier, and stays the same once the workflow is deployed.
-2. Add `workflow.ts` (SDK wiring only), `logic.ts` (tested logic), `config.ts` (constants), `logic.test.ts`, `deploy.json`, and a `README.md` that describes the zap, its author, and each file.
-3. Keep decisions in `logic.ts` so they are covered by tests, and keep `workflow.ts` to calling the SDK and passing results along.
-4. If it is the first zap, add `@zapier/zapier-durable` and `@zapier/zapier-sdk` to `packages/zaps/package.json` with exact versions. Fallow reports them as unused until a zap imports them.
-5. Run `pnpm check`.
-6. If the zap has side effects, test it as described in [docs/TESTING.md](./docs/TESTING.md).
+A zap is one self-contained `workflow.ts` that an agent deploys as is, next to the `SKILL.md` that zapier.sh lists and `npx skills add` installs.
 
-`packages/zaps/*/workflow.ts` files are fallow entry points because the SDK CLI deploys them and nothing imports them.
+1. Add a folder under `packages/zaps/` named after the zap in kebab-case. The folder name is also the `defineDurable` name, which is the workflow's name on Zapier and stays the same once the workflow is deployed.
+2. Add `workflow.ts`, `SKILL.md` (frontmatter `name` matching the folder, plus `metadata.summary` and `metadata.apps`) and a `README.md`.
+3. Name apps by slug (`google-sheets`, `slack`), never by implementation key, and name every connection alias in `SKILL.md`.
+4. Run `pnpm check`. `scripts/catalog.test.ts` checks the zap folder.
+5. If the zap has side effects, test it as described in [docs/TESTING.md](./docs/TESTING.md).

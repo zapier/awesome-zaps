@@ -6,9 +6,9 @@ CI does not deploy. A person deploys by hand, and an agent never deploys without
 
 ## deploy.json
 
-Each zap folder has a `deploy.json` that declares its deployment, so changes to it are reviewed like code:
+A zap deploys this way once its folder has a `deploy.json` that declares its deployment, so changes to it are reviewed like code:
 
-- `files`: the source files to publish. Tests are not included.
+- `files`: the source files to publish, as paths relative to the zap folder.
 - `connections`: each connection alias the code uses, mapped to the Zapier connection ID it is bound to. Connection IDs identify a connection and are not credentials, but they belong to the account that created them, so a contributed zap should leave them for the deployer to fill in.
 - `workflows`: each workflow's ID and its trigger (the app, the action, the settings, and which connection authenticates it). A workflow with no trigger is published as on-demand.
 
