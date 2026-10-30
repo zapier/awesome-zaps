@@ -6,15 +6,15 @@ This repo holds Zaps written as code (Zapier SDK durables). This file holds the 
 
 ## Where to work
 
-| Path                     | What lives here                                                                              |
-| ------------------------ | -------------------------------------------------------------------------------------------- |
-| `packages/zaps/<zap>/`   | One zap: `workflow.ts`, `logic.ts`, `config.ts`, `logic.test.ts`, `deploy.json`, `README.md` |
-| `packages/zaps/scripts/` | The `zap:deploy` and `zap:status` scripts                                                    |
-| `docs/TESTING.md`        | How to test a zap against Zapier                                                             |
-| `docs/DEPLOY.md`         | What to expect when deploying a zap                                                          |
-| `eslint.config.js`       | ESLint rules                                                                                 |
-| `.fallowrc.jsonc`        | Fallow entry points and settings                                                             |
-| `.github/workflows/`     | CI                                                                                           |
+| Path                     | What lives here                                                     |
+| ------------------------ | ------------------------------------------------------------------- |
+| `packages/zaps/<zap>/`   | One zap: `workflow.ts`, `SKILL.md`, `README.md`                     |
+| `packages/zaps/scripts/` | The `zap:deploy` and `zap:status` scripts, and the zap catalog test |
+| `docs/TESTING.md`        | How to test a zap against Zapier                                    |
+| `docs/DEPLOY.md`         | What to expect when deploying a zap                                 |
+| `eslint.config.js`       | ESLint rules                                                        |
+| `.fallowrc.jsonc`        | Fallow entry points and settings                                    |
+| `.github/workflows/`     | CI                                                                  |
 
 ## Commands
 
@@ -42,28 +42,28 @@ Everything else is in the root and `packages/zaps` `package.json`. Read them the
 
 - **Change only what the task asks for.** No opportunistic renames, reformatting, dependency bumps, or refactors riding along in the same change. Spotted something worth fixing? Name it in the PR description and leave it.
 - **If the task turns into a refactor or a redesign, stop and ask** before continuing.
-- **Do not add a dependency, create a directory, or introduce a new pattern without asking.**
+- **Do not add a dependency, create a directory, or introduce a new pattern without asking.** A new zap's own folder is part of adding that zap.
 
 ## Requirements
 
 ### General
 
 - **Never bypass the pre-commit hook** with `--no-verify`. Skipping it only moves the failure to CI.
-- **Never commit a token, a trigger URL, or `.env`.** Code refers to connections by alias, declared in `config.ts`.
+- **Never commit a token, a trigger URL, or `.env`.** Code refers to connections by alias, named in the zap's `SKILL.md`.
 - **Never describe how test runs work outside [docs/TESTING.md](docs/TESTING.md), or how deploys work outside [docs/DEPLOY.md](docs/DEPLOY.md).** Each owns its topic; a second description will drift from it.
 - **Never start a test run or deploy a workflow without asking the user first.** Tell them which account it will touch. A run executes real side effects.
 
 ### Workflows
 
-- **`workflow.ts` only wires the SDK together.** Anything that makes a decision belongs in `logic.ts`, where tests cover it.
+- **`workflow.ts` is the whole zap.** An agent deploys it as is, so it imports nothing but `@zapier/zapier-durable`, `@zapier/zapier-sdk` and `zod`. Types, lint and fallow skip zap folders, and `scripts/catalog.test.ts` checks them instead.
 - **Parse the input with zod on the first line of the handler.** That schema is the contract for what the trigger delivers.
 - **Wrap each side effect in its own `ctx.step`**, and end the step name with the record's primary id so a retry skips work that already succeeded. Never use an array index as the suffix.
-- **Put IDs and connection aliases in `config.ts`**, with a comment naming what each one refers to.
+- **Put IDs and settings in constants at the top of `workflow.ts`**, with a comment naming what each one refers to.
 - **Pin exact dependency versions.** Zapier's sandbox rejects a dependency published less than 24 hours ago.
 
 ### New code
 
-- **Everything you add has a caller in this change.** No exported helper nothing imports, no config constant nothing reads, no abstraction with one implementation. Fallow treats only `packages/zaps/*/workflow.ts` and `packages/zaps/scripts/zap.ts` as entry points, so a file they do not reach is reported as dead code.
+- **Everything you add has a caller in this change.** No exported helper nothing imports, no config constant nothing reads, no abstraction with one implementation. Fallow treats `packages/zaps/scripts/zap.ts` as the entry point, so a file it does not reach is reported as dead code.
 - **Delete what you replaced.** If your change supersedes an implementation, remove it in the same change. Never leave both.
 - **Search before you write.** The helper probably exists in another zap or in the SDK.
 - **No defensive branch for a state that cannot occur here.** An empty `catch`, a null check the types already rule out, or validation for a shape no trigger sends looks careful and hides the real failure.
@@ -87,7 +87,7 @@ There are no baselines and no suppression files, so nothing is grandfathered in.
 
 ### Documentation
 
-- **Every zap folder gets a `README.md`** next to the code. It states what the workflow does in one line, then lists each file and what it holds.
+- **Every zap folder gets a `SKILL.md` and a `README.md`** next to `workflow.ts`. The `SKILL.md` is what an agent follows to build the zap. The `README.md` states what the zap does in one line, then lists each file and what it holds.
 - **One document owns a topic.** Before adding a file, find the one that already covers it and extend it. A second document on the same subject is a second thing to maintain, and the pair will drift.
 - **Never restate another document.** Link to it. If you find yourself summarizing a file "for convenience," delete the summary and link instead.
 - **Never copy a command into prose.** `pnpm` commands live in `package.json`, and a copy will drift. The exceptions are the [Commands](#commands) table above and the commands in [docs/TESTING.md](docs/TESTING.md) and [docs/DEPLOY.md](docs/DEPLOY.md), which own those topics.
@@ -99,7 +99,7 @@ There are no baselines and no suppression files, so nothing is grandfathered in.
 - **Test error paths, success paths, and validation logic.**
 - **A test's name must describe exactly the inputs and assertions in its body**, no more and no less. Re-read the name whenever you change the body, its inputs, or any identifier the name mentions.
 - **Mock setup must match the calls the code path really makes.** Trace the path, queue only the responses it consumes, and delete mocks nothing uses after a refactor.
-- **A test file sits directly inside its zap's folder.** Vitest only matches `packages/zaps/*/*.test.ts`.
+- **Tests live in `packages/zaps/scripts/`.** Vitest runs only that folder.
 
 ### Pull requests
 

@@ -1,11 +1,12 @@
 {
   "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
   "entry": [
-    // deployed to Zapier by the SDK CLI, so nothing imports them
-    "packages/zaps/*/workflow.ts",
     // run by `pnpm zap:deploy` and `pnpm zap:status`, so nothing imports it
     "packages/zaps/scripts/zap.ts",
   ],
+  // A zap is one self-contained workflow.ts that an agent deploys as is, so zaps repeat small helpers by design.
+  // scripts/catalog.test.ts checks them instead.
+  "ignorePatterns": ["packages/zaps/*/workflow.ts"],
   "production": {
     // removing test files from code quality checks
     "health": true,

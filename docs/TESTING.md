@@ -1,13 +1,13 @@
 # Testing zaps
 
-A zap is tested in two layers. Unit tests cover the decisions in `logic.ts` and run in CI. A test run executes the whole zap on Zapier against real connections, and that is the only way to see its side effects. Test runs are manual.
+CI checks each zap folder with `scripts/catalog.test.ts`. A test run executes the whole zap on Zapier against real connections, and that is the only way to see its side effects. Test runs are manual.
 
 ## Test targets
 
 A test run executes real side effects that cannot be taken back, so it must never touch production data. A zap that writes anywhere (a chat channel, a spreadsheet, a ticket) must:
 
-- Define a test target in `config.ts`, with a comment naming it.
-- Use that target instead of the real one when its input has `test: true`. Put that choice in `logic.ts` and cover it with a unit test.
+- Point at a test target (a test channel, a copy of the sheet) through the constants at the top of `workflow.ts` before the run.
+- Follow the test its `SKILL.md` describes, and name anything the run creates "[install-test] …".
 
 ## Run a zap
 
@@ -19,27 +19,24 @@ A test run executes real side effects that cannot be taken back, so it must neve
    zapier-sdk get-profile
    ```
 
-2. Run the unit tests and the full checks:
+2. Run the full checks:
 
    ```bash
    pnpm check
    ```
 
-3. Find the connection IDs the zap needs. Each zap's `config.ts` lists its connection aliases:
+3. Find the connection IDs the zap needs. Each zap's `SKILL.md` names its connection aliases:
 
    ```bash
    zapier-sdk list-connections <app> --owner me --json
    ```
 
-4. Bundle the zap's source files. Include every file `workflow.ts` imports, and leave out the tests:
+4. Bundle the zap's `workflow.ts`:
 
    ```bash
-   cd packages/zaps/<zap-name>
    SOURCE_FILES=$(jq -n \
-     --rawfile workflow workflow.ts \
-     --rawfile logic logic.ts \
-     --rawfile config config.ts \
-     '{"workflow.ts": $workflow, "logic.ts": $logic, "config.ts": $config}')
+     --rawfile workflow packages/zaps/<zap-name>/workflow.ts \
+     '{"workflow.ts": $workflow}')
    ```
 
 5. Start the run with `test: true` in the input. Use the exact versions pinned in `packages/zaps/package.json`. The sandbox rejects any dependency published less than 24 hours ago.
