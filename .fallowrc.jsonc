@@ -1,0 +1,13 @@
+{
+  "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
+  "entry": [
+    // deployed to Zapier by the SDK CLI, so nothing imports them
+    "packages/zaps/*/workflow.ts",
+    // run by `pnpm zap:deploy` and `pnpm zap:status`, so nothing imports it
+    "packages/zaps/scripts/zap.ts",
+  ],
+  "production": {
+    // removing test files from code quality checks
+    "health": true,
+  },
+}

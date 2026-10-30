@@ -1,0 +1,31 @@
+{
+  "name": "awesome-zaps",
+  "private": true,
+  "packageManager": "pnpm@12.15.0",
+  "type": "module",
+  "scripts": {
+    "types": "pnpm -r run types",
+    "test": "pnpm -r run test",
+    "lint": "eslint --max-warnings 0 .",
+    "lint:fix": "eslint --fix .",
+    "fmt": "prettier --write .",
+    "fmt:check": "prettier --check .",
+    "fallow": "fallow dead-code --quiet --fail-on-issues && fallow dupes --quiet --fail-on-issues && fallow health --quiet --min-score 100",
+    "check": "pnpm run types && pnpm run lint && pnpm run fmt:check && pnpm run test && pnpm run fallow",
+    "zap:deploy": "node packages/zaps/scripts/zap.ts deploy",
+    "zap:status": "node packages/zaps/scripts/zap.ts status",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "25.6.0",
+    "eslint": "10.11.0",
+    "fallow": "3.33.0",
+    "husky": "9.1.7",
+    "lint-staged": "17.6.0",
+    "prettier": "3.9.3",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.71.0",
+    "vitest": "4.1.11"
+  }
+}

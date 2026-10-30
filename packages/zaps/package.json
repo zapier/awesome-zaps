@@ -1,0 +1,12 @@
+{
+  "name": "@zapier/awesome-zaps",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "types": "tsc",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "zod": "4.6.7"
+  }
+}
