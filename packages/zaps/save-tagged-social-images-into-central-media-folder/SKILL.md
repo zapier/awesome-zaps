@@ -1,6 +1,7 @@
 ---
 name: save-tagged-social-images-into-central-media-folder
 description: Build a Zapier Next Gen Zap that saves the photo or video from each Instagram post that tags your account into one shared Google Drive media folder, named by uploader and timestamp. Use when a marketing or creative team reuses user-tagged social images for campaigns and wants them collected in one place without manual downloads.
+license: MIT
 metadata:
   author: zapier
   summary: "When someone tags your Instagram account, their photo or video is copied into your shared media folder with the uploader's name and the post time in the filename, so the team can reuse it."

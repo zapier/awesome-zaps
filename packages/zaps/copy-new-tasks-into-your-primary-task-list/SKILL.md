@@ -1,6 +1,7 @@
 ---
 name: copy-new-tasks-into-your-primary-task-list
 description: Build a Zapier Next Gen Zap that copies each new task from a secondary Google Tasks list into your primary task list, so you keep one actionable task stream. Use when tasks land in a side list (a project, a shared list, a capture list) and you want them mirrored into your main list without copying by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "Each new task you add to a secondary Google Tasks list is copied into your primary list, so everything you need to act on sits in one place."

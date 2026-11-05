@@ -1,6 +1,7 @@
 ---
 name: add-completed-training-from-form-to-hr-record
 description: Build a Zapier Next Gen Zap that turns a submitted Google Form about completed classroom training into an HR training record, with the employee, course, completion date (DD/MM/YYYY), provider and status, posted to your HR system's endpoint. Use when training completions are collected by form and someone currently keys them into HR by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "When a training form is submitted, the completed course is written to your HR system as a training record with the completion date in DD/MM/YYYY, so nobody re-keys it."

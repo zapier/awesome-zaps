@@ -1,6 +1,7 @@
 ---
 name: add-processed-employee-leave-records-to-master-spreadsheet
 description: Use when an HR system or form posts processed employee leave records to a webhook and each one should be added as a new row in the HR master spreadsheet. Use it when payroll or HR coordinators keep an audit-ready list of leave in a Microsoft Excel workbook on OneDrive.
+license: MIT
 metadata:
   author: zapier
   summary: "Each processed leave record that arrives by webhook is added as a new row in your master HR spreadsheet, with dates in DD/MM/YYYY."

@@ -1,6 +1,7 @@
 ---
 name: create-po-records-from-new-purchase-order-pd-fs
 description: Build a Zapier Next Gen Zap that reads each new purchase order PDF dropped into a OneDrive folder, pulls out the company name and PO number, and adds one record per PO to a Zapier Table, skipping POs already logged. Use when a finance or procurement team keeps a PO register in a table and wants new POs logged without retyping them.
+license: MIT
 metadata:
   author: zapier
   summary: "When a purchase order PDF lands in your OneDrive folder, its company and PO number are read and logged as one row in your PO table, with a link back to the file."

@@ -1,6 +1,7 @@
 ---
 name: create-dispatch-orders-from-zero-paid-invoices-for-ops
 description: Build a Zapier Next Gen Zap that watches Xero for paid sales invoices with a zero or near-zero total and creates a matching outbound order in CartonCloud, emailing IT when the order fails. Use when a sales team raises invoices that need no payment (free samples, credits, promo orders) and the warehouse still has to ship them, so ops doesn't re-key each one.
+license: MIT
 metadata:
   author: zapier
   summary: "When an invoice is paid at zero or near-zero, the matching dispatch order is created in your warehouse system automatically, and IT is emailed if that fails."

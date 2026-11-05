@@ -1,6 +1,7 @@
 ---
 name: send-real-time-vendor-alerts-to-crisis-team-inbox
 description: Build a Zapier Next Gen Zap that emails a plain-text alert from Microsoft Outlook whenever a row in a Google Sheets vendor tracker is updated and flagged as an alert, with the vendor, title, summary, a details excerpt and a link back to the row. Use when a crisis, PR or account team logs vendor incidents in a sheet and wants flagged ones in their inbox right away instead of watching the sheet.
+license: MIT
 metadata:
   author: zapier
   summary: "When a vendor row in your tracking sheet is flagged as an alert, your crisis team gets an email with the details and a link to the row."

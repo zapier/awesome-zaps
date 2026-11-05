@@ -1,6 +1,7 @@
 ---
 name: create-contractor-bid-emails-from-updated-sheet-rows
 description: Build a Zapier Next Gen Zap that, when a bid request row in a project sheet is updated, creates a draft email to the contractor with the project details and marks the row as drafted so it is not drafted twice. Use when a construction or renovation business tracks bid requests in a Google Sheet and wants contractor bid emails drafted for review, not sent automatically.
+license: MIT
 metadata:
   author: zapier
   summary: "When a bid request row is updated, a draft bid email to the contractor is created for you to review, and the row is marked so it is not drafted twice."

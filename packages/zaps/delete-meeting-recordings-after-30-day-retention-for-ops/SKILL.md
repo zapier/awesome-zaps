@@ -1,6 +1,7 @@
 ---
 name: delete-meeting-recordings-after-30-day-retention-for-ops
 description: Build a Zapier Next Gen Zap that deletes a Zoom meeting's cloud recordings 30 days after a new cloud recording completes, to enforce a retention policy. Use when a team must remove meeting recordings after a fixed retention period to cut storage costs and keep archives audit-ready.
+license: MIT
 metadata:
   author: zapier
   summary: "Cloud recordings are automatically deleted 30 days after they finish, so retention rules are enforced without anyone remembering to clean up."

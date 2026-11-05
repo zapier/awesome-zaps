@@ -1,6 +1,7 @@
 ---
 name: send-performance-review-booking-reminder-to-team-leaders
 description: Build a Zapier Next Gen Zap that emails managers a booking reminder twice a year, so their performance reviews are scheduled before the appraisal period. Use when an HR team wants a standing, twice-yearly nudge to team leaders to book reviews, sent from a Gmail account.
+license: MIT
 metadata:
   author: zapier
   summary: "Twice a year, every manager on your list gets an email reminding them to book their team's performance reviews before the appraisal period."

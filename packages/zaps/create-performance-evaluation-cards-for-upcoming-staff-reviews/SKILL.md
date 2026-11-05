@@ -1,6 +1,7 @@
 ---
 name: create-performance-evaluation-cards-for-upcoming-staff-reviews
 description: Build a Zapier Next Gen Zap that, each weekday morning, finds employees whose performance evaluation is due within three weeks and creates a Trello card with a checklist and form link for each one that doesn't already have a card. Use when an HR or people team keeps review dates in Zapier Tables or a similar table and wants supervisors to get a card ahead of each review without creating them by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "Each weekday morning, supervisors get a Trello card with a checklist and evaluation form link for every employee whose review is coming up within three weeks."

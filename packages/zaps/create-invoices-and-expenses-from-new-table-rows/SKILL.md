@@ -1,6 +1,7 @@
 ---
 name: create-invoices-and-expenses-from-new-table-rows
 description: Build a Zapier Next Gen Zap that turns each new row in a Zapier Tables table into a QuickBooks Online invoice or expense, skipping rows that already exist in QuickBooks, so accounts payable and receivable entries are created without retyping. Use when bills, invoices or expense receipts are logged in a table and should land in QuickBooks as records for finance review.
+license: MIT
 metadata:
   author: zapier
   summary: "Each new row in your invoice table becomes a QuickBooks invoice or expense, so bookkeeping entries are created without retyping and duplicates are skipped."

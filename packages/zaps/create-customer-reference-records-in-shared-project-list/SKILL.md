@@ -1,6 +1,7 @@
 ---
 name: create-customer-reference-records-in-shared-project-list
 description: Build a Zapier Next Gen Zap that adds or updates a customer's reference record in a shared SharePoint list whenever a new customer is created in QuickBooks Online. Use when a sales or enablement team keeps a shared list of customer references and wants it filled in from the accounting system without manual entry.
+license: MIT
 metadata:
   author: zapier
   summary: "When a new customer is added in QuickBooks, their reference record in your shared SharePoint list is created or refreshed, so every team works from the same customer details."

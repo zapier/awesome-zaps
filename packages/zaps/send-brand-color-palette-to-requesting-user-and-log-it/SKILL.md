@@ -1,6 +1,7 @@
 ---
 name: send-brand-color-palette-to-requesting-user-and-log-it
 description: Build a Zapier Next Gen Zap that answers a /brand-colors slash command with the brand's color palette in Slack and logs each request to Airtable. Use when a team asks for brand colors through a chat command and you want requests tracked for audit.
+license: MIT
 metadata:
   author: zapier
   summary: "When someone asks for the brand colors with a slash command, they get the palette posted back in Slack and the request is logged in Airtable for tracking."

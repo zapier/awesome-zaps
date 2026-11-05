@@ -1,6 +1,7 @@
 ---
 name: update-deal-opt-in-status-from-incoming-webhook-payloads
 description: Build a Zapier Next Gen Zap that receives consent signals on a webhook and writes the opt-in or opt-out status to the matching Pipedrive deal. Use when a form, consent tool or script posts opt-in or opt-out events and sales should see current consent on the deal.
+license: MIT
 metadata:
   author: zapier
   summary: "When a consent signal arrives, the matching Pipedrive deal's consent field is set to opt-in or opt-out, so sales sees current consent on the deal."

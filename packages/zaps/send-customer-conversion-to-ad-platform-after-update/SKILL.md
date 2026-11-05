@@ -1,6 +1,7 @@
 ---
 name: send-customer-conversion-to-ad-platform-after-update
 description: Build a Zapier Next Gen Zap that sends an offline conversion to Google Ads when a HubSpot contact's lifecycle stage is updated to customer, after a 24-hour attribution window. Use when a team wants paid campaigns to count real customers, not just form fills, and runs HubSpot with Google Ads.
+license: MIT
 metadata:
   author: zapier
   summary: "When a contact becomes a customer in HubSpot, their conversion is sent to Google Ads a day later, so your paid campaigns learn from real sales."

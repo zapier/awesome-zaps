@@ -1,6 +1,7 @@
 ---
 name: create-backlog-items-from-product-wish-form-submissions
 description: Build a Zapier Next Gen Zap that turns each new product wish form submission into an intake payload, with the consent answer normalized to Yes or No, and posts it to your intake endpoint. Use when a product team collects feature requests through a Google Form and wants each one sent on to a backlog or triage system.
+license: MIT
 metadata:
   author: zapier
   summary: "Every product wish form submission is sent to your intake endpoint as a clean backlog item, with reporter, request and interview consent in one payload."

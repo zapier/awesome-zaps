@@ -1,6 +1,7 @@
 ---
 name: send-daily-sales-ops-list-to-regional-stakeholders
 description: Build a Zapier Next Gen Zap that finds a designated sales worksheet in a Google Drive folder each weekday morning and emails it to stakeholders through Outlook, with the ops owner copied. Use when a sales ops or operations team wants the same daily list in regional stakeholders' inboxes before standups, without anyone sending it by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "Every weekday morning, the day's sales ops worksheet is found in your Drive folder and emailed to your regional stakeholders, with the ops owner copied, so everyone starts standup with the same list."

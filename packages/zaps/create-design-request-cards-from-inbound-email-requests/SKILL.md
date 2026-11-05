@@ -1,6 +1,7 @@
 ---
 name: create-design-request-cards-from-inbound-email-requests
 description: Use when a design or creative team takes requests by email and wants each one to become a Trello card on its intake list, with the subject, the body's details, the contact, the links and any due date filled in. Not for internal chatter or replies; it only acts on emails whose subject matches the request pattern.
+license: MIT
 metadata:
   author: zapier
   summary: "When a design request arrives by email, a Trello card is created at the bottom of your intake list with the details filled in, so nothing gets lost in an inbox."

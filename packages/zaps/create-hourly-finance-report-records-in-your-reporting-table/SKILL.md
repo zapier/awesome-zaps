@@ -1,6 +1,7 @@
 ---
 name: create-hourly-finance-report-records-in-your-reporting-table
 description: Build a Zapier Next Gen Zap that runs a Salesforce report every hour and writes each row into a central reporting table, creating new records and updating existing ones by a record key. Use when finance or management needs a table of CRM report figures (amount, close date, stage, owner) refreshed on a schedule without manual copying.
+license: MIT
 metadata:
   author: zapier
   summary: "Every hour, the latest rows from your Salesforce report are written into your reporting table, so finance always sees current figures without copying them by hand."

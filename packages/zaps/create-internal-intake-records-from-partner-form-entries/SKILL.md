@@ -1,6 +1,7 @@
 ---
 name: create-internal-intake-records-from-partner-form-entries
 description: Build a Zapier Next Gen Zap that copies each new partner application from a Jotform Enterprise form into your internal intake form, so nobody rekeys it. Use when a partner channel or sales team collects applications in one Jotform and triages them in another.
+license: MIT
 metadata:
   author: zapier
   summary: "Each partner application submitted in Jotform is copied into your internal intake form automatically, so vendor triage starts without rekeying."

@@ -1,6 +1,7 @@
 ---
 name: create-contract-send-records-with-signer-contact-details
 description: Build a Zapier Next Gen Zap that adds one row per signer to a Zapier Table each time a Dropbox Sign signature request is sent, with the signer's name, email, sent time and request ID. Use when a legal, contracts or operations team wants an auditable, searchable record of every outbound signature request and who it went to.
+license: MIT
 metadata:
   author: zapier
   summary: "Every contract you send for signature gets a row per signer in your table, with their contact details and request ID, so you can search who was sent what."

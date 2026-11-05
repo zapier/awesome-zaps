@@ -1,6 +1,7 @@
 ---
 name: send-second-reminder-emails-for-upcoming-content-deadlines
 description: Build a Zapier Next Gen Zap that emails a contributor a second reminder one week before their scheduled content event, using the contributor's address and name from the event. Use when an editorial or content team tracks submissions as Google Calendar events and wants a follow-up email to go out automatically before each publication date.
+license: MIT
 metadata:
   author: zapier
   summary: "One week before a scheduled content event, the contributor named in it gets a second reminder email with the date, unless they have already submitted."

@@ -1,6 +1,7 @@
 ---
 name: aggregate-topic-videos-into-a-searchable-content-table
 description: Build a Zapier Next Gen Zap that watches YouTube for new videos matching a topic and adds each matching video as a row in a Zapier Tables content table, so the library stays searchable for tagging and editorial scheduling. Use when you curate videos on a topic and want them collected in one searchable table instead of saved by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "New YouTube videos on your topic are added to a searchable table with their title, channel, link, publish date and description, ready for tagging and scheduling."

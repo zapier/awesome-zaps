@@ -1,6 +1,7 @@
 ---
 name: nexhello-business-card-to-notion
 description: Build a Zapier Next Gen Zap that sends every business card scanned with NexHello into a Notion contacts database. A webhook catches the contact NexHello sends, the code skips the connection test and anything without a contact ID, Notion finds the row by NexHello Contact ID (or creates it), and the row is updated with name, company, job title, email, phone, LinkedIn, website, address, about this person and the original card text. Use when someone scans business cards with NexHello and wants them in Notion without duplicates.
+license: MIT
 metadata:
   author: andrewckor
   summary: "Scan a business card with NexHello and the contact lands in your Notion contacts database. Scan the same person again and the row is updated, never duplicated."

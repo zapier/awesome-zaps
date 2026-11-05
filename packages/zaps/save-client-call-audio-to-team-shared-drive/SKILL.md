@@ -1,6 +1,7 @@
 ---
 name: save-client-call-audio-to-team-shared-drive
 description: Build a Zapier Next Gen Zap that saves the audio of each new Zoom cloud recording to a team Dropbox folder, named by client, date and "AudioRecording", and logs the meeting in a Zapier Table. Use when a team records client calls on Zoom and wants the audio filed for the whole team without manual uploads.
+license: MIT
 metadata:
   author: zapier
   summary: "Each finished client call's audio is saved to the team's shared folder with the client's name and the call date, so anyone on the team can find it."

@@ -1,6 +1,7 @@
 ---
 name: send-board-meeting-prep-reminders-to-admin-stakeholders
 description: Build a Zapier Next Gen Zap that emails meeting stakeholders a reminder with the agenda and packet submission link every month, before each board meeting. Use when an executive or admin team needs board packet contributors reminded on a fixed schedule.
+license: MIT
 metadata:
   author: zapier
   summary: "Each month, stakeholders get an email reminding them to submit board packet materials, with the agenda link, so the packet is ready on time."

@@ -1,6 +1,7 @@
 ---
 name: send-infrastructure-status-updates-to-contacts-in-affected-list
 description: Build a Zapier Next Gen Zap that emails a templated infrastructure status update to each contact added to an affected-contacts list in HubSpot, after a short wait. Use when an incident hits infrastructure and support wants every affected contact told at once, without manual sends or a flood of tickets.
+license: MIT
 metadata:
   author: zapier
   summary: "When a contact is added to your affected-contacts list, they get a short infrastructure status email after a one-minute wait, so people hear from you before they open a ticket."

@@ -1,6 +1,7 @@
 ---
 name: create-ai-response-from-prompt-and-return-result
 description: Build a Zapier Next Gen Zap that another workflow can call as a sub-zap, sending it a prompt and optional instructions, waiting for ChatGPT to finish, and returning the generated text. Use when a Zap or workflow needs a model response from a prompt and should get back the finished text, not a half-done request.
+license: MIT
 metadata:
   author: zapier
   summary: "Send a prompt to ChatGPT from another Zap and get the finished answer back, checked every five minutes until it is ready."

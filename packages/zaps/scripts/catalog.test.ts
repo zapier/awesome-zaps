@@ -56,6 +56,11 @@ describe.each(zaps)("zap %s", (zap) => {
     );
   });
 
+  // npx skills add installs a SKILL.md on its own, away from the repo's LICENSE.
+  it("carries the repo's MIT license in its SKILL.md", () => {
+    expect(frontmatter(read(zap, "SKILL.md")).license).toBe("MIT");
+  });
+
   it("has the metadata.summary and metadata.apps that zapier.sh lists it by", () => {
     const fields = frontmatter(read(zap, "SKILL.md"));
     expect(fields["metadata.summary"]).toBeTruthy();

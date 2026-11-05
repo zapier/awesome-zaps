@@ -1,6 +1,7 @@
 ---
 name: set-training-status-from-updated-contact-profile-records
 description: Build a Zapier Next Gen Zap that watches a HubSpot contact's training property and writes a normalized true/false training-status flag back to that contact, so HR and compliance have a queryable status. Use when HR or compliance tracks training completion in HubSpot contact properties and wants a clean completed/not-completed flag without manual edits.
+license: MIT
 metadata:
   author: zapier
   summary: "When a contact's training status changes in HubSpot, a simple true/false flag on that contact is updated to match, so compliance can filter on it."

@@ -1,6 +1,7 @@
 ---
 name: post-model-monitoring-emails-to-data-science-channel
 description: Build a Zapier Next Gen Zap that watches a Gmail inbox for model monitoring alert emails and posts each one's subject and a short snippet to a Slack channel for the data science team. Use when model monitoring tools email alerts and the team wants them triaged in Slack without anyone forwarding them by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "When a model monitoring alert email arrives, its subject and a short snippet are posted to your data science Slack channel with a link to the original, so the team sees it right away."

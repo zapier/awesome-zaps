@@ -1,6 +1,7 @@
 ---
 name: create-knowledge-base-file-records-for-support-reference
 description: Build a Zapier Next Gen Zap that runs hourly, finds the files in a HubSpot knowledge-base folder and adds one record per file (public URL and name) to a Zapier Table, skipping files already listed. Use when a support team keeps its reference articles in HubSpot files and wants a central index table of them without copying by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "Every hour, each knowledge-base file in your HubSpot folder is listed in a central support table with its link and name, so agents can find the reference they need."

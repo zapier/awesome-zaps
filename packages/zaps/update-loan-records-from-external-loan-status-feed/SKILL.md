@@ -1,6 +1,7 @@
 ---
 name: update-loan-records-from-external-loan-status-feed
 description: Build a Zapier Next Gen Zap that takes a loan status update from an external feed by webhook, finds the matching loan in Salesforce by its external loan ID, and updates the loan's status, property, finance and date fields. Use when a loan servicer or feed pushes loan status changes and the CRM loan records should stay current without manual edits. Does not create new loans.
+license: MIT
 metadata:
   author: zapier
   summary: "When the loan servicer sends a status change, the matching loan in your CRM is updated with the new status, dates, property and finance figures, so the team sees current loan data."

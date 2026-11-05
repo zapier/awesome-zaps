@@ -1,6 +1,7 @@
 ---
 name: save-emailed-compliance-attachments-into-audit-ready-archive-folder
 description: Build a Zapier Next Gen Zap that saves each new email attachment in Outlook into a compliance archive folder in Google Drive, named by email date, sender and subject. Use when a team collects compliance evidence by email and needs it filed in an audit-ready folder without manual uploads.
+license: MIT
 metadata:
   author: zapier
   summary: "Each attachment emailed to you is saved into your compliance archive folder with a clear, dated file name, so reviewers can find evidence quickly."

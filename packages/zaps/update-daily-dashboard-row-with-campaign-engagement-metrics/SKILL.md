@@ -1,6 +1,7 @@
 ---
 name: update-daily-dashboard-row-with-campaign-engagement-metrics
 description: Build a Zapier Next Gen Zap that runs every evening, pulls the day's campaign engagement buckets (impressions, clicks, opens, conversions) from an analytics endpoint, cleans them into plain numbers and writes them into that day's existing row in a Google Sheets dashboard. Use when a marketing or project team keeps a one-row-per-day tracker sheet and wants it filled from their analytics API without copying numbers by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "Every evening, today's campaign engagement numbers are pulled from your analytics endpoint, cleaned into plain numbers and written into today's row of your dashboard sheet."

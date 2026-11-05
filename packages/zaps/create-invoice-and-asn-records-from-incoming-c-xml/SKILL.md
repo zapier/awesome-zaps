@@ -1,6 +1,7 @@
 ---
 name: create-invoice-and-asn-records-from-incoming-c-xml
 description: Build a Zapier Next Gen Zap that receives a supplier cXML packet by webhook, saves the raw XML to Google Drive, and logs each invoice or ship notice in a Zapier Table, with a Xero invoice lookup and ASN PDF generation. Use when an accounts-payable team receives supplier cXML invoices, order confirmations or ship notices and wants them filed and logged without manual entry.
+license: MIT
 metadata:
   author: zapier
   summary: "When a supplier sends a cXML invoice or ship notice, the raw file is saved to Drive and a matching row is logged in your invoice table, with ASN paperwork generated."

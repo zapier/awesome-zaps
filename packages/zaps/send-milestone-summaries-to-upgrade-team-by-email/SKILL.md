@@ -1,6 +1,7 @@
 ---
 name: send-milestone-summaries-to-upgrade-team-by-email
 description: Build a Zapier Next Gen Zap that watches a Google Calendar for customer milestone events (30, 60, 90 or 180 days) and emails a short summary to the upgrade team. Use when a customer success team tracks account milestones as calendar events and wants a concise email per milestone so upgrade or retention owners can act.
+license: MIT
 metadata:
   author: zapier
   summary: "When a customer milestone event is coming up on your calendar, your upgrade team gets a short email with the account's notes, so they can act before the milestone."

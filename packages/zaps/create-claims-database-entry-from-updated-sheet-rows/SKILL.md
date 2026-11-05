@@ -1,6 +1,7 @@
 ---
 name: create-claims-database-entry-from-updated-sheet-rows
 description: Build a Zapier Next Gen Zap that copies each updated row of an insurance claims sheet into a Zapier Table as a claim record, once per claim ID, with a link back to the row. Use when a claims or intake team tracks claims in Google Sheets and wants a structured, deduplicated claims database in Zapier Tables without manual copying.
+license: MIT
 metadata:
   author: zapier
   summary: "When a claim row in your sheet is updated, a matching claim record is added to your Zapier Table, with a link back to the row, so triage works from one clean list."

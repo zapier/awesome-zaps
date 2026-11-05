@@ -1,6 +1,7 @@
 ---
 name: create-parsed-lead-rows-from-incoming-customer-emails
 description: Build a Zapier Next Gen Zap that watches a Microsoft Outlook folder for incoming customer emails, keeps the ones that look like leads, and adds a row to a Google Sheets lead sheet with the date, a short description, the customer's note and the message ID. Use when a sales, service or dispatch team triages inbound lead emails from a shared folder and wants them logged in one sheet without copy-paste.
+license: MIT
 metadata:
   author: zapier
   summary: "Each new lead email in your Outlook folder becomes a row in your lead sheet, with the date and a short summary, so triage starts from one list."

@@ -1,6 +1,7 @@
 ---
 name: send-delivery-notices-to-carrier-for-new-deliveries
 description: Build a Zapier Next Gen Zap that emails the carrier a clear notice for each delivery event (new pickup, weight update or cancellation) received by webhook. Use when a dispatch or delivery system can POST delivery events and carriers need consistent, timely instructions by email.
+license: MIT
 metadata:
   author: zapier
   summary: "When a delivery event comes in, the carrier gets an email with the pickup date, location, address, recipient, delivery window and weight, so dispatch doesn't have to send each one by hand."

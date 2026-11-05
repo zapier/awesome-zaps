@@ -1,6 +1,7 @@
 ---
 name: send-accepted-estimates-into-billing-pipeline-for-invoicing
 description: Build a Zapier Next Gen Zap that sends an accepted QuickBooks Online estimate, with its line items, to your billing workflow so an invoice can be started. Use when estimates are accepted in QuickBooks Online and invoicing is done in a separate system that takes a webhook.
+license: MIT
 metadata:
   author: zapier
   summary: "When a customer accepts an estimate in QuickBooks, its details and line items are sent to your billing system so the invoice can be started without re-typing."

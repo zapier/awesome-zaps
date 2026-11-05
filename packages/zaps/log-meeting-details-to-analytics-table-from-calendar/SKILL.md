@@ -1,6 +1,7 @@
 ---
 name: log-meeting-details-to-analytics-table-from-calendar
 description: Build a Zapier Next Gen Zap that logs each new or updated Google Calendar event as a normalized row in a Zapier Table, with start, end, duration and attendees, skipping events already logged. Use when a team wants meeting data in an analytics table for dashboards or follow-up without copying it by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "Each new or updated calendar event becomes one tidy row in your analytics table, with start, end, length and attendees, so dashboards and follow-ups have consistent meeting data."

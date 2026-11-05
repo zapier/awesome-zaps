@@ -1,6 +1,7 @@
 ---
 name: update-case-records-with-discovery-and-bwc-statuses
 description: Build a Zapier Next Gen Zap that takes an evidence intake webhook for an e-discovery case and updates the matching Airtable case record with its Discovery and BWC statuses, timestamps and activity log, plus one KPI entry per track. Use when a litigation support team tracks discovery and body-worn camera (BWC) production status in Airtable and wants intake updates logged without manual edits.
+license: MIT
 metadata:
   author: zapier
   summary: "When an evidence intake update arrives, the matching case record in Airtable gets its Discovery and BWC statuses, timestamps and activity log, and a KPI entry is logged for each track."

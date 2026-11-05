@@ -1,6 +1,7 @@
 ---
 name: add-opportunities-from-membership-invoices-to-sales-team
 description: Build a Zapier Next Gen Zap that finds or creates a Salesforce opportunity for each paid membership invoice in Stripe, links it to the customer's contact and records the invoice amount, date and plan. Use when a business sells memberships through Stripe, keeps its pipeline in Salesforce, and wants membership revenue to show up there without manual entry.
+license: MIT
 metadata:
   author: zapier
   summary: "When a membership invoice is paid in Stripe, a matching opportunity appears in Salesforce with the amount, close date and plan, linked to the customer, so the sales team sees the revenue."

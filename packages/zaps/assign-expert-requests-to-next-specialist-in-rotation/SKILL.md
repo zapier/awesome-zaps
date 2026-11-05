@@ -1,6 +1,7 @@
 ---
 name: assign-expert-requests-to-next-specialist-in-rotation
 description: Build a Zapier Next Gen Zap that routes each new expert request email to the next specialist in a rotation table, labels the message, replies to the thread with the specialist's address, and advances the rotation. Use when a team takes requests by email and wants them handed out in turn, with each handoff logged in a Zapier Table.
+license: MIT
 metadata:
   author: zapier
   summary: "Each new expert request is routed to the next specialist in your rotation, who gets the reply, and the rotation table moves on so requests are shared out in turn."

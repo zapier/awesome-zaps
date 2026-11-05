@@ -1,6 +1,7 @@
 ---
 name: email-new-paid-social-candidate-leads-to-recruiters
 description: Build a Zapier Next Gen Zap that logs each new Facebook Lead Ads candidate to a recruiting spreadsheet and emails the recruiters a short summary with a link to the sheet. Use when paid social or web form candidate leads arrive in Facebook Lead Ads and recruiters want each one logged for tracking and alerted by email without manual copying.
+license: MIT
 metadata:
   author: zapier
   summary: "Each new candidate who answers your Facebook lead form is added to a tracking sheet and your recruiters get an email with their details and a link to the sheet."

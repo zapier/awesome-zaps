@@ -1,6 +1,7 @@
 ---
 name: log-legal-entries-from-new-spreadsheet-rows-automatically
 description: Use when a legal or compliance team keeps intake rows in a Microsoft Excel table and wants each new row copied into a Zapier Table of legal entries, with the title, submission ID, notes and priority mapped across. Skips rows missing a title or submission ID.
+license: MIT
 metadata:
   author: zapier
   summary: "Each new row added to your Excel intake table becomes a legal entry record in a Zapier Table, so compliance staff work from one source of truth."

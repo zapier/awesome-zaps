@@ -1,6 +1,7 @@
 ---
 name: update-strategic-plan-records-from-daily-okr-snapshot
 description: Use when an executive or strategy team keeps OKR goals in an external system and wants the Strategic Plan records in Salesforce refreshed every day, so roadmap owners see current progress without manual edits. Matches each goal to its record by external OKR ID, updates it, and creates it when no match exists.
+license: MIT
 metadata:
   author: zapier
   summary: "Every morning, each OKR goal is copied into its Strategic Plan record in Salesforce, so roadmap owners always see current progress."

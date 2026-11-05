@@ -1,6 +1,7 @@
 ---
 name: add-new-uploaded-videos-to-content-planning-sheet
 description: Build a Zapier Next Gen Zap that logs each new video dropped into a staging folder as a row in a content planning sheet, with its file name, upload time and link. Use when a marketing or content team uploads social videos to a shared folder and wants them listed in a planning sheet for scheduling and approval without manual entry.
+license: MIT
 metadata:
   author: zapier
   summary: "When a video lands in your staging folder, it's added as a row in your content planning sheet, with its name, upload time and link, so the team can schedule and approve it."

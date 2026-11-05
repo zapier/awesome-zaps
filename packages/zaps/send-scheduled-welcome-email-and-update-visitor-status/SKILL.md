@@ -1,6 +1,7 @@
 ---
 name: send-scheduled-welcome-email-and-update-visitor-status
 description: Use when a Zapier Table tracks website visitors or new customers through onboarding and each one should get a welcome email automatically once they reach a milestone, then move to the next stage. Sends from Gmail and writes the send time back to the record.
+license: MIT
 metadata:
   author: zapier
   summary: "When a visitor reaches the milestone you set in your table, they get a welcome email and their row moves to the next stage, with the send time recorded."

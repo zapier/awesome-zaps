@@ -1,6 +1,7 @@
 ---
 name: create-structured-meeting-records-in-your-tracking-sheet
 description: Build a Zapier Next Gen Zap that appends a normalized meeting record to a Google Sheets tracker each time a Google Calendar event is created or updated. Use when a team keeps a central sheet of meetings for reporting and wants every event captured in a consistent row without manual entry.
+license: MIT
 metadata:
   author: zapier
   summary: "Every time a calendar event is created or updated, a clean row with its title, organizer, start time and attendees goes into your tracking sheet."

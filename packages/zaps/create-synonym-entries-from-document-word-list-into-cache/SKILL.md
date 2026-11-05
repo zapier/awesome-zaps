@@ -1,6 +1,7 @@
 ---
 name: create-synonym-entries-from-document-word-list-into-cache
 description: Build a Zapier Next Gen Zap that reads a new word-list document from a Google Drive folder, looks up synonyms for each term in a thesaurus, and writes one entry per new term into a Zapier Table. Use when a content or SEO team keeps a word list in Google Docs and wants a shared, de-duplicated table of terms and synonyms without copying by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "When a new word-list document lands in your folder, each term is looked up for synonyms and saved to a shared table once, so the team has one up-to-date list."

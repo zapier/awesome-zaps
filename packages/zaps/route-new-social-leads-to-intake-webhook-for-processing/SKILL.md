@@ -1,6 +1,7 @@
 ---
 name: route-new-social-leads-to-intake-webhook-for-processing
 description: Build a Zapier Next Gen Zap that sends each new Facebook Lead Ads submission as normalized JSON to your intake endpoint. Use when social lead forms need to reach an internal intake or qualification system immediately, without manual copying.
+license: MIT
 metadata:
   author: zapier
   summary: "Each new Facebook lead form submission is posted as clean JSON to your intake system, so leads are processed the moment they arrive."

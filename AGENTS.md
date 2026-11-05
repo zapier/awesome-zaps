@@ -139,9 +139,9 @@ Common causes:
 
 ## Where everything else lives
 
-| Document                           | What it covers                                |
-| ---------------------------------- | --------------------------------------------- |
-| [README.md](README.md)             | What the repo is, layout, and getting started |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | The quality bar, sign-off, and adding a zap   |
-| [docs/TESTING.md](docs/TESTING.md) | Testing a zap against Zapier                  |
-| [docs/DEPLOY.md](docs/DEPLOY.md)   | Deploy expectations                           |
+| Document                           | What it covers                                     |
+| ---------------------------------- | -------------------------------------------------- |
+| [README.md](README.md)             | What the repo is, layout, and getting started      |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | The quality bar, who contributes, and adding a zap |
+| [docs/TESTING.md](docs/TESTING.md) | Testing a zap against Zapier                       |
+| [docs/DEPLOY.md](docs/DEPLOY.md)   | Deploy expectations                                |

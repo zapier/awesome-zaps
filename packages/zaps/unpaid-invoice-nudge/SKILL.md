@@ -1,6 +1,7 @@
 ---
 name: unpaid-invoice-nudge
 description: Build a Zapier Next Gen Zap that follows up on every new invoice. 3 days after the due date, if it's still unpaid, AI writes a short, polite reminder in the owner's voice and Gmail sends it to the customer. On day 7, if it's still unpaid, SMS by Zapier texts the owner who owes what. Use when a service business owner wants invoices chased without doing it by hand. Works with QuickBooks Online, or any billing tool that can send a webhook.
+license: MIT
 metadata:
   author: andrewckor
   summary: "Three days after an invoice is due, the customer gets a friendly reminder in your voice. Still unpaid on day 7, you get a text."

@@ -1,6 +1,7 @@
 ---
 name: create-it-ticket-for-updated-website-asset-record
 description: Build a Zapier Next Gen Zap that creates an IT ticket in Airtable when a website asset row is created or updated, skipping assets that already have a ticket. Use when a team tracks website assets in Airtable and wants engineers to get a ticket with the asset's context as soon as the record changes.
+license: MIT
 metadata:
   author: zapier
   summary: "When a website asset record changes, an IT ticket is created for it with the asset's details, so engineers can act right away."

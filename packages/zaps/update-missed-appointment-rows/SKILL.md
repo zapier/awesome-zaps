@@ -1,6 +1,7 @@
 ---
 name: update-missed-appointment-rows
 description: Build a Zapier Next Gen Zap that marks an attendee as a no-show in a Google Sheets tracker when an absence notice arrives by webhook, with a timestamp and a note on where the notice came from. Use when a school, clinic or service business tracks attendance or appointments in a sheet and wants missed ones logged without manual edits.
+license: MIT
 metadata:
   author: zapier
   summary: "When an absence notice comes in, the attendee's row in your tracking sheet is marked as a no-show, timestamped and noted, so coordinators see it right away."

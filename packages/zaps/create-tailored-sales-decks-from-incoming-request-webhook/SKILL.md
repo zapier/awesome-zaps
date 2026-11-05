@@ -1,6 +1,7 @@
 ---
 name: create-tailored-sales-decks-from-incoming-request-webhook
 description: Build a Zapier Next Gen Zap that turns an incoming sales request into a branded Google Slides deck, filled from the request and the matching account record in Zapier Tables. Use when a sales team wants a tailored proposal or pitch deck generated automatically from a form, CRM or script submission, with duplicate requests skipped.
+license: MIT
 metadata:
   author: zapier
   summary: "When a sales request comes in, a tailored deck is built from a template with the client's details and saved for the deal team, and repeat requests are skipped."

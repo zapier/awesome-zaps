@@ -1,6 +1,7 @@
 ---
 name: create-due-diligence-review-list-with-templated-tasks
 description: Build a Zapier Next Gen Zap that turns an incoming review request into a dated ClickUp list from your due-diligence template, sets task due dates and custom fields, and assigns the requestor. Use when a corporate development or deal team starts a due-diligence review and wants the ClickUp list and its tasks set up from a webhook instead of by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "When a due-diligence review request comes in, a new ClickUp list is created from your template, its tasks get the review dates, custom fields and requestor, so the deal team can start right away."

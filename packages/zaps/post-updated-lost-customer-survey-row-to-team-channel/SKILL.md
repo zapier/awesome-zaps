@@ -1,6 +1,7 @@
 ---
 name: post-updated-lost-customer-survey-row-to-team-channel
 description: Build a Zapier Next Gen Zap that posts a completed lost-customer survey row from a Google Sheets tracker into a team Slack channel, then marks the row as notified so it is announced once. Use when a team collects lost-customer survey responses in a sheet and wants stakeholders to see and triage each completed response in chat as it arrives or changes.
+license: MIT
 metadata:
   author: zapier
   summary: "When a lost-customer survey row is completed in your tracking sheet, a summary lands in your team channel with a link back to the row, so stakeholders can triage and assign follow-up right away."

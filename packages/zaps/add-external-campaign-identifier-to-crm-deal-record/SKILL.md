@@ -1,6 +1,7 @@
 ---
 name: add-external-campaign-identifier-to-crm-deal-record
 description: Build a Zapier Next Gen Zap that writes an external campaign or tracking ID onto the matching Pipedrive deal when a marketing or lead system posts it by webhook, so attribution survives into sales. Use when marketing tools, landing pages or ad platforms send campaign IDs and sales needs them on the deal record.
+license: MIT
 metadata:
   author: zapier
   summary: "When a marketing system posts a campaign ID for a deal, that ID is saved on the deal in Pipedrive, so sales can see where the deal came from."

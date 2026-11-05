@@ -1,6 +1,7 @@
 ---
 name: update-asset-records-from-inventory-changes-for-it-teams
 description: Build a Zapier Next Gen Zap that keeps a central IT asset database in step with an inventory database in Notion. Use when devices are tracked in one Notion database (serial, model, warranty, owner, status) and IT wants a single asset register updated whenever an inventory item changes, without copying by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "When a device's record in your inventory changes, its matching asset record in your central Notion database is found, or created if missing, and updated with the latest details."

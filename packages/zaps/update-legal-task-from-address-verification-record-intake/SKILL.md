@@ -1,6 +1,7 @@
 ---
 name: update-legal-task-from-address-verification-record-intake
 description: Build a Zapier Next Gen Zap that adds address verification results to an existing ClickUp legal task when a new row lands in a Zapier Tables intake table. Use when a legal or operations team records address checks in a Zapier table and wants the matching ClickUp task updated without copying data by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "When an address verification record is added to your intake table, the matching ClickUp legal task is looked up and updated, so the case team sees the result without re-entering it."

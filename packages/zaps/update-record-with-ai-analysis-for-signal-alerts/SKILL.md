@@ -1,6 +1,7 @@
 ---
 name: update-record-with-ai-analysis-for-signal-alerts
 description: Build a Zapier Next Gen Zap that, when a new signal-alert record is added to a Zapier Table, fetches recent price and volume data, has an AI model review the record's strategy text against that data, and writes a verdict and reasoning back to the same record. Use when a trading, monitoring or alerting team triages signals in a table and wants an AI first-pass review on every new alert without manual lookups.
+license: MIT
 metadata:
   author: zapier
   summary: "When a new signal alert lands in your table, an AI reviews it against your strategy and recent market data and writes a verdict onto the same record, ready for triage."

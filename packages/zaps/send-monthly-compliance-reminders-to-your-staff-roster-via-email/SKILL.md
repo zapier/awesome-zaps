@@ -1,6 +1,7 @@
 ---
 name: send-monthly-compliance-reminders-to-your-staff-roster-via-email
 description: Build a Zapier Next Gen Zap that emails a monthly policy compliance reminder, with the policy file links attached, to everyone on a staff roster kept in Google Sheets. Use when HR needs a recurring reminder sent to all staff on a schedule, with confirmations collected before a monthly deadline.
+license: MIT
 metadata:
   author: zapier
   summary: "On the first of each month, every person on your staff roster gets the compliance reminder with the policy files attached, so HR can collect confirmations before the deadline."

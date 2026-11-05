@@ -1,6 +1,7 @@
 ---
 name: reply-to-new-public-reviews-with-brief-responses
 description: Build a Zapier Next Gen Zap that posts a short, friendly public reply to each new Google Business Profile review. Use when a local business wants every new review answered quickly with a templated thank-you, without writing each reply by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "Each new Google review gets a short, friendly public reply posted under it, so reviewers hear back without you writing every response."

@@ -1,6 +1,7 @@
 ---
 name: update-chatbot-faq-records-from-edited-sheet-rows
 description: Build a Zapier Next Gen Zap that pushes edits from a master FAQ Google Sheet into a Zapier Table, matching records by question text, updating the answer and version when they change and creating a record when the question is new. Use when a support team keeps FAQ answers in a sheet and wants the table their chatbot or help center reads from to stay current without copy-pasting.
+license: MIT
 metadata:
   author: zapier
   summary: "When someone edits an answer in your FAQ sheet, the matching record in your Zapier Table is updated (or created if the question is new), so your chatbot always uses the latest answer."

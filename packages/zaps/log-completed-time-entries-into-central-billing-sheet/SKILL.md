@@ -1,6 +1,7 @@
 ---
 name: log-completed-time-entries-into-central-billing-sheet
 description: Build a Zapier Next Gen Zap that appends each stopped time entry as one row in a central billing spreadsheet, skipping internal projects, non-billable categories and entries already logged. Use when a professional services or consulting team tracks time in a time-tracking tool and wants same-day billing rows in one Google Sheet without copying by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "Each completed time entry becomes one row in your central billing sheet the same day, with the date, hours and project filled in, and duplicates or internal time left out."

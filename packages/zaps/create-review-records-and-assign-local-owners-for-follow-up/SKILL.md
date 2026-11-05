@@ -1,6 +1,7 @@
 ---
 name: create-review-records-and-assign-local-owners-for-follow-up
 description: Build a Zapier Next Gen Zap that writes each new Google Business Profile review into a Zapier Table, one row per review, and updates the row if the same review arrives again. Use when a business or agency collects public reviews for one or more locations and wants them in a shared table for triage and reporting.
+license: MIT
 metadata:
   author: zapier
   summary: "Every new Google review is saved as a row in your review table, so your team can follow up on it from one place."

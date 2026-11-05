@@ -1,6 +1,7 @@
 ---
 name: attach-new-design-files-to-matching-project-card
 description: Build a Zapier Next Gen Zap that watches a Dropbox folder and attaches each new design file to the Trello card whose name matches the filename exactly. Use when a design or CAD team drops files into a shared Dropbox folder and wants them on the matching Trello project card for review and handoff without manual uploads.
+license: MIT
 metadata:
   author: zapier
   summary: "When a design file lands in your shared Dropbox folder, it is attached to the Trello card with the same name, so reviewers find it on the card."

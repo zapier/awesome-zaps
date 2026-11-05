@@ -1,6 +1,7 @@
 ---
 name: add-training-program-link-to-new-person-records
 description: Build a Zapier Next Gen Zap that, when a new Pipedrive person has a training or program reference, looks up the matching program in a Zapier Table and writes its link back to the person's record. Use when an HR or Talent Ops team keeps training programs in a Zapier Table and wants each new hire's Pipedrive record to get the right program link automatically.
+license: MIT
 metadata:
   author: zapier
   summary: "When a new person is added to Pipedrive with a training reference, the matching program link from your training table is copied onto their record, so no one has to look it up by hand."

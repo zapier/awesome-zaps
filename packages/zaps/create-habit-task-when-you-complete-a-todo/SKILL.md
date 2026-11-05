@@ -1,6 +1,7 @@
 ---
 name: create-habit-task-when-you-complete-a-todo
 description: Build a Zapier Next Gen Zap that, each time a Todoist task is completed, creates a matching habit task in your habit tracker and scores it, so streaks and reward points stay current. Use when you track habits or rewards in a habit-tracking app or API and want finished to-dos to count without manual entry.
+license: MIT
 metadata:
   author: zapier
   summary: "When you finish a to-do in Todoist, a matching habit task is created in your habit tracker and scored, so your streaks and points update on their own."

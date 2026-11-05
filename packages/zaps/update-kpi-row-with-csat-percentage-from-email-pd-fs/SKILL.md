@@ -1,6 +1,7 @@
 ---
 name: update-kpi-row-with-csat-percentage-from-email-pd-fs
 description: Build a Zapier Next Gen Zap that reads the first percentage out of a PDF attached to an incoming Outlook email and writes it into the matching row of an executive KPI workbook in Excel. Use when a team emails a PDF report (for example a customer satisfaction or CSAT summary) and wants its headline percentage logged into a KPI sheet without manual edits.
+license: MIT
 metadata:
   author: zapier
   summary: "When a PDF report arrives by email, its headline percentage is copied into the matching KPI row of your executive workbook, so the dashboard numbers stay current."

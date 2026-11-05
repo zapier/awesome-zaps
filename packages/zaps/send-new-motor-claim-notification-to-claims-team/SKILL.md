@@ -1,6 +1,7 @@
 ---
 name: send-new-motor-claim-notification-to-claims-team
 description: Build a Zapier Next Gen Zap that emails the claims team a formatted notification whenever a new motor claim is added to a Zapier Table, with dates, expiry alerts and any attachments. Use when a motor insurance or claims business logs claims in a Zapier Table and wants each new one sent to the claims inbox for triage.
+license: MIT
 metadata:
   author: zapier
   summary: "When a new motor claim lands in your claims table, the claims team gets one email with the claimant's details, formatted dates, any expiry problems and the attachments."

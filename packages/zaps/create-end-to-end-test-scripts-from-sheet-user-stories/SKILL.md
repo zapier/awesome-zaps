@@ -1,6 +1,7 @@
 ---
 name: create-end-to-end-test-scripts-from-sheet-user-stories
 description: Build a Zapier Next Gen Zap that reads a changed user story row in a Google Sheet, asks ChatGPT for structured test cases and a runnable TypeScript end-to-end test script, and writes both back to an output tab for QA review. Use when a QA or product team keeps user stories in a sheet and wants test cases and scripts generated for each story without copy and paste.
+license: MIT
 metadata:
   author: zapier
   summary: "When a user story in your sheet is added or changed, its test cases and an end-to-end test script are generated and saved to a review tab, so QA can pick them up."

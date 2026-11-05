@@ -1,6 +1,7 @@
 ---
 name: apply-splits-on-copyright-change-for-song-entries
 description: Build a Zapier Next Gen Zap that recalculates and writes split percentages on a song item in a monday.com board whenever its copyright or allocation column changes, based on how many co-writers the song has. Use when a music publisher, label or songwriting team tracks royalty splits in monday.com and wants them recalculated without manual edits.
+license: MIT
 metadata:
   author: zapier
   summary: "When a song's copyright allocation changes in your monday.com board, the split percentages for each co-writer are recalculated and written back to the item."

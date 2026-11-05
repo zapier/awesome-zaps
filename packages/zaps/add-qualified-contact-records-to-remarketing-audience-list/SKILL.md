@@ -1,6 +1,7 @@
 ---
 name: add-qualified-contact-records-to-remarketing-audience-list
 description: Build a Zapier Next Gen Zap that adds a contact to a Google Ads customer list when a qualifying row is added to a Zapier Table, normalizing the email and carrying the consent flag. Use when a team qualifies contacts in a table or sheet and wants them pushed into a Google Ads remarketing audience without manual uploads.
+license: MIT
 metadata:
   author: zapier
   summary: "When a new client row reaches a qualifying case status, that contact is added to your Google Ads remarketing list so you can reach them with timely ads."

@@ -1,6 +1,7 @@
 ---
 name: update-churn-record-from-cancellation-flow-for-success-ops
 description: Build a Zapier Next Gen Zap that takes a cancellation or retention flow session from a webhook, waits two hours for late edits, then updates the client's row in a churn tracking sheet, or adds one if none exists. Use when a success or retention team keeps churn context in a Google Sheet and wants each cancellation flow's answers and subscription details written there automatically.
+license: MIT
 metadata:
   author: zapier
   summary: "When a customer finishes a cancellation flow, their row in your churn sheet is updated with the answers and plan details, so success teams see why they left."

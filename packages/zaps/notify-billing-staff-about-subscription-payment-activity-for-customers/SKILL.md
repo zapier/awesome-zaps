@@ -1,6 +1,7 @@
 ---
 name: notify-billing-staff-about-subscription-payment-activity-for-customers
 description: Build a Zapier Next Gen Zap that emails billing staff a short alert whenever a Stripe customer subscription changes, so finance can reconcile and respond the same day. Use when a finance or billing team needs to hear about subscription and payment activity as it happens instead of checking Stripe by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "Whenever a customer's subscription changes in Stripe, billing staff get an email with the customer, the new status and the latest invoice, so they can act the same day."

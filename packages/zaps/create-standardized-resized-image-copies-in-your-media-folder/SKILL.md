@@ -1,6 +1,7 @@
 ---
 name: create-standardized-resized-image-copies-in-your-media-folder
 description: Build a Zapier Next Gen Zap that runs hourly, finds new image files in a source Google Drive folder, and writes a copy of each into a destination folder with a size-specific filename, such as photo-1080x1080.jpg. Use when a content team keeps originals in one Drive folder and needs standardized, size-named copies ready in another without manual renaming.
+license: MIT
 metadata:
   author: zapier
   summary: "Each hour, new images in your source folder get a size-named copy in your media folder, so content teams find standardized files without renaming anything."

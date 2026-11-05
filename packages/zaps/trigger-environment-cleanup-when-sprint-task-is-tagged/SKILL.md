@@ -1,6 +1,7 @@
 ---
 name: trigger-environment-cleanup-when-sprint-task-is-tagged
 description: Build a Zapier Next Gen Zap that sends a teardown request to your removal API when a teardown tag is added to a sprint task in an Asana project, so ephemeral environments are reclaimed without manual steps. Use when a team creates per-task environments and wants them removed by tagging the task.
+license: MIT
 metadata:
   author: zapier
   summary: "When a teardown tag is added to a sprint task, your removal API gets the task's ID and title, so the environment for that task is reclaimed without anyone doing it by hand."

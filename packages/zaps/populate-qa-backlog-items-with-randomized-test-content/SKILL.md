@@ -1,6 +1,7 @@
 ---
 name: populate-qa-backlog-items-with-randomized-test-content
 description: Build a Zapier Next Gen Zap that seeds a Notion QA backlog item with a random test case from a Google Sheets content library, matched on the item's category, whenever the item's properties change. Use when a QA or engineering team tracks test work in a Notion database and keeps reusable test cases or test data in a sheet.
+license: MIT
 metadata:
   author: zapier
   summary: "When a QA backlog item in Notion gets or changes its category, a random matching test case from your spreadsheet is written into it, so testers start with a seeded case."

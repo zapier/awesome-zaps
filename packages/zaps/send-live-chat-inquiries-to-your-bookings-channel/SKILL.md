@@ -1,6 +1,7 @@
 ---
 name: send-live-chat-inquiries-to-your-bookings-channel
 description: Build a Zapier Next Gen Zap that posts new website live chat messages from external contacts into your team's Slack bookings channel, with the sender, a message preview and a link to the conversation. Use when a website live chat or chatbot sends messages to a webhook and coordinators want each inquiry in Slack as it arrives.
+license: MIT
 metadata:
   author: zapier
   summary: "When a visitor sends a live chat message, your bookings channel gets a short alert with who wrote, what they said and a link to the conversation, so coordinators can reply fast."

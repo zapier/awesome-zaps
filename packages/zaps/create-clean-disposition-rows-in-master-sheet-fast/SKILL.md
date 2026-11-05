@@ -1,6 +1,7 @@
 ---
 name: create-clean-disposition-rows-in-master-sheet-fast
 description: Build a Zapier Next Gen Zap that watches a campaign spreadsheet for updated disposition text, normalizes it to one of a fixed set of labels with AI, and appends a clean row to a master sheet. Use when campaign or call-log sheets record freeform outcomes ("call back Tuesday", "not interested") and reporting or fulfillment needs one consistent label per record in a central sheet.
+license: MIT
 metadata:
   author: zapier
   summary: "When a campaign sheet's disposition is updated, a cleaned row with one standard label goes into your master sheet, and anything unclear is marked for review."

@@ -1,6 +1,7 @@
 ---
 name: generate-social-caption-and-1080-image-for-posts
 description: Use when a content idea row in a Zapier Table should become a publish-ready social post. Writes a short caption and hashtags, generates a 1080x1080 colorful image, and saves both back to the same row for review. Good for social teams that keep post ideas in a table and want the assets ready without manual copywriting or design work.
+license: MIT
 metadata:
   author: zapier
   summary: "When a content idea goes into your table, its row gets a caption, hashtags and a square image, and is marked publish-ready for review."

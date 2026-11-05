@@ -1,6 +1,7 @@
 ---
 name: create-delay-log-for-deals-entering-document-delay-stage
 description: Build a Zapier Next Gen Zap that logs a row in a Zapier Table each time a Pipedrive deal moves into the document delay stage, so the team can triage and resolve paperwork holds. Use when a sales team tracks deals stuck on documents and wants every entry into that stage recorded in one place without manual logging.
+license: MIT
 metadata:
   author: zapier
   summary: "When a deal moves into the document delay stage, a row is added to your delay log with the deal, the time and an open triage flag, so nothing stuck on paperwork goes unnoticed."

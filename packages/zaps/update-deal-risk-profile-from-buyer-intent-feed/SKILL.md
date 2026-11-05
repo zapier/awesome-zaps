@@ -1,6 +1,7 @@
 ---
 name: update-deal-risk-profile-from-buyer-intent-feed
 description: Build a Zapier Next Gen Zap that takes a buyer-intent signal arriving by webhook, finds the matching lead in Close by email, and writes the signals and notes into that lead's deal risk custom object, creating the record if it doesn't exist yet. Use when a sales team wants prioritized risk context on each lead as intent signals come in, and tracks deal risk in Close custom objects.
+license: MIT
 metadata:
   author: zapier
   summary: "When a buyer-intent signal comes in, the matching Close lead's deal risk record is updated with the signals and notes, so sales sees the risk context right away."

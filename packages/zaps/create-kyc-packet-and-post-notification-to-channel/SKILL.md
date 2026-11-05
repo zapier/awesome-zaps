@@ -1,6 +1,7 @@
 ---
 name: create-kyc-packet-and-post-notification-to-channel
 description: Build a Zapier Next Gen Zap that takes a fund's document request by webhook, creates a KYC packet from the Google Docs template for its entity type in your compliance folder, and posts a link to the packet in a Slack channel for portfolio ops and compliance. Use when a fund-onboarding or compliance team generates KYC/AML packets by hand and wants the packet and the reviewer alert created together.
+license: MIT
 metadata:
   author: zapier
   summary: "When a fund's document request comes in, a KYC packet is created from the right template in your compliance folder and the reviewers get a Slack message with the link."

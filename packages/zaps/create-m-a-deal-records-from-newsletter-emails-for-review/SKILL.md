@@ -1,6 +1,7 @@
 ---
 name: create-m-a-deal-records-from-newsletter-emails-for-review
 description: Build a Zapier Next Gen Zap that reads each incoming M&A newsletter email, creates one deal record per deal mentioned in a Zapier Table, and posts a summary to a team Slack channel for review. Use when a corporate development, strategy or research team receives deal newsletters and wants the M&A mentions logged without retyping them.
+license: MIT
 metadata:
   author: zapier
   summary: "When a deal newsletter arrives, each M&A deal it mentions becomes a row in your deal table, and the team gets a short Slack summary to review."
