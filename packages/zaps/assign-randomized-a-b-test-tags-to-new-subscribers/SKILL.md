@@ -1,6 +1,7 @@
 ---
 name: assign-randomized-a-b-test-tags-to-new-subscribers
 description: Build a Zapier Next Gen Zap that randomly sorts each new Kit subscriber into an A or B group by tagging them, so welcome sequences can run valid split tests. Use when a creator or marketer runs email A/B tests in Kit and wants an even, automatic 50/50 split without assigning people by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "Each new subscriber is randomly placed in group A or group B with a tag, so your welcome emails can be split-tested without manual sorting."

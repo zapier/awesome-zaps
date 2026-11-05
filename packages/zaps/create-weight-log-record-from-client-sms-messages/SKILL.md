@@ -1,6 +1,7 @@
 ---
 name: create-weight-log-record-from-client-sms-messages
 description: Build a Zapier Next Gen Zap that logs each weight a client texts to your business phone number as a new row in a Zapier Table, timestamped with the sender's number and the original message, then texts the client back a confirmation with the logged weight. Use when a coach, clinic or wellness program collects weigh-ins by SMS and wants them in one central table without manual entry.
+license: MIT
 metadata:
   author: zapier
   summary: "When a client texts in their weight, it's logged as a timestamped row in your central table and they get a short text back confirming it."

@@ -1,6 +1,7 @@
 ---
 name: move-processed-insight-cards-into-the-insights-list
 description: Build a Zapier Next Gen Zap that takes a list of processed insight items by webhook and moves each referenced Trello card into the product insights list, one card at a time. Use when a product or research team triages insights as Trello cards and wants processed ones moved into the insights list without manual drags.
+license: MIT
 metadata:
   author: zapier
   summary: "When a batch of processed insights comes in, each matching Trello card is moved into your insights list, one at a time, so triage starts from one place."

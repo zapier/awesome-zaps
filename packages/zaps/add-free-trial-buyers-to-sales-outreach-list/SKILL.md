@@ -1,6 +1,7 @@
 ---
 name: add-free-trial-buyers-to-sales-outreach-list
 description: Build a Zapier Next Gen Zap that takes each new free-trial signup from an ActiveCampaign automation webhook, creates or updates the contact, adds them to your sales outreach list and tags them as a trial buyer. Use when a sales team wants trial signups to enter an outreach list the moment they arrive, without anyone copying contacts by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "Every new free-trial signup is added to your sales outreach list automatically, so the sales team can start reaching out straight away."

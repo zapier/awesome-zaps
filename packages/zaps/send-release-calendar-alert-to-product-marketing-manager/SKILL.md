@@ -1,6 +1,7 @@
 ---
 name: send-release-calendar-alert-to-product-marketing-manager
 description: Build a Zapier Next Gen Zap that sends the event owner a Slack direct message with the time and link when a release event is added to a Google Calendar. Use when a product team plans launches on a shared calendar and wants the product marketing owner alerted quickly enough to start launch comms.
+license: MIT
 metadata:
   author: zapier
   summary: "When a release goes on the calendar, the owner gets a Slack message with the title, time and link so launch comms can start right away."

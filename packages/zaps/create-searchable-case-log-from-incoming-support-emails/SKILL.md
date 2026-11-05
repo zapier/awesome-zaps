@@ -1,6 +1,7 @@
 ---
 name: create-searchable-case-log-from-incoming-support-emails
 description: Build a Zapier Next Gen Zap that logs every new support email in Gmail as a row in a Google Sheets case log, with sender, subject, snippet, attachment flag, timestamp and a case reference number pulled from the subject or body. Use when a support team works from a shared inbox and wants a searchable log of incoming cases without copying emails by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "Every new support email gets its own row in a Google Sheet, with the sender, subject, a short summary and any order or ticket number it mentions, so the team can search and triage cases in one place."

@@ -1,6 +1,7 @@
 ---
 name: send-templated-meeting-reply-sms-to-client-texts
 description: Use when a business texts clients to confirm or reschedule meetings and wants the matching reply sent automatically when a client answers with a reply code. Sends a templated meeting reply by SMS from a Quo number, with the template text looked up in a Zapier Table.
+license: MIT
 metadata:
   author: zapier
   summary: "When a client texts back a reply code, they get the matching meeting reply by SMS straight away, so scheduling needs no manual follow-up."

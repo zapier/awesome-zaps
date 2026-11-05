@@ -1,6 +1,7 @@
 ---
 name: update-support-ticket-when-call-ends-with-details
 description: Build a Zapier Next Gen Zap that, when a call ends, finds the call's support ticket through a Zapier Tables Calls record and adds the call status, timestamps, recording link and summary to the HubSpot ticket as a note, then deletes the temporary Calls record. Use when a call center or support team logs call-end data from a telephony system and wants tickets enriched without manual lookups.
+license: MIT
 metadata:
   author: zapier
   summary: "When a call ends, its support ticket gets the call status, times, recording link and a note, so coordinators can triage without looking anything up."

@@ -1,6 +1,7 @@
 ---
 name: create-crm-lead-and-open-deal-from-booking
 description: Build a Zapier Next Gen Zap that adds a Calendly booking attendee to Pipedrive as a person and opens a deal for them in the incoming stage, owned by the configured user. Use when a coaching, consulting or sales call is booked through Calendly and the sales team wants each attendee in the CRM with an open deal to follow up on.
+license: MIT
 metadata:
   author: zapier
   summary: "When someone books a call through Calendly, they are added to your Pipedrive as a contact and an open deal is created for your rep to follow up on."

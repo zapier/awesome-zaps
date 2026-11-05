@@ -1,6 +1,7 @@
 ---
 name: assign-on-call-contact-from-next-calendar-event-to-roster
 description: Build a Zapier Next Gen Zap that, shortly before a rotation event starts on Google Calendar, writes the on-call contact for that shift into the event description. Use when an engineering team keeps on-call rotations as calendar events and wants the person responsible shown on the event before the shift.
+license: MIT
 metadata:
   author: zapier
   summary: "Shortly before an on-call shift starts, the calendar event is updated with the responder's contact, so coordinators see who is on call without opening a roster."

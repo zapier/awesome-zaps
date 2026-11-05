@@ -1,6 +1,7 @@
 ---
 name: attach-time-tracking-i-ds-to-employee-records-for-payroll
 description: Build a Zapier Next Gen Zap that adds an incoming time-tracking ID to the matching employee's linking field in Airtable, so payroll and HR can reconcile timesheets. Use when a time-tracking tool sends a list of entries (record ID, email, full name) and each one should be attached to the employee in your HR table, without overwriting existing links.
+license: MIT
 metadata:
   author: zapier
   summary: "When time-tracking entries arrive, each one is attached to the matching employee record, so payroll can reconcile timesheets without manual lookups."

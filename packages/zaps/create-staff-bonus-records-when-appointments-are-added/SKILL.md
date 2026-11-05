@@ -1,6 +1,7 @@
 ---
 name: create-staff-bonus-records-when-appointments-are-added
 description: Build a Zapier Next Gen Zap that logs a Staff Account Transaction in Salesforce with a tiered bonus whenever a qualifying Appointment record is created, finding (or creating) the staff record it belongs to. Use when a clinic, salon or service business tracks appointments in Salesforce and pays staff a per-appointment bonus through payroll.
+license: MIT
 metadata:
   author: zapier
   summary: "When a new appointment is added in Salesforce, a bonus transaction for the staff member is logged automatically, so payroll is ready to process."

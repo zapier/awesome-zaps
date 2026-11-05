@@ -1,6 +1,7 @@
 ---
 name: update-daily-currency-rates-across-your-finance-records
 description: Build a Zapier Next Gen Zap that pulls daily exchange rates and writes them to one Notion rate record, so finance and billing read rates from one place. Use when a team keeps currency rates by hand or wants one authoritative FX record refreshed on a schedule.
+license: MIT
 metadata:
   author: zapier
   summary: "Every hour, the latest exchange rates are fetched and written to one Notion record, so everyone reads the same numbers."

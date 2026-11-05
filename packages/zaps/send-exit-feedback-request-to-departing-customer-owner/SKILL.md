@@ -1,6 +1,7 @@
 ---
 name: send-exit-feedback-request-to-departing-customer-owner
 description: Build a Zapier Next Gen Zap that sends a personalized exit-feedback email to a customer as soon as their cancellation arrives by webhook, copying your retention inbox if you want. Use when a subscription or membership business wants to ask why a customer left, right away, without someone writing the email by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "When a membership cancellation comes in, the departing customer gets a short, personal email asking what could have been better, with a link to your feedback form."

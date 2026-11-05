@@ -1,6 +1,7 @@
 ---
 name: create-new-e-store-user-and-assign-access-roles
 description: Build a Zapier Next Gen Zap that, when a new user intake item appears on a monday.com board, creates the customer record in your e-store platform, assigns the role chosen on the intake form, and emails the new user a temporary password and a role-specific quick start link. Use when a store or customer platform gets its users from intake forms and you want account creation, role assignment and the welcome email to happen without manual steps.
+license: MIT
 metadata:
   author: zapier
   summary: "When a new intake item lands on your board, the customer's store account is created, given the right role, and the new user gets a welcome email with a temporary password."

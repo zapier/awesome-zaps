@@ -1,6 +1,7 @@
 ---
 name: add-new-member-to-onboarding-meeting-attendees-instantly
 description: Build a Zapier Next Gen Zap that adds a new member as an attendee on a configured Outlook onboarding meeting when their details arrive by webhook, so they receive the calendar invite. Use when a team onboards people into a fixed Outlook meeting and wants new members added without anyone editing the invite by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "When a new member's details arrive, they're added to your onboarding meeting in Outlook, so they get the invite without anyone adding them by hand."

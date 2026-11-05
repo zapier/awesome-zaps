@@ -1,6 +1,7 @@
 ---
 name: post-reaction-tagged-support-requests-to-ops-triage-channel
 description: Build a Zapier Next Gen Zap that posts a Slack message to an ops triage channel whenever a teammate adds a support reaction to a message, with the requester, a permalink and the raw message text. Use when support requests are raised in Slack by reacting to a message and a triage coordinator needs them in one place without copying links by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "When a teammate marks a Slack message with a support reaction, the message, its author and a link to it are posted to your triage channel so coordinators can act on it right away."

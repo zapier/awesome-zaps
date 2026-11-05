@@ -1,6 +1,7 @@
 ---
 name: notify-finance-of-new-payment-charges-by-email
 description: Build a Zapier Next Gen Zap that emails your finance and billing recipients for every new Stripe charge, so accounting can reconcile and triage issues the same day. Use when a business takes card payments through Stripe and wants finance notified of each charge, including failed ones, without checking the dashboard.
+license: MIT
 metadata:
   author: zapier
   summary: "Every new Stripe charge sends your finance team a short email with the amount, status and a link to the charge, so issues get triaged the same day."

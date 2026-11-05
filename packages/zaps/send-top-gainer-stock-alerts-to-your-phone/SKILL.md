@@ -1,6 +1,7 @@
 ---
 name: send-top-gainer-stock-alerts-to-your-phone
 description: Build a Zapier Next Gen Zap that reads market text posted to a webhook, pulls out stock ticker symbols with AI, saves each new ticker to a Zapier Tables stocks table, and texts you a short alert with a search link. Use when you want top-gainer or market-mover alerts on your phone without checking a feed, and a record of which tickers you've already been alerted about.
+license: MIT
 metadata:
   author: zapier
   summary: "When market text arrives, each new stock ticker in it is saved to your stocks table and texted to your phone with a search link, so you see movers without checking a feed."

@@ -1,6 +1,7 @@
 ---
 name: create-approved-purchase-orders-from-supplier-approval-emails
 description: Build a Zapier Next Gen Zap that reads supplier or approver replies to purchase order alert emails, finds the matching PO in a Zapier Tables register, creates the purchase order in QuickBooks Online, and replies in the same thread. Use when a procurement or finance team approves POs by email and wants approved orders created in the accounting system without retyping them.
+license: MIT
 metadata:
   author: zapier
   summary: "When a supplier or approver replies to a PO alert, the matching purchase order is created in QuickBooks and the sender gets a confirmation, so approved orders never sit in an inbox."

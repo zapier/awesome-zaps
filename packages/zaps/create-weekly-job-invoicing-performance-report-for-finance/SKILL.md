@@ -1,6 +1,7 @@
 ---
 name: create-weekly-job-invoicing-performance-report-for-finance
 description: Build a Zapier Next Gen Zap that runs every week, counts the jobs closed in the previous seven days in a Zapier Table, and writes the count as an item in a Notion finance database. Use when a finance team wants a weekly closed-jobs and invoicing summary kept in Notion without manual counting.
+license: MIT
 metadata:
   author: zapier
   summary: "Every week, the jobs closed in the last seven days are counted from your jobs table and logged as a dated item in your finance database in Notion."

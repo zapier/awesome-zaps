@@ -1,6 +1,7 @@
 ---
 name: create-termination-letter-and-save-to-client-folder
 description: Build a Zapier Next Gen Zap that turns a termination request posted to a webhook into a filled-in termination letter, saved as a Google Doc in the client's Drive folder and ready for review. Use when a legal or practice-admin team generates termination letters from a template and wants the letter created and filed automatically.
+license: MIT
 metadata:
   author: zapier
   summary: "When a termination request comes in, a termination letter is filled in from your template and saved to the client's folder, ready for review."

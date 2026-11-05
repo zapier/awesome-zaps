@@ -1,6 +1,7 @@
 ---
 name: send-sms-for-new-online-quote-to-requester
 description: Build a Zapier Next Gen Zap that takes an online quote request posted to a webhook, saves the requester as a Quo contact, and texts them right away to ask for their location and service type. Use when a business takes quote requests through a web form or script and wants an immediate SMS reply that gathers context for support.
+license: MIT
 metadata:
   author: zapier
   summary: "When someone requests a quote online, they get a text right away asking for their location and service, and their details are saved as a contact in Quo."

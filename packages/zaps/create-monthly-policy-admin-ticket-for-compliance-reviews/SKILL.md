@@ -1,6 +1,7 @@
 ---
 name: create-monthly-policy-admin-ticket-for-compliance-reviews
 description: Open a Zendesk ticket for the monthly policy admin compliance review, assign it to the policy support queue and tag it for the audit trail. Use when a compliance or policy team needs a tracked ticket each month to confirm that the policy report was distributed, with a record kept for audit.
+license: MIT
 metadata:
   author: zapier
   summary: "On the 4th of each month, a Zendesk ticket is opened for the policy report review, assigned to your policy queue and tagged, so there is a tracked item and an audit trail."

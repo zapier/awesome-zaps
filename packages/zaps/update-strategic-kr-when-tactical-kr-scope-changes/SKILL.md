@@ -1,6 +1,7 @@
 ---
 name: update-strategic-kr-when-tactical-kr-scope-changes
 description: Build a Zapier Next Gen Zap that, when a tactical KR's watched properties change in Notion, finds its linked strategic KR and sets the strategic KR's scope-change checkbox. Use when leadership and ops keep strategic and tactical KRs in separate Notion databases and need a scope change on a tactical KR to flag the strategic KR automatically.
+license: MIT
 metadata:
   author: zapier
   summary: "When a tactical KR's scope changes, its linked strategic KR is flagged in Notion, so leadership and ops work from the same priorities."

@@ -1,6 +1,7 @@
 ---
 name: send-tailored-email-replies-to-new-inbox-messages
 description: Build a Zapier Next Gen Zap that sends a short, polite AI-written reply to each new message in an Outlook inbox after a 5-minute delay, skipping thread replies and simple acknowledgments. Use when a support or service inbox gets repetitive questions and senders should get a fast, personal-feeling confirmation without anyone triaging by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "When a new email lands in your Outlook inbox, the sender gets a quick, tailored reply with your company signature, so they know they were heard."

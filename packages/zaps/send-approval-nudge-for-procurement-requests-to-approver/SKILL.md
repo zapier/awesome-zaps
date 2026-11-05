@@ -1,6 +1,7 @@
 ---
 name: send-approval-nudge-for-procurement-requests-to-approver
 description: Build a Zapier Next Gen Zap that catches a procurement request webhook and sends the named approver a Slack direct message with the request's title, vendor, cost center, a short summary and a link to the record. Use when purchase requests wait on an approver and someone needs a quick nudge the moment a request reaches the approval phase.
+license: MIT
 metadata:
   author: zapier
   summary: "When a procurement request reaches approval, the approver gets a Slack message with the key details and a link, so requests stop sitting unseen."

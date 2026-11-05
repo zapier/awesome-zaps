@@ -1,6 +1,7 @@
 ---
 name: create-loan-application-records-from-social-lead-forms
 description: Build a Zapier Next Gen Zap that turns each Facebook Lead Ads form submission into a standardized loan application record in Airtable, matched by email so repeat applicants update their existing record. Use when a lender or loan broker collects applications through social lead forms and wants them in an intake table for coordinators and loan officers without retyping.
+license: MIT
 metadata:
   author: zapier
   summary: "Each new Facebook lead form submission becomes a loan application record in your Airtable intake table, with a readable timestamp, a cleaned-up phone number and revenue figure, campaign details and a source tag."

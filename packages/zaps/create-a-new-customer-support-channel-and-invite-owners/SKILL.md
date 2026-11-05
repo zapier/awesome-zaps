@@ -1,6 +1,7 @@
 ---
 name: create-a-new-customer-support-channel-and-invite-owners
 description: Build a Zapier Next Gen Zap that, when another Zap or workflow calls it with a customer reference, a short title and an owner's Slack ID, creates a dedicated Slack channel for that customer, invites the owner and a support group, and returns the new channel ID. Use when a team spins up one Slack channel per customer or project and wants it created the same way every time from other automations.
+license: MIT
 metadata:
   author: zapier
   summary: "When another automation hands it a new customer, a Slack channel is created for them, the account owner and your support team are invited, and the channel ID is passed back."

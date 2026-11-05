@@ -1,6 +1,7 @@
 ---
 name: notify-team-of-new-tagged-instagram-post-immediately-to-channel
 description: Build a Zapier Next Gen Zap that posts an alert to a team Slack channel as soon as the business's Instagram account is tagged in a post, with the author, caption, link and a media preview. Use when a marketing or community team wants to review, re-share or confirm usage rights for tagged content quickly, without watching Instagram by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "When someone tags your Instagram account, your team gets a Slack message with who tagged you, the caption, a link to the post and a preview, so coordinators can act on it right away."

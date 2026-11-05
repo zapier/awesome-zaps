@@ -1,6 +1,7 @@
 ---
 name: send-requested-creative-files-to-requestor-same-day
 description: Build a Zapier Next Gen Zap that emails the finished creative and its file link to the requestor, with the design owner on CC, as soon as a design request row in a Google Sheets tracker is marked Completed. Use when a design or creative team keeps requests in a sheet and wants finished files delivered without manual emails.
+license: MIT
 metadata:
   author: zapier
   summary: "When a design request is marked Completed in your tracker sheet, the requestor gets an email with the finished files, and the design owner is copied."

@@ -1,6 +1,7 @@
 ---
 name: send-form-sign-ups-to-conversion-tracking-for-ad-campaigns
 description: Build a Zapier Next Gen Zap that sends each new HubSpot form submission to a LinkedIn Conversions API conversion, so LinkedIn ad campaigns get sign-up attribution without manual uploads. Use when a marketing team runs HubSpot forms as lead capture for LinkedIn ads and wants sign-ups reported to LinkedIn automatically.
+license: MIT
 metadata:
   author: zapier
   summary: "Each new HubSpot form sign-up is sent to LinkedIn as a conversion, so your ad campaigns can see which clicks turned into sign-ups."

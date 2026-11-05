@@ -1,6 +1,7 @@
 ---
 name: send-touring-packet-and-pre-visit-reminder-to-prospects
 description: Build a Zapier Next Gen Zap that emails a prospect the touring packet link before a booked visit, using the prospect's name and email from the Google Calendar event description. Use when a hospitality or property business books tours on Google Calendar and wants every prospect to get the packet ahead of the visit without anyone sending it by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "Before a booked tour, the prospect gets an email with your touring packet link, so they arrive prepared and nobody has to send it by hand."

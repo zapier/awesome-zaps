@@ -1,6 +1,7 @@
 ---
 name: update-design-records-with-new-render-file-download-links
 description: Build a Zapier Next Gen Zap that writes the share link of each new render into the matching design record in a Notion database, so teams can open the asset from the record. Use when design or CAD renders land in a Dropbox folder and the team tracks them in a Notion database by file name.
+license: MIT
 metadata:
   author: zapier
   summary: "When a new render lands in your Dropbox folder, its share link is written into the matching design record in Notion, so the team can open the file from there."

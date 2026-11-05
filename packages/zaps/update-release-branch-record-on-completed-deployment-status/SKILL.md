@@ -1,6 +1,7 @@
 ---
 name: update-release-branch-record-on-completed-deployment-status
 description: Build a Zapier Next Gen Zap that, when a Salesforce deployment metadata log entry is marked Completed, finds the matching branch record and writes its production-release flag, hotfix flag and last UAT deployment date. Use when a release team tracks deployments in Salesforce and wants each branch record updated automatically when a deployment finishes.
+license: MIT
 metadata:
   author: zapier
   summary: "When a deployment finishes, the release branch record in Salesforce is updated to show it reached production, whether it was a hotfix, and when it was last deployed to UAT."

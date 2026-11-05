@@ -1,6 +1,7 @@
 ---
 name: create-monthly-investor-update-and-assign-drafting-task
 description: Build a Zapier Next Gen Zap that, on the first of each month, copies an investor update template into a dated Google Doc, creates a ClickUp drafting task that links to it, and emails collaborators the link. Use when a founder or finance lead produces a monthly investor or board update from a standard template and wants the drafting task and distribution handled automatically.
+license: MIT
 metadata:
   author: zapier
   summary: "Each month a dated investor update is created from your template, a drafting task links to it, and your collaborators get the link so the report is ready to review."

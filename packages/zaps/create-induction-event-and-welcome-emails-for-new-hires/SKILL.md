@@ -1,6 +1,7 @@
 ---
 name: create-induction-event-and-welcome-emails-for-new-hires
 description: Build a Zapier Next Gen Zap that, when a new hire's start date is entered in a Zapier Tables onboarding table, emails the new hire a welcome, notifies IT and license owners, and creates an induction calendar event. Use when an HR or people team keeps new hires in a table and wants onboarding messages and the induction event sent automatically.
+license: MIT
 metadata:
   author: zapier
   summary: "When a new hire's start date is added to your onboarding table, they get a welcome email, IT gets a provisioning email, and an induction event goes on the HR calendar."

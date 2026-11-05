@@ -1,6 +1,7 @@
 ---
 name: create-monthly-board-summary-email-for-it-leadership
 description: Build a Zapier Next Gen Zap that emails IT leadership a monthly summary of the open cards on a Trello board, ahead of the governance meeting. Use when a team tracks work in a Trello board and wants leadership to get a recurring list of open items with status, last activity and links, without anyone compiling it by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "Once a month, the open cards on your Trello board are listed in one email to leadership, with each card's status, last activity and link."

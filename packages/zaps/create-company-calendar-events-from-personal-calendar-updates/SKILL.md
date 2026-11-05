@@ -1,6 +1,7 @@
 ---
 name: create-company-calendar-events-from-personal-calendar-updates
 description: Build a Zapier Next Gen Zap that copies new or updated events from a personal Google Calendar onto a company calendar, creating the copy when it is missing and updating it when it exists. Use when sales ops, account executives or a team need a shared calendar to show the current meeting roster without anyone re-entering events by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "When you create or change an event on your personal calendar, the matching event on the company calendar is created or updated to match, so the team always sees the current roster."

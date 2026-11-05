@@ -1,6 +1,7 @@
 ---
 name: create-debt-records-and-attach-credit-pull-pd-fs
 description: Use when a credit-pull request arrives by webhook and you want the credit report requested and its PDF captured, with the client's debt records created in your CRM and the PDF stored in Drive. Use it when accounts receivable teams pull credit reports on new clients and file them by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "When a credit pull request comes in, the credit report is requested and its PDF captured, so the client's file is ready without manual pulls."

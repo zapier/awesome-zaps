@@ -1,6 +1,7 @@
 ---
 name: link-new-creative-requests-to-related-deal-records
 description: Build a Zapier Next Gen Zap that, when a new creative request is created on a monday.com requests board, finds the deal in your monday.com deal tracker whose name matches the request and links the request to that deal. Use when a marketing or creative team tracks design requests in monday.com and wants each request tied to its related deal without manual searching.
+license: MIT
 metadata:
   author: zapier
   summary: "When a new creative request lands on your board, its matching deal is found and linked to it, so the request owner sees the opportunity context straight away."

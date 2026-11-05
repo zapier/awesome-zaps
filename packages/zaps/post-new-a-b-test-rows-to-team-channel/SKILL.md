@@ -1,6 +1,7 @@
 ---
 name: post-new-a-b-test-rows-to-team-channel
 description: Build a Zapier Next Gen Zap that posts each new A/B test row from a Google Sheets log to a Slack channel, with the variants, test URL, reporter and screenshot, and skips rows whose test URL was already posted. Use when a design, product or growth team logs A/B or user tests in a sheet and wants stakeholders told in Slack as soon as one is added.
+license: MIT
 metadata:
   author: zapier
   summary: "When someone adds an A/B test to your tracking sheet, its variants, link, reporter and screenshot are posted to your team's Slack channel so everyone can review it right away."

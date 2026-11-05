@@ -1,6 +1,7 @@
 ---
 name: enroll-webhook-signups-into-sms-reminder-campaign-for-event
 description: Build a Zapier Next Gen Zap that takes a signup posted to a webhook, creates or updates the matching LeadConnector contact as a lead, and enrolls it in an SMS reminder campaign for an event. Use when an event registration or signup form posts to a webhook and the attendees should get SMS reminders through LeadConnector (GoHighLevel).
+license: MIT
 metadata:
   author: zapier
   summary: "When someone signs up for your event through a form, they're saved as a lead in LeadConnector and enrolled in your SMS reminder campaign, so they get reminders without anyone adding them by hand."

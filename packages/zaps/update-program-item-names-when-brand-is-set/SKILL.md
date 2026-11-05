@@ -1,6 +1,7 @@
 ---
 name: update-program-item-names-when-brand-is-set
 description: Build a Zapier Next Gen Zap that renames a monday.com program item when its Brand column is set, composing the new name from configured title-part columns plus the Brand value, and posting an update note. Use when a design or brand team keeps program items on a monday.com board and wants consistent, searchable item names without typing them by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "When a Brand value is picked on a program item, its name is rebuilt from its title parts and the brand, so the board stays consistent and searchable."

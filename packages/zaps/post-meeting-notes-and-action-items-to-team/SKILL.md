@@ -1,6 +1,7 @@
 ---
 name: post-meeting-notes-and-action-items-to-team
 description: Build a Zapier Next Gen Zap that, when a new meeting notes file lands in a project folder in Google Drive, reads the transcript, records the meeting in a Zapier Table, and posts the action items to a team Slack channel. Use when a team keeps meeting notes in Google Drive and wants the action items shared automatically without copying them by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "When new meeting notes appear in your project folder, the action items are pulled out, logged in a meeting table and posted to your team channel."

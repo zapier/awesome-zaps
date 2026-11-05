@@ -1,6 +1,7 @@
 ---
 name: send-real-time-integration-failure-alerts-to-data-channel
 description: Build a Zapier Next Gen Zap that posts a Zap error alert to a Slack data channel as soon as one of your Zaps fails, with the Zap's title, the error message and a link to its task history. Use when a data or integrations team wants failing pipelines announced in one channel so owners can act quickly.
+license: MIT
 metadata:
   author: zapier
   summary: "When one of your Zaps fails, a short alert with its name, the error and a link to its history lands in your data channel right away."

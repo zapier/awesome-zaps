@@ -1,6 +1,7 @@
 ---
 name: notify-revenue-team-of-subscriptions-scheduled-to-cancel
 description: Build a Zapier Next Gen Zap that emails the revenue team and account owner when a Stripe subscription is set to cancel at the end of its billing period, so retention outreach can start before it ends. Use when a business bills subscriptions in Stripe and wants early warning of cancellations scheduled for period end.
+license: MIT
 metadata:
   author: zapier
   summary: "When a customer schedules a subscription to cancel, your revenue team gets an email right away with the customer and the date it ends, so they can reach out in time."

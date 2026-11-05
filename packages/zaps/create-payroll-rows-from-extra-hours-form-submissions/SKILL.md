@@ -1,6 +1,7 @@
 ---
 name: create-payroll-rows-from-extra-hours-form-submissions
 description: Use when extra-hours form submissions (Typeform) should land as payroll rows in a Google Sheets worksheet and the payroll clerks should get an email to review each one before payroll runs. Matches on the submission ID, so a resubmitted entry updates its row instead of adding a duplicate.
+license: MIT
 metadata:
   author: zapier
   summary: "Each extra-hours form submission is written to your payroll sheet, and your payroll clerks get an email with the submission reference and the sheet to review before payroll runs."

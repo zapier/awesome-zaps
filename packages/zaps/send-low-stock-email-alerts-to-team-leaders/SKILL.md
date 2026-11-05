@@ -1,6 +1,7 @@
 ---
 name: send-low-stock-email-alerts-to-team-leaders
 description: Build a Zapier Next Gen Zap that emails a branch's team leaders when a row in a stock spreadsheet shows stock below that branch's minimum. Use when a retail or store operation tracks branch stock in a Google Sheet and wants team leaders alerted as soon as a count drops under its threshold.
+license: MIT
 metadata:
   author: zapier
   summary: "When a branch's stock count in your inventory sheet drops below its minimum, the branch's team leaders get an email with the product and the count."

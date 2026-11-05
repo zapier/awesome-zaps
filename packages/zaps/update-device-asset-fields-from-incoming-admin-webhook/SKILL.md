@@ -1,6 +1,7 @@
 ---
 name: update-device-asset-fields-from-incoming-admin-webhook
 description: Build a Zapier Next Gen Zap that takes an admin submission posted to a webhook, reads the asset number and model out of the submitted device text, and writes them to the matching Notion page. Use when an admin form, script or check-in system posts device details and the Notion asset record should be kept complete without manual edits.
+license: MIT
 metadata:
   author: zapier
   summary: "When an admin submits device details, the matching Notion record gets its asset number and model filled in automatically, so the asset list stays complete."

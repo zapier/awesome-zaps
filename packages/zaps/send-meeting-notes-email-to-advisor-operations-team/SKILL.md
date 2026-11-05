@@ -1,6 +1,7 @@
 ---
 name: send-meeting-notes-email-to-advisor-operations-team
 description: Build a Zapier Next Gen Zap that turns an incoming call event (posted to a webhook) into an HTML meeting-notes email from Microsoft Outlook to advisors, with operations coordinators copied, and ignores duplicate webhook retries. Use when an advisory, wealth or client-services team wants call context in everyone's inbox for same-day follow-up without writing recap emails by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "When a call ends, advisors get an email with the call title, who was on it, the topics discussed and the meeting link, with ops coordinators copied, so follow-up can happen the same day."

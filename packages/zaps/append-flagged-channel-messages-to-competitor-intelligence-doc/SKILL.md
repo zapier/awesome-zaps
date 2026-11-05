@@ -1,6 +1,7 @@
 ---
 name: append-flagged-channel-messages-to-competitor-intelligence-doc
 description: Build a Zapier Next Gen Zap that watches one Slack channel and appends messages that mention competitors to a central Google Doc, with the time, author and a link to each message, skipping duplicates. Use when a team collects competitor news in a Slack channel and wants it kept in one searchable document without copying it by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "When a message about a competitor is posted in your Slack channel, it's added to your competitor intelligence doc with the time, author and a link back, so nothing gets lost."

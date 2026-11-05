@@ -1,6 +1,7 @@
 ---
 name: generate-meeting-summary-docs-and-action-items-for-projects
 description: Use when a meeting tracker in Zapier Tables gets a new or updated row with a transcript, and you want a dated Google Doc per meeting with decisions, action items, key quotes, follow-ups and the companies mentioned. Good for project teams who log meetings in a table and want the follow-up doc made for them.
+license: MIT
 metadata:
   author: zapier
   summary: "When a meeting row with a transcript is added to your tracker, a dated Google Doc is created with the decisions, action items and companies from that meeting, ready to share."

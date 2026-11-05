@@ -1,6 +1,7 @@
 ---
 name: send-personalized-itinerary-emails-one-day-before-trips
 description: Build a Zapier Next Gen Zap that emails a traveler a personalized itinerary link from a new Google Calendar travel event, one day before the trip (or straight away for short-notice trips). Use when a travel-hosting or concierge business keeps trip details in a calendar and wants each traveler's itinerary emailed without manual sends.
+license: MIT
 metadata:
   author: zapier
   summary: "When a trip is added to your travel calendar, the traveler gets a personalized itinerary email with their link, one day before they leave."

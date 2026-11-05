@@ -1,6 +1,7 @@
 ---
 name: sms-lead-alert
 description: Build a Zapier Next Gen Zap that texts the business owner every new lead (name, phone, need, and a suggested reply). Use when someone wants instant lead alerts by SMS from a website form, webhook, or Facebook Lead Ads.
+license: MIT
 metadata:
   author: andrewckor
   summary: "Texts you every new lead the moment it comes in: their name, number, what they need, and a reply you can send back."

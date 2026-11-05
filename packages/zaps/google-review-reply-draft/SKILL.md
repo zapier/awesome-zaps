@@ -1,6 +1,7 @@
 ---
 name: google-review-reply-draft
 description: Build a Zapier Next Gen Zap that drafts a reply to every new Google (or Yelp, Facebook, any site) review in the owner's voice and emails it to the owner to approve, texts the owner on 1 or 2 stars, and logs 5-star reviews to a Testimonial Tuesday sheet. Use when a business owner wants help replying to reviews without auto-posting anything.
+license: MIT
 metadata:
   author: andrewckor
   summary: "Every new review gets a reply drafted in your voice and emailed to you to approve. 1 and 2 stars text you right away. 5 stars land in a testimonials sheet."

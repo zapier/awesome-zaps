@@ -1,6 +1,7 @@
 ---
 name: send-contract-request-emails-to-assigned-advisors-today
 description: Build a Zapier Next Gen Zap that emails the assigned advisor when a contract request row is added or updated in a Google Sheets tracker, with the requester copied and the request details in the body. Use when a legal or contracts team logs contract requests in a sheet and wants the reviewing advisor notified without polling.
+license: MIT
 metadata:
   author: zapier
   summary: "When a contract request lands or changes in your tracking sheet, the assigned advisor gets an email with the details, so review starts right away."

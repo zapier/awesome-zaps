@@ -1,6 +1,7 @@
 ---
 name: log-model-evaluation-metrics-to-central-results-sheet
 description: Use when a model evaluation service posts prediction batches to a webhook and you want each batch scored against a canonical targets file in Google Drive, with total and high-error RMSE appended as one row to a shared Google Sheet for workshop review. Good for ML teams that keep a central results sheet and want evaluations logged without manual copying.
+license: MIT
 metadata:
   author: zapier
   summary: "Each incoming prediction batch is scored against your targets file and its error metrics are added as a row in your central results sheet, ready for review."

@@ -1,6 +1,7 @@
 ---
 name: create-probate-property-valuation-report-and-save-to-record
 description: Build a Zapier Next Gen Zap that takes a probate valuation record, creates a formatted valuation report from a Google Docs template, and writes the report link and document ID back to the record for case tracking. Use when a legal or estate team keeps valuation records in Zapier Tables and wants a finished report generated and linked without manual copying.
+license: MIT
 metadata:
   author: zapier
   summary: "When a probate valuation record is ready, a polished report is generated from your template and its link is saved on the record, so case tracking stays current."

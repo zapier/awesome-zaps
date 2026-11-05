@@ -1,6 +1,7 @@
 ---
 name: create-weekly-board-update-and-share-preparation-documents
 description: Build a Zapier Next Gen Zap that, every week, copies your board-update template into a dated document in OneDrive, creates an editable share link, and posts it as a monday.com update with a Friday deadline. Use when an executive or chief of staff prepares a weekly board update and wants the document and the team's deadline set up automatically.
+license: MIT
 metadata:
   author: zapier
   summary: "Every week, a fresh dated board-update document is made from your template, shared for editing, and posted to your team's monday.com item with a Friday deadline."

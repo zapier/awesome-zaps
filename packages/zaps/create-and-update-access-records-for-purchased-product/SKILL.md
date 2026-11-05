@@ -1,6 +1,7 @@
 ---
 name: create-and-update-access-records-for-purchased-product
 description: Build a Zapier Next Gen Zap that creates or updates a user's access record in your user management API when a paid Shopify order includes the configured product. Use when a store sells a product that should grant a user account or access, and onboarding should start as soon as the order is paid.
+license: MIT
 metadata:
   author: zapier
   summary: "When a customer pays for the product, their access record is created or updated in your user system so onboarding can start right away."

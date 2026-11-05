@@ -1,6 +1,7 @@
 ---
 name: create-monthly-release-notes-task-and-launch-checklist
 description: Build a Zapier Next Gen Zap that creates a monthly release notes task in Asana on the first of each month, files it in your recurring emails section and adds a dated subtask for the newsletter send date. Use when a product or marketing team publishes release notes or a monthly newsletter and wants the recurring task and its checklist created automatically.
+license: MIT
 metadata:
   author: zapier
   summary: "Each month, a release notes task is created from your Asana template, filed in your recurring emails section, and given a subtask to set the newsletter send date."

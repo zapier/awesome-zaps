@@ -1,6 +1,7 @@
 ---
 name: post-ssl-renewal-notices-to-your-team-channel
 description: Build a Zapier Next Gen Zap that watches Gmail for SSL certificate renewal and failure emails and posts each one to your team's Slack channel, with the sender, subject, a short preview and a link back to the original email. Use when a certificate renewal or failure notice should reach the ops or technical lead quickly for triage, instead of sitting in one person's inbox.
+license: MIT
 metadata:
   author: zapier
   summary: "When a certificate renewal or failure email arrives, its details are posted to your team channel with a link to the original, so the right person sees it at once."

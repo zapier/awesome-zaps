@@ -1,6 +1,7 @@
 ---
 name: create-sales-orders-and-line-items-from-purchases
 description: Build a Zapier Next Gen Zap that, when a Shopify order is paid, posts a sales order to your ERP or CRM and one line per purchased item, plus a negative discount line when the order has a discount. Use when a store sells online and order records must be created in an ERP or CRM so project coordinators and fulfillment staff work from consistent data.
+license: MIT
 metadata:
   author: zapier
   summary: "When a Shopify order is paid, its sales order and each item are created in your ERP or CRM, with a discount line when there is one, so fulfillment works from the same data."

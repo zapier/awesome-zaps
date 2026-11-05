@@ -1,6 +1,7 @@
 ---
 name: create-consolidated-okr-metrics-list-for-program-teams
 description: Build a Zapier Next Gen Zap that collects every OKR metric record from an Airtable table, removes empty and duplicate record IDs, and returns one comma-separated list for program-team reporting. Use when a product operations team tracks OKR metrics in Airtable and needs a single consolidated ID list for downstream zaps or reports.
+license: MIT
 metadata:
   author: zapier
   summary: "Gathers all of your OKR metric records from Airtable into one clean list of record IDs that reporting jobs can use."

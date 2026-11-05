@@ -1,6 +1,7 @@
 ---
 name: create-leave-calendar-events-and-send-approval-emails
 description: Build a Zapier Next Gen Zap that, when an approver clicks a button on a leave request in Zapier Tables, creates the leave on a Google Calendar, emails the requester the approval and decrements their allowance in a leave tracker. Use when an HR or people team logs time-off requests in Zapier Tables and wants approved leave to reach the calendar, the requester and the allowance without manual edits.
+license: MIT
 metadata:
   author: zapier
   summary: "When an approver confirms a leave request, the leave lands on the team calendar, the requester gets an approval email, and their allowance is updated."

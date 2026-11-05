@@ -1,6 +1,7 @@
 ---
 name: email-credit-transaction-alerts-to-billing-lead-immediately
 description: Build a Zapier Next Gen Zap that watches Xero for new posted credit (money received) bank transactions and immediately emails the billing lead a detailed alert with payee, amount, bank account, date, reference and description. Use when a finance or billing team wants to know the moment money lands so they can reconcile and invoice without delay.
+license: MIT
 metadata:
   author: zapier
   summary: "When money is received into a Xero bank account, your billing lead gets an email right away with the payee, amount, account, date and reference."

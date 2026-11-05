@@ -1,6 +1,7 @@
 ---
 name: create-a-b-test-entry-in-your-experiment-database
 description: Build a Zapier Next Gen Zap that creates an experiment entry in a Notion database when an Asana task moves into your A/B testing section, carrying the task's name, link, description and owner. Use when a product or growth team tracks A/B tests as Asana tasks and wants each one to have a ready-to-use record in its experiment database for reporting and handoff.
+license: MIT
 metadata:
   author: zapier
   summary: "When a task reaches your A/B testing section in Asana, a matching entry is created in your Notion experiment database, so every test has a record without manual copying."

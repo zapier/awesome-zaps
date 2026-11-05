@@ -1,6 +1,7 @@
 ---
 name: create-error-records-from-failed-automations-for-triage
 description: Use when Zap errors should be logged as triage records in an Airtable table, so project managers and automation owners can assign and track each failure. Triggers on phrases like "log Zap errors", "track failed automations", or "create triage records for errors".
+license: MIT
 metadata:
   author: zapier
   summary: "When one of your Zaps fails, a record is created in your Airtable triage table, or the existing record for that failure is updated, so someone can pick it up."

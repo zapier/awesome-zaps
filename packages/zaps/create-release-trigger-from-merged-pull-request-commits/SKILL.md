@@ -1,6 +1,7 @@
 ---
 name: create-release-trigger-from-merged-pull-request-commits
 description: Build a Zapier Next Gen Zap that watches a GitHub repository and, for each commit that comes from a merged pull request, posts the commit URL, message, author and repository to a sub-zap webhook. Use when a team wants a post-merge handoff (release notes, deploy, triage) started automatically from merged PRs.
+license: MIT
 metadata:
   author: zapier
   summary: "When a pull request is merged, its commit is passed to your sub-zap with the commit link, message, author and repository, so release steps start without anyone copying details."

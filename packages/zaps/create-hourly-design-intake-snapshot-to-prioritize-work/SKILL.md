@@ -1,6 +1,7 @@
 ---
 name: create-hourly-design-intake-snapshot-to-prioritize-work
 description: Build a Zapier Next Gen Zap that emails a design lead an hourly digest of active design requests from a Google Sheets intake tracker, listing the top 15 by priority and flagging unassigned items. Use when a design team logs requests in a sheet or form and wants an hourly view of what is open, what is high priority and what has no owner.
+license: MIT
 metadata:
   author: zapier
   summary: "Every hour, the design requests still open in your intake sheet are sorted by priority, unassigned ones are flagged, and the list is emailed to the person who decides what to work on next."

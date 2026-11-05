@@ -1,6 +1,7 @@
 ---
 name: save-incoming-client-faxes-and-scans-to-cloud-folder
 description: Build a Zapier Next Gen Zap that saves each attachment arriving in a scanner or fax label to a secure Google Drive archive folder, with a standardized date-based filename, then labels the email as processed. Use when a legal team receives client faxes or scanner PDFs by email and needs them filed in one cloud folder, searchable by date, without manual uploads.
+license: MIT
 metadata:
   author: zapier
   summary: "Each fax or scan that lands in the scanner label is saved to your secure cloud folder under a dated, consistent filename and the email is marked processed, so legal staff can find client files fast."

@@ -1,6 +1,7 @@
 ---
 name: save-incoming-staff-pd-fs-into-named-drive-folders
 description: Build a Zapier Next Gen Zap that saves each incoming staff PDF from Gmail into a Google Drive folder named after the email subject, creating the folder when it doesn't exist. Use when staff send PDFs (forms, timesheets, reviews) by email and the business wants them filed by person or topic without manual uploads.
+license: MIT
 metadata:
   author: zapier
   summary: "Each PDF a staff member emails you is filed into a Drive folder named after the email's subject, so the documents are easy to find later."

@@ -1,6 +1,7 @@
 ---
 name: update-analytics-profiles-when-contact-territory-value-changes
 description: Build a Zapier Next Gen Zap that keeps an analytics profile current when a HubSpot contact's territory value changes. Use when a sales or marketing team segments or reports by territory in a sheet, and wants each contact's row updated when the CRM territory changes, without manual copying.
+license: MIT
 metadata:
   author: zapier
   summary: "When a contact's territory changes in your CRM, their analytics profile row is updated (or created) with the new territory, so segments and reports stay accurate."

@@ -1,6 +1,7 @@
 ---
 name: save-new-build-artifacts-into-organized-release-folder
 description: Use when build artifacts land in one Google Drive folder and release or engineering teams need each one copied into a release folder under a timestamped, reproducible name, without manual filing.
+license: MIT
 metadata:
   author: zapier
   summary: "When a new build artifact lands in your source folder, a timestamped copy is saved into your release folder, so teams can find reproducible files without filing them by hand."

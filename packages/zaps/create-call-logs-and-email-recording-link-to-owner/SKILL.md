@@ -1,6 +1,7 @@
 ---
 name: create-call-logs-and-email-recording-link-to-owner
 description: Build a Zapier Next Gen Zap that logs each completed phone call as a row in a Google Sheets call log and emails the call's recording link to the owner. Use when a call center or support team wants every finished call recorded in a sheet, with the recording link sent to the person responsible for it, without manual entry.
+license: MIT
 metadata:
   author: zapier
   summary: "Every finished call is logged as a row in your call sheet, with its timing and recording link, and the owner gets the recording link by email."

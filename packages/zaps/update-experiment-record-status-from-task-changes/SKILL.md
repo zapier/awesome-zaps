@@ -1,6 +1,7 @@
 ---
 name: update-experiment-record-status-from-task-changes
 description: Build a Zapier Next Gen Zap that keeps an experiments table's status in step with ClickUp task changes, matching each record by its task permalink and creating a record when none exists. Use when a product team tracks feature experiments in Airtable and wants the experiment status to follow the delivery task's status without manual edits.
+license: MIT
 metadata:
   author: zapier
   summary: "When a ClickUp task changes status, its matching experiment record in your Airtable table is updated to the same status, so reports and handoffs show current delivery progress."

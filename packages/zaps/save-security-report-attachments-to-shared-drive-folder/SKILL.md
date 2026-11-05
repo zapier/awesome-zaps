@@ -1,6 +1,7 @@
 ---
 name: save-security-report-attachments-to-shared-drive-folder
 description: Build a Zapier Next Gen Zap that saves the attachments of matching security report emails to a shared drive folder, dated and named by original filename, then labels the message as processed. Use when security, compliance or audit evidence arrives by email and needs to be filed in a Drive folder without manual downloads.
+license: MIT
 metadata:
   author: zapier
   summary: "When a security report email arrives, its attachments are saved to your shared drive folder with the received date, and the email is labelled so it is clearly processed."

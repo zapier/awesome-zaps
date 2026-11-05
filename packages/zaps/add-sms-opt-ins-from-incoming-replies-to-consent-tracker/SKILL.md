@@ -1,6 +1,7 @@
 ---
 name: add-sms-opt-ins-from-incoming-replies-to-consent-tracker
 description: Build a Zapier Next Gen Zap that turns each incoming SMS opt-in reply (YES, START, JOIN and similar) into a consent record in an Airtable table, with the sender number normalized to E.164. Use when a business collects SMS consent by keyword reply and needs a compliant record of who opted in, when, and from which message.
+license: MIT
 metadata:
   author: zapier
   summary: "When someone texts an opt-in keyword to your number, they get a consent record in your Airtable tracker with their phone number, name and original reply, so you can prove consent later."

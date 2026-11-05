@@ -1,6 +1,7 @@
 ---
 name: send-ingestion-pipeline-status-to-team-channel-immediately
 description: Use when an ingestion pipeline posts its run status to a webhook and the team wants a short success/error summary in a Slack channel right away. Fits data teams who watch loads by hand or want failures surfaced without opening the pipeline's dashboard.
+license: MIT
 metadata:
   author: zapier
   summary: "When an ingestion pipeline reports a finished run or any errors, a short success and failure summary lands in your team's Slack channel right away."

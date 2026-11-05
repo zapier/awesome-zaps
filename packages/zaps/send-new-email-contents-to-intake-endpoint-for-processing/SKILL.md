@@ -1,6 +1,7 @@
 ---
 name: send-new-email-contents-to-intake-endpoint-for-processing
 description: Build a Zapier Next Gen Zap that posts each new email in a Gmail inbox (subject, plain-text body, sender and message ID) as JSON to your intake endpoint, so a ticketing or processing system can turn it into a ticket. Use when a support or operations inbox should feed a ticket queue or processing pipeline automatically, and you have an HTTP endpoint that accepts JSON.
+license: MIT
 metadata:
   author: zapier
   summary: "Every new email to your support inbox is sent as structured data to your intake system, so it can become a ticket without anyone copying it by hand."

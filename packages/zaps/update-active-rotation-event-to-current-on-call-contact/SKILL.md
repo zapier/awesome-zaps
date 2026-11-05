@@ -1,6 +1,7 @@
 ---
 name: update-active-rotation-event-to-current-on-call-contact
 description: Build a Zapier Next Gen Zap that watches an on-call rotation calendar and, when a rotation event becomes active (its start and end cover the current time), posts the active on-call contact to a routing channel. Use when an engineering team keeps its on-call rotation in Google Calendar and wants the current responder applied as soon as the rotation starts.
+license: MIT
 metadata:
   author: zapier
   summary: "When a rotation event on your on-call calendar is active right now, its contact is posted to your routing channel so the current on-call is applied immediately."

@@ -1,6 +1,7 @@
 ---
 name: post-daily-sales-report-to-central-team-chat
 description: Use when a sales team fills in a daily sales report form and the totals, orders, sellers and diagnostic flags should land in a team chat channel as a readable summary the same day. Good for branch or store teams that report daily and want central visibility without anyone copying numbers by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "Each daily sales form submission is turned into a short plain-text summary and posted to your team chat channel, so the central team sees the day's numbers right away."

@@ -1,6 +1,7 @@
 ---
 name: post-one-time-codes-from-email-to-api-endpoint
 description: Build a Zapier Next Gen Zap that watches Gmail for one-time security codes from a vendor, pulls the code out of the email and POSTs it as JSON to a verification endpoint, without passing on inbox IDs. Use when account provisioning or a sign-up flow waits on an emailed code and someone currently copies it by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "When a one-time code arrives by email, it is pulled out and sent straight to your verification endpoint, so provisioning finishes without anyone copying codes by hand."

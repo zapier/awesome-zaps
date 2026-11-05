@@ -1,6 +1,7 @@
 ---
 name: update-on-call-contact-group-when-rotation-event-starts
 description: Build a Zapier Next Gen Zap that, when an on-call rotation event starts on a Google Calendar, normalizes the rotation name from the event title and posts it, with the handoff time, attendees and a default contact set, to a reusable routing workflow that updates the on-call contact group. Use when an engineering or support team schedules on-call rotations as calendar events and wants the paging or contact group to follow the active rotation automatically.
+license: MIT
 metadata:
   author: zapier
   summary: "When an on-call rotation event starts on your calendar, the rotation is identified and handed to your routing workflow with the handoff time and default contacts, so the on-call contact group follows the active rotation."

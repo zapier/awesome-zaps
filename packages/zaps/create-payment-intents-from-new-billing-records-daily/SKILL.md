@@ -1,6 +1,7 @@
 ---
 name: create-payment-intents-from-new-billing-records-daily
 description: Build a Zapier Next Gen Zap that creates a Stripe payment intent whenever a billing record with an amount and currency is added or updated in a Zapier Tables table, matching or creating the Stripe customer by email, then writes the intent ID and status back to the record and marks it processed. Use when a finance or billing team logs charges in a table and wants payment intents raised in Stripe without manual entry.
+license: MIT
 metadata:
   author: zapier
   summary: "When a billing record lands in your Zapier table, a matching Stripe payment intent is created and its ID and status are written back to the record for reconciliation."

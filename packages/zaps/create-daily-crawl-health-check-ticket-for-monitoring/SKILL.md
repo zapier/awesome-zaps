@@ -1,6 +1,7 @@
 ---
 name: create-daily-crawl-health-check-ticket-for-monitoring
 description: Build a Zapier Next Gen Zap that opens a Zendesk ticket every morning at 9:00 AM with a templated crawl health checklist, so monitoring staff can triage crawl issues from one ticket. Use when a team runs a daily crawl or site-health check and wants a consistent ticket each day instead of a manual one.
+license: MIT
 metadata:
   author: zapier
   summary: "Every morning a new Zendesk ticket is opened with a crawl health checklist and the run time, so monitoring staff start the day with the same triage steps."

@@ -1,6 +1,7 @@
 ---
 name: add-social-leads-as-applicant-records-in-ats
 description: Build a Zapier Next Gen Zap that takes each new Facebook Lead Ads form submission, tidies the phone number and name, and sends it to your applicant tracking system as an applicant record. Use when a recruiting team gets candidates from social lead forms and wants them in the ATS without re-typing.
+license: MIT
 metadata:
   author: zapier
   summary: "Each new Facebook lead form submission becomes an applicant record in your ATS, with a cleaned phone number and split name, ready for a recruiter to review."

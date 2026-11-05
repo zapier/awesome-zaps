@@ -1,6 +1,7 @@
 ---
 name: save-trademark-search-report-attachments-to-central-folder
 description: Use when trademark search report emails arrive in Gmail with attachments and legal wants each attachment saved into one central Google Drive folder, named by date and subject, for review. Use for IP or trademark teams that file search reports by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "Each trademark search report attachment that arrives by email is saved to one central Drive folder, named with its date and subject, so legal can review it in one place."

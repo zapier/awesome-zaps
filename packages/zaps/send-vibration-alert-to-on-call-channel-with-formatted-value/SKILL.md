@@ -1,6 +1,7 @@
 ---
 name: send-vibration-alert-to-on-call-channel-with-formatted-value
 description: Build a Zapier Next Gen Zap that receives vibration readings from a device by webhook, formats the value, and posts an alert to an on-call Telegram chat when the reading is above a threshold. Use when an IoT or industrial device sends vibration telemetry and technicians need a fast, readable alert in their on-call chat.
+license: MIT
 metadata:
   author: zapier
   summary: "When a device reports a vibration reading above your limit, the on-call chat gets a formatted alert with the device, the reading and the time, so technicians can triage quickly."

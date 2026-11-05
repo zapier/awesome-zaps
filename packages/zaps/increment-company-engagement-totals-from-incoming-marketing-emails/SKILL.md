@@ -1,6 +1,7 @@
 ---
 name: increment-company-engagement-totals-from-incoming-marketing-emails
 description: Build a Zapier Next Gen Zap that keeps a per-company engagement total for marketing emails. Each HubSpot email engagement event adds one to the total of every company it relates to, and creates the company's row in a Zapier Table the first time. Use when a campaign or sales team wants up-to-date engagement totals per company to prioritize follow-up, and tracks them in a Zapier Table.
+license: MIT
 metadata:
   author: zapier
   summary: "Every marketing email engagement adds one to the engagement count of the company it belongs to, so campaign managers see who is engaging most."

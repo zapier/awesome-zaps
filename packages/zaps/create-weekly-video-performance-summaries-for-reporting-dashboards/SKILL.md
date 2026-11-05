@@ -1,6 +1,7 @@
 ---
 name: create-weekly-video-performance-summaries-for-reporting-dashboards
 description: Build a Zapier Next Gen Zap that takes a YouTube video ID and a date range and returns that video's views, average watch time, engagement percentage, revenue and subscriber change, ready for a reporting dashboard. Use when a dashboard, spreadsheet or another workflow needs per-video YouTube performance summaries for a reporting period.
+license: MIT
 metadata:
   author: zapier
   summary: "Give it a YouTube video and a date range, and it returns that video's views, watch time, engagement, revenue and subscriber change in one payload for your dashboard."

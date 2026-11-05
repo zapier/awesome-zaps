@@ -1,6 +1,7 @@
 ---
 name: send-incoming-receipts-to-tax-provider-and-archive
 description: Build a Zapier Next Gen Zap that emails each new receipt in a Google Drive intake folder to your tax provider's upload address, waits a day so you can review it, then moves the original into a processed folder. Use when receipts land in Drive and need to reach the tax provider in batches without manual forwarding.
+license: MIT
 metadata:
   author: zapier
   summary: "Each new receipt in your intake folder is emailed to your tax provider, then filed away in a processed folder a day later."

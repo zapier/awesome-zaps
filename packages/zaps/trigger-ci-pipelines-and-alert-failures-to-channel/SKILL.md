@@ -1,6 +1,7 @@
 ---
 name: trigger-ci-pipelines-and-alert-failures-to-channel
 description: Use when a Git push to main or master should start a CI pipeline and a failed run should post an alert to a team Slack channel. Triggered by a catch-hook POST from your repo or CI system.
+license: MIT
 metadata:
   author: zapier
   summary: "When code is pushed to your main branch, a CI pipeline starts, and if it fails, the team channel gets a message with a link."

@@ -1,6 +1,7 @@
 ---
 name: publish-planned-feature-releases-to-gtm-team-channel
 description: Build a Zapier Next Gen Zap that posts each new release-tracker item to a GTM team Slack channel once its status is ready (Planned or Ready), with title, release date, audience, status and a link back to the Notion item. Use when a product team keeps launches in a Notion database and wants go-to-market stakeholders told as soon as a release is ready, without manual posts.
+license: MIT
 metadata:
   author: zapier
   summary: "When a feature release is marked planned or ready in your Notion tracker, the GTM team's Slack channel gets a short announcement with the release details and a link to the item."

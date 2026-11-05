@@ -1,6 +1,7 @@
 ---
 name: set-next-follow-up-date-for-contact-items
 description: Build a Zapier Next Gen Zap that sets a contact's next follow-up date in a monday.com board when its date column changes, one day later and moved off weekends. Use when a personal CRM or contact list lives in monday.com and the next follow-up should be scheduled automatically from the last contact date.
+license: MIT
 metadata:
   author: zapier
   summary: "When you update a contact's date in monday.com, the next follow-up date is set for you, one day later and never on a weekend."

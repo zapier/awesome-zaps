@@ -1,6 +1,7 @@
 ---
 name: publish-new-meeting-recordings-to-team-video-archive
 description: Build a Zapier Next Gen Zap that uploads each finished Zoom cloud recording to Vimeo as an unlisted video and records it in an Airtable archive table, matched by recording GUID. Use when a team wants meeting recordings archived and easy to find without manual uploads or spreadsheet entries.
+license: MIT
 metadata:
   author: zapier
   summary: "When a Zoom recording finishes, it is uploaded to your video library and a matching row in your archive table links to it, so anyone on the team can find it."

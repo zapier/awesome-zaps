@@ -1,6 +1,7 @@
 ---
 name: update-environment-usage-and-log-from-deploy-reaction
 description: Build a Zapier Next Gen Zap that, when someone adds a deploy reaction (such as :rocket:) to a Slack message naming an environment, marks that environment in use in a Google Sheets registry, appends a timestamped row to a usage log tab, and replies in the message's thread. Use when an engineering or dev ops team tracks shared environments (staging, QA, preview) in a sheet and claims them from Slack.
+license: MIT
 metadata:
   author: zapier
   summary: "React with a rocket to a deploy message in Slack and the environment it names is marked in use in your registry sheet, logged with a timestamp, and confirmed in the thread."

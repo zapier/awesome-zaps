@@ -1,6 +1,7 @@
 ---
 name: create-ad-conversion-events-for-new-list-contacts
 description: Build a Zapier Next Gen Zap that sends a LinkedIn Conversions API event each time a contact is added to a HubSpot list, so ad campaigns get timely attribution. Use when a marketing team adds contacts to a HubSpot list and wants each addition counted as a LinkedIn conversion.
+license: MIT
 metadata:
   author: zapier
   summary: "When a contact joins your HubSpot marketing list, LinkedIn gets a conversion event for them, so campaigns can credit the sign-up."

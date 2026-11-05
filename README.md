@@ -1,6 +1,6 @@
 # awesome-zaps
 
-A collection of Zaps written as code (Next Gen Zaps built on the Zapier SDK), open to contributions.
+A collection of Zaps written as code (Next Gen Zaps built on the Zapier SDK), written and maintained by Zapier. It doesn't accept zaps from outside contributors.
 
 ## Layout
 
@@ -18,8 +18,12 @@ pnpm install
 pnpm check
 ```
 
-`pnpm check` runs the same checks as CI. See [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
+`pnpm check` runs the same checks as CI. See [CONTRIBUTING.md](CONTRIBUTING.md) before adding a zap.
+
+## Trademarks
+
+Product and company names used in these Zaps are trademarks of their respective owners and are used only to identify the service each Zap integrates with. These Zaps are not affiliated with, endorsed by, or sponsored by those companies.
 
 ## License
 
-Copyright (c) Zapier, Inc. All rights reserved. This repository has no open source license yet, so its contents may not be copied, modified or redistributed without permission.
+The code and SKILL.md files in this repository are licensed under the MIT License (see [LICENSE](LICENSE)). The MIT License covers those files only. Using the Zapier service and APIs to run these zaps is governed separately by the [Zapier Terms of Service](https://zapier.com/legal/terms-of-service) or your other agreement with Zapier for use of the Zapier service, which apply regardless of the code license.

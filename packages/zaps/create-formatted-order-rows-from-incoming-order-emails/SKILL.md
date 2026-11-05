@@ -1,6 +1,7 @@
 ---
 name: create-formatted-order-rows-from-incoming-order-emails
 description: Build a Zapier Next Gen Zap that reads order confirmation emails from Gmail, pulls out the order, customer, address and payment fields, and appends one cleaned row per paid order to a master orders sheet, skipping orders already in it. Use when a shop or service business gets order confirmations by email and wants them logged as tidy rows in a spreadsheet without retyping.
+license: MIT
 metadata:
   author: zapier
   summary: "Each order confirmation email becomes one tidy row in your orders sheet, with the customer, address and amount filled in and duplicates skipped."

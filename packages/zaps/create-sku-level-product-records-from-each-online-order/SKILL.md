@@ -1,6 +1,7 @@
 ---
 name: create-sku-level-product-records-from-each-online-order
 description: Build a Zapier Next Gen Zap that turns each new paid Shopify order into one row per line item in a product performance table, with product name, SKU, quantity, unit price, total revenue, order date and order reference. Use when an online store wants SKU-level sales visibility for merchandising or inventory teams without copying orders by hand.
+license: MIT
 metadata:
   author: zapier
   summary: "Every paid Shopify order is split into one product record per line item, so merchandising and inventory teams can see what sold, by SKU, as orders come in."

@@ -1,6 +1,7 @@
 ---
 name: post-attendee-feedback-as-product-reviews-for-teams
 description: Build a Zapier Next Gen Zap that posts each attendee feedback submission from a Typeform form to your review platform as a product review, so marketing and product teams get timely, publishable endorsements. Use when event or program attendees fill in a Typeform survey and the feedback should become reviews on a product page or review API without manual copying.
+license: MIT
 metadata:
   author: zapier
   summary: "Each attendee feedback form submission with a rating or review text is posted to your review platform, so good feedback becomes a publishable review without manual copying."

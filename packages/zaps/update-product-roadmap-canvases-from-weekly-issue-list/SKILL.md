@@ -1,6 +1,7 @@
 ---
 name: update-product-roadmap-canvases-from-weekly-issue-list
 description: Build a Zapier Next Gen Zap that runs every week, finds Jira issues labelled as roadmap items and updated in the last seven days, and prepares a roadmap canvas update for each one by project key. Use when a product team keeps its roadmap in Jira and in per-project roadmap canvases, and wants those canvases kept in step with the week's issue progress.
+license: MIT
 metadata:
   author: zapier
   summary: "Every week, the roadmap items your team touched in Jira are matched to their roadmap canvas, so the canvas shows current status, priority, due date and progress without anyone copying them by hand."

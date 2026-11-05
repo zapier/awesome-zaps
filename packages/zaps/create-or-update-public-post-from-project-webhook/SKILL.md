@@ -1,6 +1,7 @@
 ---
 name: create-or-update-public-post-from-project-webhook
 description: Build a Zapier Next Gen Zap that publishes or updates a public release-notes post when a project event arrives by webhook, records the post in a tracking table, and tells the team in Discord. Use when a product team announces project changes through a public changelog or release-notes page and wants that page kept in sync without manual posting.
+license: MIT
 metadata:
   author: zapier
   summary: "When a project update comes in, its public release-notes post is created or refreshed, the tracking table is updated, and the team gets a short Discord note."

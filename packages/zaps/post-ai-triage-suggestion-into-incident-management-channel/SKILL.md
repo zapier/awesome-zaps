@@ -1,6 +1,7 @@
 ---
 name: post-ai-triage-suggestion-into-incident-management-channel
 description: Build a Zapier Next Gen Zap that reads each new message in an incident channel, has AI by Zapier suggest the owning team, confidence and rationale, and posts that suggestion as a threaded reply. Use when an IT or incident-response team wants incoming incident reports in Microsoft Teams routed to the right owner without someone reading every message first.
+license: MIT
 metadata:
   author: zapier
   summary: "Each new incident message gets a suggested owning team, a confidence level and a one-line reason, posted as a threaded reply so the right people see it first."

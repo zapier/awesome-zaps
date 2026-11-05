@@ -1,6 +1,7 @@
 ---
 name: create-final-video-from-new-uploads-into-shared-library
 description: Build a Zapier Next Gen Zap that sends each new media file in a Google Drive incoming folder to a render service, polls until the render finishes, and saves the finished MP4 into a shared Google Drive library folder. Use when a video or content team renders final cuts (avatar, voice-over or template videos) from uploaded source media and wants finished files to land in one library for editors without manual downloads and re-uploads.
+license: MIT
 metadata:
   author: zapier
   summary: "When a new media file lands in your incoming Drive folder, it is sent to your render service, and the finished MP4 is saved into your shared library folder for editors."

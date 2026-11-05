@@ -1,6 +1,7 @@
 ---
 name: create-employer-profile-and-push-to-onboarding-system
 description: Build a Zapier Next Gen Zap that, when a new Salesforce Account is created, writes an onboarding record to a Zapier Table with the owner's email and normalized industry and sector fields, posts it to your onboarding/payroll API, and writes the external ID and sync status back to both the table and Salesforce. Use when a CRM is the source of new clients or employers and an HR or onboarding system needs the profile without anyone re-keying it.
+license: MIT
 metadata:
   author: zapier
   summary: "When a new account is created in your CRM, its onboarding profile is created in your table, sent to your onboarding system, and the sync result is written back to both places."

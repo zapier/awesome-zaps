@@ -1,6 +1,7 @@
 ---
 name: create-creative-asset-records-from-task-webhook-entries
 description: Build a Zapier Next Gen Zap that receives task webhook payloads carrying creative asset links and creates one Notion asset record per asset, parsed from its filename and linked to the task's request. Use when a design or creative team tracks assets in Notion and wants each task's files logged automatically from a webhook.
+license: MIT
 metadata:
   author: zapier
   summary: "When a task posts its creative assets, each file becomes a Notion asset record with its format, style, theme and creator read from the filename, linked to the original request."

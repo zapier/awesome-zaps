@@ -1,6 +1,7 @@
 ---
 name: update-lesson-log-row-from-edited-calendar-event
 description: Build a Zapier Next Gen Zap that keeps a lesson log in Google Sheets in step with Google Calendar. When a lesson event is created or edited, its row is updated (date, duration, title, notes), or a new row is added when no row has that event ID. Use when a tutoring, music or education business tracks sessions in a sheet and wants session details and billing to follow the calendar without manual edits.
+license: MIT
 metadata:
   author: zapier
   summary: "When a lesson on your calendar is edited, its row in your lesson log is updated to match, so session details and billing stay accurate."
