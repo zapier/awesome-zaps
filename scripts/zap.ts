@@ -21,8 +21,8 @@ import {
   verifyPublished,
 } from "./lib.ts";
 
-const ZAPS_DIR = new URL("..", import.meta.url).pathname;
-const REPO_DIR = new URL("../../..", import.meta.url).pathname;
+const ZAPS_DIR = new URL("../zaps/", import.meta.url).pathname;
+const REPO_DIR = new URL("..", import.meta.url).pathname;
 
 const run = (command: string, args: string[], cwd = REPO_DIR): string => {
   try {
@@ -64,7 +64,7 @@ const readZap = (zap: string) => {
     config.files.map((name) => [name, readFileSync(`${dir}/${name}`, "utf8")]),
   );
   const pkg: unknown = JSON.parse(
-    readFileSync(`${ZAPS_DIR}package.json`, "utf8"),
+    readFileSync(`${REPO_DIR}package.json`, "utf8"),
   );
   return { config, files, pin: pins(pkg) };
 };

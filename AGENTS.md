@@ -6,31 +6,32 @@ This repo holds Zaps written as code (Zapier SDK durables). This file holds the 
 
 ## Where to work
 
-| Path                     | What lives here                                                                           |
-| ------------------------ | ----------------------------------------------------------------------------------------- |
-| `packages/zaps/<zap>/`   | One zap: `workflow.ts`, `config.ts`, `connections/`, `triggers/`, `SKILL.md`, `README.md` |
-| `packages/zaps/scripts/` | The `zap:deploy` and `zap:status` scripts, and the zap catalog test                       |
-| `docs/TESTING.md`        | How to test a zap against Zapier                                                          |
-| `docs/DEPLOY.md`         | What to expect when deploying a zap                                                       |
-| `eslint.config.js`       | ESLint rules                                                                              |
-| `.fallowrc.jsonc`        | Fallow entry points and settings                                                          |
-| `.github/workflows/`     | CI                                                                                        |
+| Path                 | What lives here                                                                           |
+| -------------------- | ----------------------------------------------------------------------------------------- |
+| `zaps/<zap>/`        | One zap: `workflow.ts`, `config.ts`, `connections/`, `triggers/`, `SKILL.md`, `README.md` |
+| `scripts/`           | The `zap:deploy` and `zap:status` scripts, and the zap catalog test                       |
+| `docs/TESTING.md`    | How to test a zap against Zapier                                                          |
+| `docs/DEPLOY.md`     | What to expect when deploying a zap                                                       |
+| `eslint.config.js`   | ESLint rules                                                                              |
+| `.fallowrc.jsonc`    | Fallow entry points and settings                                                          |
+| `.github/workflows/` | CI                                                                                        |
 
 ## Commands
 
 **Always run commands from the repo root.**
 
-| Task                                            | Command                                                                             |
-| ----------------------------------------------- | ----------------------------------------------------------------------------------- |
-| Everything below, in CI's order (the done gate) | `pnpm check`                                                                        |
-| Type-check                                      | `pnpm types`                                                                        |
-| Lint, failing on any warning                    | `pnpm lint`                                                                         |
-| Format, or check formatting                     | `pnpm fmt`, `pnpm fmt:check`                                                        |
-| Tests                                           | `pnpm test`                                                                         |
-| Dead code, duplication, health score of 100     | `pnpm fallow`                                                                       |
-| Preview a deploy, deploy, check status          | `pnpm zap:deploy <zap> --dry-run`, `pnpm zap:deploy <zap>`, `pnpm zap:status <zap>` |
+| Task                                            | Command                                                                                                      |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Everything below, in CI's order (the done gate) | `pnpm check`                                                                                                 |
+| Type-check                                      | `pnpm types`                                                                                                 |
+| Lint, failing on any warning                    | `pnpm lint`                                                                                                  |
+| Format, or check formatting                     | `pnpm fmt`, `pnpm fmt:check`                                                                                 |
+| Tests                                           | `pnpm test`                                                                                                  |
+| Dead code, duplication, health score of 100     | `pnpm fallow`                                                                                                |
+| Preview a deploy, deploy, check status          | `pnpm zap:deploy <zap> --dry-run`, `pnpm zap:deploy <zap>`, `pnpm zap:status <zap>`                          |
+| Test a zap in your own account                  | `npx zap-pack deploy <zap>`, `npx zap-pack run <zap>`, `npx zap-pack remove <zap> --force` (docs/TESTING.md) |
 
-Everything else is in the root and `packages/zaps` `package.json`. Read them there.
+Everything else is in the root `package.json`. The repo root is a zap-pack project, so the zap-pack CLI works here as it does in any project `npx zap-pack init` makes.
 
 ## Before you start
 
@@ -63,7 +64,7 @@ Everything else is in the root and `packages/zaps` `package.json`. Read them the
 
 ### New code
 
-- **Everything you add has a caller in this change.** No exported helper nothing imports, no config constant nothing reads, no abstraction with one implementation. Fallow treats `packages/zaps/scripts/zap.ts` as the entry point, so a file it does not reach is reported as dead code.
+- **Everything you add has a caller in this change.** No exported helper nothing imports, no config constant nothing reads, no abstraction with one implementation. Fallow treats `scripts/zap.ts` as the entry point, so a file it does not reach is reported as dead code.
 - **Delete what you replaced.** If your change supersedes an implementation, remove it in the same change. Never leave both.
 - **Search before you write.** The helper probably exists in another zap or in the SDK.
 - **No defensive branch for a state that cannot occur here.** An empty `catch`, a null check the types already rule out, or validation for a shape no trigger sends looks careful and hides the real failure.
@@ -99,7 +100,7 @@ There are no baselines and no suppression files, so nothing is grandfathered in.
 - **Test error paths, success paths, and validation logic.**
 - **A test's name must describe exactly the inputs and assertions in its body**, no more and no less. Re-read the name whenever you change the body, its inputs, or any identifier the name mentions.
 - **Mock setup must match the calls the code path really makes.** Trace the path, queue only the responses it consumes, and delete mocks nothing uses after a refactor.
-- **Tests live in `packages/zaps/scripts/`.** Vitest runs only that folder.
+- **Tests live in `scripts/`.** Vitest runs only that folder.
 
 ### Pull requests
 

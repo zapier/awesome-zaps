@@ -20,12 +20,8 @@
     "moduleResolution": "bundler",
     "noEmit": true,
     "lib": ["ESNext"],
-    "types": ["node"],
-    "composite": true
+    "types": ["node"]
   },
-  "files": [],
-  /**
-   * Should include all packages in the monorepo.
-   */
-  "references": [{ "path": "./packages/zaps/tsconfig.json" }]
+  // The repo's own scripts. Each zap deploys as its own folder, and scripts/catalog.test.ts checks them.
+  "include": ["scripts"]
 }

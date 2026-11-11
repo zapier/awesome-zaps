@@ -1,15 +1,12 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-const ZAPS_DIR = new URL("..", import.meta.url).pathname;
+const ZAPS_DIR = new URL("../zaps/", import.meta.url).pathname;
 
 // zapier.sh and `npx skills add` read each zap folder as is, and types, lint and fallow skip zap folders, so these
 // checks stand in for them.
 const zaps = readdirSync(ZAPS_DIR, { withFileTypes: true })
-  .filter(
-    (entry) =>
-      entry.isDirectory() && !["node_modules", "scripts"].includes(entry.name),
-  )
+  .filter((entry) => entry.isDirectory() && entry.name !== "node_modules")
   .map((entry) => entry.name);
 
 const read = (zap: string, file: string) =>

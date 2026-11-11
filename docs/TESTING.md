@@ -11,31 +11,19 @@ A test run executes real side effects that cannot be taken back, so it must neve
 
 ## Run a zap
 
-Test runs go through the [zap-pack](https://www.npmjs.com/package/zap-pack) CLI, from a scratch zap project outside this repo. It deploys the zap's folder as a workflow in your Zapier account, so you can run it, read its logs, and turn it off.
+Test runs go through the [zap-pack](https://www.npmjs.com/package/zap-pack) CLI, right here: the repo root is a zap-pack project, with zap-pack in its dev dependencies. It deploys the zap's folder as a workflow in your Zapier account, so you can run it, read its logs, and turn it off.
 
-1. Make the scratch project once, and sign in:
+1. Install, run the full checks, and sign in:
 
    ```bash
-   npx zap-pack init ~/zap-tests --no-git
-   cd ~/zap-tests
+   pnpm install
+   pnpm check
    npx zap-pack login
    ```
 
-2. Run the full checks in this repo:
+2. Find the connection IDs the zap needs. Each zap's `SKILL.md` names its connection aliases, and `npx zap-pack info` lists them too.
 
-   ```bash
-   pnpm check
-   ```
-
-3. Copy the zap's folder into the scratch project. It needs a `package.json` and `tsconfig.json` there: copy them from `zaps/daily-zen/`, set the package `name` to the zap's folder name, add `zod` (the version pinned in `packages/zaps/package.json`) if the zap imports it, and run `npm install`.
-
-   ```bash
-   cp -R <awesome-zaps>/packages/zaps/<zap-name> zaps/
-   ```
-
-4. Find the connection IDs the zap needs. Each zap's `SKILL.md` names its connection aliases, and `npx zap-pack info` lists them too.
-
-5. Deploy it with the test connections and test settings on the command line. They're saved in the scratch project's gitignored `.zap.json`, never in the zap's files. Deploying turns the trigger on, so point it at test resources only.
+3. Deploy it with the test connections and test settings on the command line. They're saved in the repo's gitignored `.zap.json`, never in the zap's files, so they're never committed. Deploying turns the trigger on, so point it at test resources only.
 
    ```bash
    npx zap-pack deploy <zap-name> --yes \
@@ -46,20 +34,20 @@ Test runs go through the [zap-pack](https://www.npmjs.com/package/zap-pack) CLI,
 
    `--yes` stops with the flag that supplies whatever is still missing.
 
-6. Run it with `test: true` in the input, then read what happened:
+4. Run it with `test: true` in the input, then read what happened:
 
    ```bash
    npx zap-pack run <zap-name> --input '{"test":true}'
    npx zap-pack logs <zap-name>
    ```
 
-7. Check the result at the test target, and confirm nothing changed in production. Then turn it off:
+5. Check the result at the test target, and confirm nothing changed in production. Then turn it off:
 
    ```bash
    npx zap-pack disable <zap-name>
    ```
 
-8. Clean up: delete the test workflow once you're done with it. This needs zap-pack 0.0.6 or later; you can also delete it in the Zapier editor.
+6. Clean up: delete the test workflow once you're done with it. You can also delete it in the Zapier editor.
 
    ```bash
    npx zap-pack remove <zap-name> --force

@@ -8,9 +8,8 @@ export default tseslint.config(
       ".fallow/",
       ".pnpm-store/",
       "**/node_modules/",
-      // A zap is one self-contained workflow.ts that an agent deploys as is. scripts/catalog.test.ts checks it instead.
-      "packages/zaps/*/",
-      "!packages/zaps/scripts/",
+      // A zap is a self-contained folder that deploys as is. scripts/catalog.test.ts checks it instead.
+      "zaps/",
     ],
   },
   eslint.configs.recommended,
