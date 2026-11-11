@@ -2,27 +2,22 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  REQUESTS_DATA_SOURCE,
+  ASSETS_DATA_SOURCE,
+  REQUEST_PERMALINK_PROPERTY,
+  REQUEST_TITLE_PROPERTY,
+  ASSET_TITLE_PROPERTY,
+  ASSET_URL_PROPERTY,
+  ASSET_REQUEST_PROPERTY,
+  ASSET_STATUS_PROPERTY,
+  ASSET_STATUS_NEW,
+  ASSET_URL_BASE,
+} from "@/config";
+import notion from "@/connections/notion";
+
 const sdk = createZapierSdk();
 
-// Notion data source (database) of creative requests. Share it with the connected Notion integration.
-const REQUESTS_DATA_SOURCE = "YOUR_REQUESTS_DATA_SOURCE_ID";
-// Notion data source (database) of creative asset records.
-const ASSETS_DATA_SOURCE = "YOUR_ASSETS_DATA_SOURCE_ID";
-// Requests property that holds the task permalink URL, matched when looking for an existing request.
-const REQUEST_PERMALINK_PROPERTY = "Permalink";
-// Requests title property, set when a new request is created.
-const REQUEST_TITLE_PROPERTY = "Name";
-// Assets title property.
-const ASSET_TITLE_PROPERTY = "Name";
-// Assets property that holds the asset URL.
-const ASSET_URL_PROPERTY = "URL";
-// Assets relation property that links each record to its request.
-const ASSET_REQUEST_PROPERTY = "Request";
-// Assets status property, and the value new records get.
-const ASSET_STATUS_PROPERTY = "Status";
-const ASSET_STATUS_NEW = "New";
-// Base URL for asset links: `${ASSET_URL_BASE}/${boardId}/${assetId}`, or `${ASSET_URL_BASE}/${assetId}` without a board.
-const ASSET_URL_BASE = "https://YOUR_ASSET_HOST";
 // Filename segments in order, split on "_" with the extension dropped, mapped to assets property names.
 const FILENAME_PROPERTIES = {
   format: "Format",
@@ -89,7 +84,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "notion",
         actionType: "search",
         actionKey: "find_data_source_item",
-        connection: "notion",
+        connection: notion,
         inputs: {
           datasource: REQUESTS_DATA_SOURCE,
           [REQUEST_PERMALINK_PROPERTY]: permalink,
@@ -107,7 +102,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "notion",
           actionType: "write",
           actionKey: "create_database_item",
-          connection: "notion",
+          connection: notion,
           inputs: {
             datasource: REQUESTS_DATA_SOURCE,
             template_mode: "none",
@@ -138,7 +133,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "notion",
               actionType: "write",
               actionKey: "create_database_item",
-              connection: "notion",
+              connection: notion,
               inputs: {
                 datasource: ASSETS_DATA_SOURCE,
                 template_mode: "none",

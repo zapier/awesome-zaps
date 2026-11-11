@@ -2,19 +2,21 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  SLACK_CHANNEL_ID,
+  MEETINGS_TABLE_ID,
+  ACTION_ITEMS_MARKER,
+} from "@/config";
+import zapierTables from "@/connections/zapier-tables";
+import slack from "@/connections/slack";
+
 const sdk = createZapierSdk();
 
-// Slack channel ID to post the summary to (the channel's ID, not its name).
-const SLACK_CHANNEL_ID = "YOUR_SLACK_CHANNEL_ID";
-// Zapier Tables table with one row per meeting (columns: title, date, link, action items).
-const MEETINGS_TABLE_ID = "YOUR_TABLE_ID";
 // Google Drive export URL for a file's plain text. FILE_ID is replaced with the file's ID.
 const TRANSCRIPT_URL_TEMPLATE =
   "https://docs.google.com/document/d/FILE_ID/export?format=txt";
 // Set to true to let Slack notify people named in the summary (mentions and channel names).
 const ALLOW_MENTIONS = false;
-// Line in the transcript that marks where the action items start.
-const ACTION_ITEMS_MARKER = "Suggested next steps";
 // Most action items posted to Slack in one message.
 const MAX_ACTION_ITEMS = 20;
 
@@ -88,7 +90,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "create_record",
-        connection: "zapier-tables",
+        connection: zapierTables,
         inputs: {
           table_id: MEETINGS_TABLE_ID,
           new__data__f1: title,
@@ -106,7 +108,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "channel_message",
-        connection: "slack",
+        connection: slack,
         inputs: {
           channel: SLACK_CHANNEL_ID,
           text: message,

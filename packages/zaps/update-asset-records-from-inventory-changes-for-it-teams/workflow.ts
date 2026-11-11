@@ -2,16 +2,15 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  ASSET_DATASOURCE_ID,
+  INVENTORY_IDENTIFIER_PROPERTY,
+  ASSET_IDENTIFIER_PROPERTY,
+} from "@/config";
+import notion from "@/connections/notion";
+
 const sdk = createZapierSdk();
 
-// Notion data source of the inventory database the trigger watches (its ID, from the Notion data source picker).
-const INVENTORY_DATASOURCE_ID = "YOUR_INVENTORY_DATASOURCE_ID";
-// Notion data source of the central asset database that gets updated.
-const ASSET_DATASOURCE_ID = "YOUR_ASSET_DATASOURCE_ID";
-// Property on the inventory item that holds the serial number or unique identifier.
-const INVENTORY_IDENTIFIER_PROPERTY = "Serial number";
-// Property on the asset item that holds the same identifier, used to find the existing record.
-const ASSET_IDENTIFIER_PROPERTY = "Serial number";
 // Inventory property -> asset property, one pair per field to copy (device name, model, warranty, notes, contact, owner, status).
 const FIELD_MAP: Array<[string, string]> = [
   ["Device name", "Device name"],
@@ -51,7 +50,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "notion",
         actionType: "search",
         actionKey: "find_data_source_item",
-        connection: "notion",
+        connection: notion,
         inputs: {
           datasource: ASSET_DATASOURCE_ID,
           [ASSET_IDENTIFIER_PROPERTY]: identifier,
@@ -81,14 +80,14 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "notion",
             actionType: "write",
             actionKey: "update_database_item",
-            connection: "notion",
+            connection: notion,
             inputs: { id: existing.id, ...values },
           })
         : sdk.runAction({
             appKey: "notion",
             actionType: "write",
             actionKey: "create_database_item",
-            connection: "notion",
+            connection: notion,
             inputs: {
               datasource: ASSET_DATASOURCE_ID,
               [ASSET_IDENTIFIER_PROPERTY]: identifier,

@@ -2,10 +2,11 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { QUO_FROM_NUMBER_ID } from "@/config";
+import quo from "@/connections/quo";
+
 const sdk = createZapierSdk();
 
-// Quo phone number ID the SMS is sent from (Quo > Settings > Phone numbers).
-const QUO_FROM_NUMBER_ID = "YOUR_QUO_PHONE_NUMBER_ID";
 // Message body; {first_name} is replaced with the requester's first name.
 const SMS_TEMPLATE =
   "Hi {first_name}, thanks for requesting a quote. What is your location, and what service do you need?";
@@ -43,7 +44,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "quo",
         actionType: "write",
         actionKey: "contact_update_create",
-        connection: "quo",
+        connection: quo,
         inputs: {
           client_id: phone,
           first_name: firstName,
@@ -59,7 +60,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "quo",
         actionType: "write",
         actionKey: "send_message",
-        connection: "quo",
+        connection: quo,
         inputs: {
           phone_number_id: QUO_FROM_NUMBER_ID,
           to: phone,

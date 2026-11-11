@@ -2,22 +2,20 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  TIMEZONE,
+  ANALYTICS_URL,
+  ANALYTICS_METRICS_PATH,
+  SPREADSHEET_ID,
+  WORKSHEET_ID,
+  DATE_COLUMN,
+} from "@/config";
+import googleSheets from "@/connections/google-sheets";
+
 const sdk = createZapierSdk();
 
-// Time zone that defines "the day" for the query window and the row date (IANA name).
-const TIMEZONE = "America/New_York";
-// Analytics endpoint that returns the day's engagement buckets; called with GET ?start=…&end=….
-const ANALYTICS_URL = "YOUR_ANALYTICS_ENDPOINT_URL";
 // Extra query-string params sent on every call (API key, campaign ID, and so on).
 const ANALYTICS_EXTRA_PARAMS: Record<string, string> = {};
-// Dot path to the object holding the buckets in the endpoint's JSON response ("" = top level).
-const ANALYTICS_METRICS_PATH = "";
-// Google Sheets spreadsheet ID (the long ID in the sheet's URL).
-const SPREADSHEET_ID = "YOUR_SPREADSHEET_ID";
-// Worksheet (tab) ID; the first tab is "0".
-const WORKSHEET_ID = "0";
-// Column holding the row's date as YYYY-MM-DD (COL$A = column A).
-const DATE_COLUMN = "COL$A";
 // Bucket name in the endpoint's response → the sheet column it is written to.
 const METRIC_COLUMNS: Record<string, string> = {
   impressions: "COL$B",
@@ -158,7 +156,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "search",
         actionKey: "lookup_row",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,
@@ -181,7 +179,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "update_row",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,

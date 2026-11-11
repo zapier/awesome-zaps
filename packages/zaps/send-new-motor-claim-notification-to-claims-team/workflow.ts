@@ -2,26 +2,19 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  CLAIMS_INBOX,
+  TIME_ZONE,
+  NAME_FIELD,
+  CONTACT_FIELD,
+  VEHICLE_EXPIRY_FIELD,
+  DRIVING_EXPIRY_FIELD,
+  ACCIDENT_DATETIME_FIELD,
+  ATTACHMENTS_FIELD,
+} from "@/config";
+import microsoftOutlook from "@/connections/microsoft-outlook";
 
-// Zapier Tables table ID that holds the motor claims (the trigger's table).
-const CLAIMS_TABLE_ID = "YOUR_TABLE_ID";
-// Address that receives each notification. Use the connected Outlook account's own address for tests.
-const CLAIMS_INBOX = "YOUR_CLAIMS_INBOX_EMAIL";
-// Time zone (IANA name) used when printing dates.
-const TIME_ZONE = "UTC";
-// Field holding the claimant's name.
-const NAME_FIELD = "name";
-// Field holding the claimant's contact details (phone or email).
-const CONTACT_FIELD = "contact";
-// Field holding the vehicle insurance expiry date.
-const VEHICLE_EXPIRY_FIELD = "vehicle_expiry";
-// Field holding the driving licence expiry date.
-const DRIVING_EXPIRY_FIELD = "driving_expiry";
-// Field holding the accident date and time.
-const ACCIDENT_DATETIME_FIELD = "accident_datetime";
-// Field holding uploaded attachment URLs (a list, or a single URL).
-const ATTACHMENTS_FIELD = "attachments";
+const sdk = createZapierSdk();
 
 type ZonedParts = {
   year: string;
@@ -135,7 +128,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "microsoft-outlook",
         actionType: "write",
         actionKey: "send_email",
-        connection: "microsoft-outlook",
+        connection: microsoftOutlook,
         inputs: {
           recipients: [CLAIMS_INBOX],
           subject,

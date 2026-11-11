@@ -2,12 +2,9 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import { CREDIT_PULL_URL, DEFAULT_COUNTRY_CODE } from "@/config";
 
-// Credit-report API endpoint that receives the pull request. The spec doesn't name a provider, so set this to yours.
-const CREDIT_PULL_URL = "YOUR_CREDIT_PULL_API_URL";
-// Country code added to 10-digit phone numbers (E.164). Change for non-US clients.
-const DEFAULT_COUNTRY_CODE = "+1";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({

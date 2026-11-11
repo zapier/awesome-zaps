@@ -27,12 +27,15 @@ metadata:
 
 **How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
 
-**Source:** `workflow.ts` in this folder is the whole workflow. Deploy it as one source file. Change only the constants listed below; everything else stays as written.
+**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
+
+- **With the zap CLI:** `npx zap-pack add awesome-zaps/post-attendee-feedback-as-product-reviews-for-teams` (it makes a zap project if you aren't in one), then `npx zap-pack deploy post-attendee-feedback-as-product-reviews-for-teams` from that project. Deploy asks for each open setting and account, and sets the trigger.
+- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
 
 1. **Trigger:** Typeform, New Entry (`typeform`, `entries_resthook_v2`). Set `formId` to the form's ID. It needs the user's Typeform connection.
 2. **Connections** (each alias in the code is the app's slug):
    - `webhook` (Webhooks by Zapier, POST action) needs no connection, so it has no alias.
-3. **Constants** (all at the top of `workflow.ts`):
+3. **Settings** (in `config.ts`; an `ask(…)` is asked when each person deploys):
    - `TITLE_FIELD`, `BODY_FIELD`, `RATING_FIELD`, `NAME_FIELD`, `EMAIL_FIELD`: the Typeform field keys for each review field. Use the keys from a sample entry, not the question text.
    - `REVIEW_ENDPOINT_URL`: the POST URL of your review platform.
    - `PRODUCT_ID`: the identifier your review platform uses for this product.

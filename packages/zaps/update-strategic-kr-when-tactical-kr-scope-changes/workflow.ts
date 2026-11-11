@@ -2,19 +2,16 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  STRATEGIC_DATA_SOURCE_ID,
+  SOURCE_REFERENCE_PROPERTY,
+  STATUS_PROPERTY,
+  IN_PROGRESS_STATUS,
+  SCOPE_CHANGE_PROPERTY,
+} from "@/config";
+import notion from "@/connections/notion";
 
-// Notion data source ID of the Tactical KRs database (the one the trigger watches).
-const TACTICAL_DATA_SOURCE_ID = "YOUR_TACTICAL_KR_DATA_SOURCE_ID";
-// Notion data source ID of the Strategic KRs database.
-const STRATEGIC_DATA_SOURCE_ID = "YOUR_STRATEGIC_KR_DATA_SOURCE_ID";
-// Tactical KR property holding the source reference that links it to its strategic KR.
-const SOURCE_REFERENCE_PROPERTY = "YOUR_SOURCE_REFERENCE_PROPERTY";
-// Tactical KR status property, and the value that means the KR is in progress.
-const STATUS_PROPERTY = "YOUR_STATUS_PROPERTY";
-const IN_PROGRESS_STATUS = "In progress";
-// Strategic KR checkbox that flags a scope change, set to true by this workflow.
-const SCOPE_CHANGE_PROPERTY = "YOUR_SCOPE_CHANGE_PROPERTY";
+const sdk = createZapierSdk();
 
 const InputSchema = z.looseObject({
   properties: z.record(z.string(), z.unknown()).nullable().optional(),
@@ -51,7 +48,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "notion",
         actionType: "search",
         actionKey: "find_data_source_item",
-        connection: "notion",
+        connection: notion,
         inputs: {
           datasource: STRATEGIC_DATA_SOURCE_ID,
           search_fields: [SOURCE_REFERENCE_PROPERTY],
@@ -75,7 +72,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "notion",
         actionType: "write",
         actionKey: "update_database_item",
-        connection: "notion",
+        connection: notion,
         inputs: {
           page: strategic.id,
           datasource: STRATEGIC_DATA_SOURCE_ID,

@@ -2,12 +2,11 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { UPGRADE_EMAIL } from "@/config";
+import gmail from "@/connections/gmail";
+
 const sdk = createZapierSdk();
 
-// Google Calendar the trigger watches (set in the trigger configuration; not read by this code).
-const CALENDAR_ID = "YOUR_CALENDAR_ID";
-// Address the milestone summaries are emailed to. Must be the connected Gmail account's own address.
-const UPGRADE_EMAIL = "YOUR_UPGRADE_EMAIL";
 // Package codes matched in the event title, checked in this order.
 const PACKAGE_CODES = ["ENTERPRISE", "BUSINESS", "PRO", "STARTER"];
 // Milestone windows, in days, that get a summary email. The number is read from the event title.
@@ -64,7 +63,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: "gmail",
+        connection: gmail,
         inputs: {
           to: [UPGRADE_EMAIL],
           subject,

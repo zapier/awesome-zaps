@@ -6,15 +6,15 @@ This repo holds Zaps written as code (Zapier SDK durables). This file holds the 
 
 ## Where to work
 
-| Path                     | What lives here                                                     |
-| ------------------------ | ------------------------------------------------------------------- |
-| `packages/zaps/<zap>/`   | One zap: `workflow.ts`, `SKILL.md`, `README.md`                     |
-| `packages/zaps/scripts/` | The `zap:deploy` and `zap:status` scripts, and the zap catalog test |
-| `docs/TESTING.md`        | How to test a zap against Zapier                                    |
-| `docs/DEPLOY.md`         | What to expect when deploying a zap                                 |
-| `eslint.config.js`       | ESLint rules                                                        |
-| `.fallowrc.jsonc`        | Fallow entry points and settings                                    |
-| `.github/workflows/`     | CI                                                                  |
+| Path                     | What lives here                                                                           |
+| ------------------------ | ----------------------------------------------------------------------------------------- |
+| `packages/zaps/<zap>/`   | One zap: `workflow.ts`, `config.ts`, `connections/`, `triggers/`, `SKILL.md`, `README.md` |
+| `packages/zaps/scripts/` | The `zap:deploy` and `zap:status` scripts, and the zap catalog test                       |
+| `docs/TESTING.md`        | How to test a zap against Zapier                                                          |
+| `docs/DEPLOY.md`         | What to expect when deploying a zap                                                       |
+| `eslint.config.js`       | ESLint rules                                                                              |
+| `.fallowrc.jsonc`        | Fallow entry points and settings                                                          |
+| `.github/workflows/`     | CI                                                                                        |
 
 ## Commands
 
@@ -55,10 +55,10 @@ Everything else is in the root and `packages/zaps` `package.json`. Read them the
 
 ### Workflows
 
-- **`workflow.ts` is the whole zap.** An agent deploys it as is, so it imports nothing but `@zapier/zapier-durable`, `@zapier/zapier-sdk` and `zod`. Types, lint and fallow skip zap folders, and `scripts/catalog.test.ts` checks them instead.
+- **A zap is its folder, in the zap-pack layout.** `workflow.ts` imports nothing but `@zapier/zapier-durable`, `@zapier/zapier-sdk`, `zod`, its settings from `@/config` and its accounts from `@/connections/<alias>`. `triggers/` holds what starts it. The zap CLI deploys the folder as is; `SKILL.md` says how to publish it with Zapier MCP. Types, lint and fallow skip zap folders, and `scripts/catalog.test.ts` checks them instead.
 - **Parse the input with zod on the first line of the handler.** That schema is the contract for what the trigger delivers.
 - **Wrap each side effect in its own `ctx.step`**, and end the step name with the record's primary id so a retry skips work that already succeeded. Never use an array index as the suffix.
-- **Put IDs and settings in constants at the top of `workflow.ts`**, with a comment naming what each one refers to.
+- **Put IDs and settings in `config.ts`**, one export each, with a comment naming what each one refers to. A value each person sets is an `ask("…")`. Lists and maps stay as constants at the top of `workflow.ts`.
 - **Pin exact dependency versions.** Zapier's sandbox rejects a dependency published less than 24 hours ago.
 
 ### New code

@@ -2,24 +2,19 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  BASE_ID,
+  TABLE_NAME,
+  FAILURE_LINK_FIELD,
+  TITLE_FIELD,
+  ERROR_DETAILS_FIELD,
+  NOTES_FIELD,
+  STATUS_FIELD,
+  ERROR_STATUS,
+} from "@/config";
+import airtable from "@/connections/airtable";
 
-// Airtable base ID (starts with "app"), from the base's URL.
-const BASE_ID = "YOUR_BASE_ID";
-// Airtable table where error records are kept.
-const TABLE_NAME = "YOUR_TABLE_NAME";
-// Field holding the failure link. Used to find an existing record for the same failure.
-const FAILURE_LINK_FIELD = "Failure link";
-// Field for the alert title (the Zap's name).
-const TITLE_FIELD = "Title";
-// Field for the error details (app and message).
-const ERROR_DETAILS_FIELD = "Error details";
-// Field for the latest error notes, overwritten when the same failure repeats.
-const NOTES_FIELD = "Notes";
-// Field for triage status.
-const STATUS_FIELD = "Status";
-// Status written to every error record for manual triage.
-const ERROR_STATUS = "Error";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -51,7 +46,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "airtable",
         actionType: "search",
         actionKey: "findRecord",
-        connection: "airtable",
+        connection: airtable,
         inputs: {
           applicationId: BASE_ID,
           tableName: TABLE_NAME,
@@ -70,7 +65,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "airtable",
           actionType: "write",
           actionKey: "updateRecord",
-          connection: "airtable",
+          connection: airtable,
           inputs: {
             applicationId: BASE_ID,
             tableName: TABLE_NAME,
@@ -93,7 +88,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "airtable",
         actionType: "write",
         actionKey: "createRecord",
-        connection: "airtable",
+        connection: airtable,
         inputs: {
           applicationId: BASE_ID,
           tableName: TABLE_NAME,

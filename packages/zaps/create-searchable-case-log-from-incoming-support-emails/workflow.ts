@@ -2,23 +2,24 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  SPREADSHEET_ID,
+  WORKSHEET_ID,
+  MESSAGE_ID_COLUMN,
+  THREAD_ID_COLUMN,
+  SENDER_NAME_COLUMN,
+  SENDER_EMAIL_COLUMN,
+  SUBJECT_COLUMN,
+  SUMMARY_COLUMN,
+  REFERENCE_COLUMN,
+  HAS_ATTACHMENTS_COLUMN,
+  RECEIVED_AT_COLUMN,
+  LOGGED_AT_COLUMN,
+} from "@/config";
+import googleSheets from "@/connections/google-sheets";
+
 const sdk = createZapierSdk();
 
-// Google Sheets spreadsheet ID (the long ID in the sheet's URL) holding the case log.
-const SPREADSHEET_ID = "YOUR_SPREADSHEET_ID";
-// Worksheet (tab) ID; the first tab is "0".
-const WORKSHEET_ID = "0";
-// Column keys (COL$A = column A) for each field written to the log.
-const MESSAGE_ID_COLUMN = "COL$A";
-const THREAD_ID_COLUMN = "COL$B";
-const SENDER_NAME_COLUMN = "COL$C";
-const SENDER_EMAIL_COLUMN = "COL$D";
-const SUBJECT_COLUMN = "COL$E";
-const SUMMARY_COLUMN = "COL$F";
-const REFERENCE_COLUMN = "COL$G";
-const HAS_ATTACHMENTS_COLUMN = "COL$H";
-const RECEIVED_AT_COLUMN = "COL$I";
-const LOGGED_AT_COLUMN = "COL$J";
 // Shortest run of digits that counts as a case reference (shorter numbers are ignored).
 const MIN_REFERENCE_DIGITS = 5;
 
@@ -90,7 +91,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "search",
         actionKey: "lookup_row",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,
@@ -120,7 +121,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "add_row",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,

@@ -2,20 +2,18 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  KB_PARENT_FOLDER_ID,
+  TABLE_ID,
+  URL_FIELD,
+  TITLE_FIELD,
+  NOTES_FIELD,
+  NOTES_TEXT,
+} from "@/config";
+import hubspot from "@/connections/hubspot";
+import zapierTables from "@/connections/zapier-tables";
 
-// HubSpot File Manager folder ID of the knowledge-base folder to index.
-const KB_PARENT_FOLDER_ID = "YOUR_KB_PARENT_FOLDER_ID";
-// Zapier Tables table ID that holds one record per knowledge-base file.
-const TABLE_ID = "YOUR_TABLE_ID";
-// Table field key for the file's public URL. This is also the dedupe key.
-const URL_FIELD = "YOUR_URL_FIELD_KEY";
-// Table field key for the file name, written to the record's title field.
-const TITLE_FIELD = "YOUR_TITLE_FIELD_KEY";
-// Table field key for the notes column.
-const NOTES_FIELD = "YOUR_NOTES_FIELD_KEY";
-// Text written to the notes column of each new record.
-const NOTES_TEXT = "Indexed by hourly knowledge-base scan";
+const sdk = createZapierSdk();
 
 const workflow = defineDurable<unknown, unknown>(
   "create-knowledge-base-file-records-for-support-reference",
@@ -23,7 +21,7 @@ const workflow = defineDurable<unknown, unknown>(
     const listing = await ctx.step("list-kb-files", async () => {
       const response = await sdk.fetch(
         `https://api.hubapi.com/files/v3/files/search?parentFolderIds=${KB_PARENT_FOLDER_ID}&limit=100`,
-        { connection: "hubspot", method: "GET" },
+        { connection: hubspot, method: "GET" },
       );
       if (!response.ok) {
         throw new Error(`HubSpot returned ${response.status}`);
@@ -53,7 +51,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "zapier-tables",
               actionType: "search",
               actionKey: "find_record",
-              connection: "zapier-tables",
+              connection: zapierTables,
               inputs: {
                 table_id: TABLE_ID,
                 filter_count: "1",
@@ -80,7 +78,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "zapier-tables",
               actionType: "write",
               actionKey: "create_record",
-              connection: "zapier-tables",
+              connection: zapierTables,
               inputs: {
                 table_id: TABLE_ID,
                 [URL_FIELD]: file.url,

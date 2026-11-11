@@ -2,14 +2,14 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  INCIDENT_TEAM_ID,
+  INCIDENT_CHANNEL_ID,
+  CAPABILITY_TO_TEAM_MAP,
+} from "@/config";
+import microsoftTeams from "@/connections/microsoft-teams";
 
-// Microsoft Teams team ID that contains the incident channel.
-const INCIDENT_TEAM_ID = "YOUR_TEAM_ID";
-// Microsoft Teams channel ID of the incident channel. Only messages from this channel are triaged.
-const INCIDENT_CHANNEL_ID = "YOUR_CHANNEL_ID";
-// Capability-to-team mapping the model uses to pick an owning team. One capability per line, e.g. "Payments: Payments team".
-const CAPABILITY_TO_TEAM_MAP = "YOUR_CAPABILITY_TO_TEAM_MAPPING";
+const sdk = createZapierSdk();
 
 const TRIAGE_INSTRUCTIONS = [
   "You triage incident reports.",
@@ -89,7 +89,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "microsoft-teams",
         actionType: "write",
         actionKey: "reply_to_channel_message",
-        connection: "microsoft-teams",
+        connection: microsoftTeams,
         inputs: {
           reply,
           format: "text",

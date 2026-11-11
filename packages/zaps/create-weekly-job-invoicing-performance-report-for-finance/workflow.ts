@@ -1,16 +1,17 @@
 import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 
+import {
+  TABLE_ID,
+  CLOSED_DATE_FIELD,
+  LOOKUP_VALUE_FIELD,
+  NOTION_DATA_SOURCE_ID,
+} from "@/config";
+import zapierTables from "@/connections/zapier-tables";
+import notion from "@/connections/notion";
+
 const sdk = createZapierSdk();
 
-// Zapier Tables table ID holding the jobs (from the table's URL).
-const TABLE_ID = "YOUR_TABLE_ID";
-// Table field key for the closed date; each day in the period is searched on it.
-const CLOSED_DATE_FIELD = "YOUR_CLOSED_DATE_FIELD_KEY";
-// Table field key that receives the search value. Not yet verified against a real table.
-const LOOKUP_VALUE_FIELD = "YOUR_LOOKUP_VALUE_FIELD_KEY";
-// Notion data source ID of the finance report database.
-const NOTION_DATA_SOURCE_ID = "YOUR_NOTION_DATA_SOURCE_ID";
 // Number of full days before the run date to count (7 = the previous week).
 const LOOKBACK_DAYS = 7;
 
@@ -45,7 +46,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "zapier-tables",
               actionType: "search",
               actionKey: "find_record",
-              connection: "zapier-tables",
+              connection: zapierTables,
               inputs: {
                 table_id: TABLE_ID,
                 filter_count: "1",
@@ -78,7 +79,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "notion",
         actionType: "write",
         actionKey: "create_database_item",
-        connection: "notion",
+        connection: notion,
         inputs: {
           datasource: NOTION_DATA_SOURCE_ID,
           content: summary,

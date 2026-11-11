@@ -2,12 +2,13 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { DELETION_TYPE } from "@/config";
+import zoom from "@/connections/zoom";
+
 const sdk = createZapierSdk();
 
 // Days to keep a cloud recording before it is deleted.
 const RETENTION_DAYS = 30;
-// Zoom deletion type: "permanent" removes the recordings; "trash" moves them to Zoom's trash first.
-const DELETION_TYPE = "permanent";
 
 const InputSchema = z
   .object({
@@ -32,7 +33,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zoom",
         actionType: "write",
         actionKey: "_zap_raw_request",
-        connection: "zoom",
+        connection: zoom,
         inputs: {
           url: `https://api.zoom.us/v2/meetings/${meetingId}/recordings`,
           fail_on_errors: "false",
@@ -52,7 +53,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zoom",
         actionType: "write",
         actionKey: "delete_meeting_recordings",
-        connection: "zoom",
+        connection: zoom,
         inputs: { meeting_id: meetingId, deletion_type: DELETION_TYPE },
       }),
     );

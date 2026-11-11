@@ -2,14 +2,12 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { ROUTING_WEBHOOK_URL, FALLBACK_ROTATION } from "@/config";
+
 const sdk = createZapierSdk();
 
-// Catch-hook URL of the reusable routing workflow that updates the contact group.
-const ROUTING_WEBHOOK_URL = "YOUR_ROUTING_WEBHOOK_URL";
 // Canonical rotation identifiers the routing workflow knows (after normalization).
 const KNOWN_ROTATIONS = ["platform-primary", "platform-secondary"];
-// Rotation identifier sent when the event summary matches no known rotation.
-const FALLBACK_ROTATION = "default";
 // Default contact set: sent as the group members input and as the fallback.
 const DEFAULT_CONTACTS = ["YOUR_DEFAULT_CONTACT_EMAIL"];
 

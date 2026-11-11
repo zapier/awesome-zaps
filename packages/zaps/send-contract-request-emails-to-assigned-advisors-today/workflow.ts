@@ -2,25 +2,21 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  ADVISOR_EMAIL_FIELD,
+  ORGANIZATION_FIELD,
+  TITLE_FIELD,
+  DATE_FIELD,
+  PLANNER_FIELD,
+  REQUEST_DETAILS_FIELD,
+  SENDER_ADDRESS,
+} from "@/config";
+import microsoftOutlook from "@/connections/microsoft-outlook";
+
 const sdk = createZapierSdk();
 
-// Google Sheets spreadsheet ID (the long ID in the sheet's URL).
-const SPREADSHEET_ID = "YOUR_SPREADSHEET_ID";
-// Worksheet (tab) ID; the first tab is "0".
-const WORKSHEET_ID = "0";
-// Row field holding the assigned advisor's email address (the To recipient).
-const ADVISOR_EMAIL_FIELD = "advisor_email";
 // Row fields holding requester or collaborator emails (CC recipients).
 const COLLABORATOR_EMAIL_FIELDS = ["requester_email"];
-// Row fields used to build the subject line.
-const ORGANIZATION_FIELD = "organization";
-const TITLE_FIELD = "title";
-const DATE_FIELD = "date";
-// Row fields placed in the email body.
-const PLANNER_FIELD = "planner";
-const REQUEST_DETAILS_FIELD = "request_details";
-// Sender address for shared-mailbox sends; leave "" to send from the connected Outlook account.
-const SENDER_ADDRESS = "";
 
 const InputSchema = z.looseObject({});
 
@@ -70,7 +66,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "microsoft-outlook",
         actionType: "write",
         actionKey: "send_email",
-        connection: "microsoft-outlook",
+        connection: microsoftOutlook,
         inputs: {
           recipients: [advisorEmail],
           ccRecipients: collaborators.length ? collaborators : undefined,

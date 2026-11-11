@@ -4,11 +4,6 @@ import { z } from "zod";
 
 const sdk = createZapierSdk();
 
-// Gmail search that fires the workflow; matches incoming mail with a PDF attachment.
-const GMAIL_QUERY = "has:attachment filename:pdf";
-// Gmail connection alias; bind it to the Gmail account that receives the staff PDFs.
-const GMAIL_CONNECTION = "gmail";
-
 const InputSchema = z.object({}).loose();
 
 // Subject -> folder title: strip reply/forward prefixes, collapse spaces, capitalize each word.

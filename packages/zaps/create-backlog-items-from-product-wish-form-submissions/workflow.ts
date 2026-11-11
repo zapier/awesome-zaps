@@ -2,19 +2,17 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  INTAKE_URL,
+  PRODUCT_CONTEXT,
+  EMAIL_FIELD,
+  TITLE_FIELD,
+  DESCRIPTION_FIELD,
+  CONSENT_FIELD,
+} from "@/config";
+
 const sdk = createZapierSdk();
 
-// Google Form ID (the long ID in the form's URL). The trigger watches this form.
-const FORM_ID = "YOUR_FORM_ID";
-// Intake endpoint that receives each backlog item as JSON.
-const INTAKE_URL = "YOUR_INTAKE_ENDPOINT_URL";
-// Product or context label sent with every item.
-const PRODUCT_CONTEXT = "YOUR_PRODUCT_NAME";
-// Form field keys for the submission. Check them against a real response before use.
-const EMAIL_FIELD = "email";
-const TITLE_FIELD = "title";
-const DESCRIPTION_FIELD = "description";
-const CONSENT_FIELD = "consent";
 // Consent answers (lowercase) that count as Yes. Any other value counts as No.
 const CONSENT_YES_VALUES = ["yes", "y", "true", "i agree", "agree"];
 

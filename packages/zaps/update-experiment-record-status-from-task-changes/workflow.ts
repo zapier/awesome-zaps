@@ -2,22 +2,17 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  AIRTABLE_BASE_ID,
+  AIRTABLE_TABLE_NAME,
+  PERMALINK_FIELD,
+  STATUS_FIELD,
+  TITLE_FIELD,
+  OWNER_FIELD,
+} from "@/config";
+import airtable from "@/connections/airtable";
 
-// ClickUp workspace (team) ID to watch for task changes.
-const CLICKUP_TEAM_ID = "YOUR_CLICKUP_TEAM_ID";
-// Airtable base ID that holds the experiments table.
-const AIRTABLE_BASE_ID = "YOUR_AIRTABLE_BASE_ID";
-// Name of the experiments table inside that base.
-const AIRTABLE_TABLE_NAME = "YOUR_EXPERIMENTS_TABLE_NAME";
-// Column that stores the ClickUp task permalink. Records are matched on this column.
-const PERMALINK_FIELD = "Task permalink";
-// Column for the experiment's status, kept in step with the task.
-const STATUS_FIELD = "Status";
-// Column for the task title.
-const TITLE_FIELD = "Task title";
-// Column for the assigned owner.
-const OWNER_FIELD = "Owner";
+const sdk = createZapierSdk();
 
 const TaskSchema = z
   .object({
@@ -53,7 +48,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "airtable",
         actionType: "search",
         actionKey: "findRecord",
-        connection: "airtable",
+        connection: airtable,
         inputs: {
           applicationId: AIRTABLE_BASE_ID,
           tableName: AIRTABLE_TABLE_NAME,
@@ -71,7 +66,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "airtable",
           actionType: "write",
           actionKey: "createRecord",
-          connection: "airtable",
+          connection: airtable,
           inputs: {
             applicationId: AIRTABLE_BASE_ID,
             tableName: AIRTABLE_TABLE_NAME,
@@ -96,7 +91,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "airtable",
         actionType: "write",
         actionKey: "updateRecord",
-        connection: "airtable",
+        connection: airtable,
         inputs: {
           rowId: record.id,
           applicationId: AIRTABLE_BASE_ID,

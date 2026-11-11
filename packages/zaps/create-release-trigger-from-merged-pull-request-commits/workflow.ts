@@ -2,12 +2,10 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { SUB_ZAP_URL } from "@/config";
+
 const sdk = createZapierSdk();
 
-// GitHub repository to watch for new commits, as "owner/repo".
-const GITHUB_REPO = "YOUR_OWNER/YOUR_REPO";
-// Webhook URL of the sub-zap that receives each merged pull request commit.
-const SUB_ZAP_URL = "YOUR_SUB_ZAP_WEBHOOK_URL";
 // Commit message pattern that marks a merged pull request.
 const MERGE_PATTERN = /^Merge pull request #\d+/;
 

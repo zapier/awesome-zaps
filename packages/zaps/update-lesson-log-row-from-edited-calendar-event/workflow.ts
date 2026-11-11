@@ -2,24 +2,18 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  SPREADSHEET_ID,
+  WORKSHEET_ID,
+  EVENT_ID_COLUMN,
+  DATE_COLUMN,
+  DURATION_COLUMN,
+  SUMMARY_COLUMN,
+  NOTES_COLUMN,
+} from "@/config";
+import googleSheets from "@/connections/google-sheets";
 
-// The calendar is set in the trigger config (`calendarid` on Google Calendar's
-// "New or Updated Event" trigger), not in this file.
-// Google Sheets spreadsheet ID (the long ID in the sheet's URL).
-const SPREADSHEET_ID = "YOUR_SPREADSHEET_ID";
-// Worksheet (tab) ID; the first tab is "0".
-const WORKSHEET_ID = "0";
-// Column holding the calendar event ID the row is matched on (COL$A = column A).
-const EVENT_ID_COLUMN = "COL$A";
-// Column for the session date, taken from the event's start.
-const DATE_COLUMN = "COL$B";
-// Column for the session duration in minutes.
-const DURATION_COLUMN = "COL$C";
-// Column for the session summary, taken from the event title.
-const SUMMARY_COLUMN = "COL$D";
-// Column for the session notes, taken from the event description.
-const NOTES_COLUMN = "COL$E";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -54,7 +48,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "search",
         actionKey: "lookup_row",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,
@@ -72,7 +66,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "google-sheets",
           actionType: "write",
           actionKey: "update_row",
-          connection: "google-sheets",
+          connection: googleSheets,
           inputs: {
             spreadsheet: SPREADSHEET_ID,
             worksheet: WORKSHEET_ID,
@@ -96,7 +90,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "add_row",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,

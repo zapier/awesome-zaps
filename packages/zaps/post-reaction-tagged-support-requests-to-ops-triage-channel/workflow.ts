@@ -2,18 +2,17 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  TRIAGE_CHANNEL,
+  SOURCE_CHANNEL,
+  SUPPORT_REACTION,
+  BOT_NAME,
+  BOT_ICON,
+} from "@/config";
+import slack from "@/connections/slack";
+
 const sdk = createZapierSdk();
 
-// Slack channel ID where triage messages are posted (the channel's ID, starting with C).
-const TRIAGE_CHANNEL = "YOUR_TRIAGE_CHANNEL_ID";
-// Slack channel ID the support reaction is watched in. Set the trigger's Channel ID to the same value.
-const SOURCE_CHANNEL = "YOUR_SOURCE_CHANNEL_ID";
-// Reaction name that marks a message as a support request, without colons.
-const SUPPORT_REACTION = "ticket";
-// Bot name shown above each triage message.
-const BOT_NAME = "Support Triage";
-// Bot icon: a workspace emoji or an image URL.
-const BOT_ICON = ":ticket:";
 // Set to true to let triage posts @-mention people and channels. Keep false for tests.
 const ALLOW_MENTIONS = false;
 
@@ -64,7 +63,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "slack",
               actionType: "search",
               actionKey: "user_by_id",
-              connection: "slack",
+              connection: slack,
               inputs: { id: requesterId, raw: "false" },
             });
             const user = lookup.data[0] as { real_name?: string } | undefined;
@@ -90,7 +89,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "channel_message",
-        connection: "slack",
+        connection: slack,
         inputs: {
           channel: TRIAGE_CHANNEL,
           text,

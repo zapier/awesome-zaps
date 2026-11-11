@@ -2,14 +2,15 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  WATCHED_CHANNEL,
+  SLACK_WORKSPACE_URL,
+  INTEL_DOC_TITLE,
+} from "@/config";
+import googleDocs from "@/connections/google-docs";
+
 const sdk = createZapierSdk();
 
-// Slack channel ID to watch, from the channel's details (e.g. "C02M7813E").
-const WATCHED_CHANNEL = "YOUR_SLACK_CHANNEL_ID";
-// Slack workspace URL, used to build each message's permalink.
-const SLACK_WORKSPACE_URL = "https://YOUR_WORKSPACE.slack.com";
-// Title of the central competitor intelligence document. Created if no document has this title.
-const INTEL_DOC_TITLE = "Competitor intelligence";
 // Words that flag a message for capture (case-insensitive substring match).
 const FLAG_KEYWORDS = ["competitor", "competitive", "pricing", "launch"];
 
@@ -54,7 +55,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-docs",
         actionType: "search",
         actionKey: "document",
-        connection: "google-docs",
+        connection: googleDocs,
         inputs: { title: INTEL_DOC_TITLE },
       });
       return { id: result.data[0]?.id ?? null };
@@ -67,7 +68,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "google-docs",
           actionType: "write",
           actionKey: "newtxtdocument",
-          connection: "google-docs",
+          connection: googleDocs,
           inputs: {
             title: INTEL_DOC_TITLE,
             file: "Competitor intelligence. Flagged channel messages are appended below.",
@@ -88,7 +89,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-docs",
         actionType: "search",
         actionKey: "get_document_content",
-        connection: "google-docs",
+        connection: googleDocs,
         inputs: { document_id: docId },
       });
       return { text: String(result.data[0]?.text_content ?? "") };
@@ -105,7 +106,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-docs",
         actionType: "write",
         actionKey: "append",
-        connection: "google-docs",
+        connection: googleDocs,
         inputs: { file: docId, text: entry },
       });
       return { appended: result.data.length };

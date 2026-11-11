@@ -2,12 +2,10 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import { PRIMARY_TASK_LIST_ID } from "@/config";
+import googleTasks from "@/connections/google-tasks";
 
-// Google Tasks list to watch for new tasks. Use the same ID as the trigger's Task List.
-const SOURCE_TASK_LIST_ID = "YOUR_SOURCE_TASK_LIST_ID";
-// Google Tasks list (your primary inbox) that receives the copies.
-const PRIMARY_TASK_LIST_ID = "YOUR_PRIMARY_TASK_LIST_ID";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -41,7 +39,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-tasks",
         actionType: "search",
         actionKey: "find_task",
-        connection: "google-tasks",
+        connection: googleTasks,
         inputs: {
           list: PRIMARY_TASK_LIST_ID,
           title,
@@ -65,7 +63,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-tasks",
         actionType: "write",
         actionKey: "task",
-        connection: "google-tasks",
+        connection: googleTasks,
         inputs: {
           task_list: PRIMARY_TASK_LIST_ID,
           title,

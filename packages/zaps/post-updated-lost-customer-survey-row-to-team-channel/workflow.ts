@@ -2,31 +2,29 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  SPREADSHEET_ID,
+  WORKSHEET_ID,
+  SLACK_CHANNEL_ID,
+  CUSTOMER_NAME_COLUMN,
+  SATISFACTION_COLUMN,
+  OWNER_COLUMN,
+  ENTRY_SOURCE_COLUMN,
+  VIDEO_LINK_COLUMN,
+  COMMENTS_COLUMN,
+  SURVEY_STATUS_COLUMN,
+  NOTIFIED_COLUMN,
+  COMPLETED_STATUS,
+  NOTIFIED_VALUE,
+  BOT_NAME,
+} from "@/config";
+import slack from "@/connections/slack";
+import googleSheets from "@/connections/google-sheets";
+
 const sdk = createZapierSdk();
 
-// Google Sheets spreadsheet ID (the long ID in the sheet's URL).
-const SPREADSHEET_ID = "YOUR_SPREADSHEET_ID";
-// Worksheet (tab) ID; the first tab is "0".
-const WORKSHEET_ID = "0";
-// Slack channel ID to post into (starts with C). Use the channel your team reads.
-const SLACK_CHANNEL_ID = "YOUR_SLACK_CHANNEL_ID";
-// Column keys for the survey fields (COL$A = column A).
-const CUSTOMER_NAME_COLUMN = "COL$B";
-const SATISFACTION_COLUMN = "COL$C";
-const OWNER_COLUMN = "COL$D";
-const ENTRY_SOURCE_COLUMN = "COL$E";
-const VIDEO_LINK_COLUMN = "COL$F";
-const COMMENTS_COLUMN = "COL$G";
-const SURVEY_STATUS_COLUMN = "COL$I";
-const NOTIFIED_COLUMN = "COL$J";
-// Survey status that qualifies a row for a notification.
-const COMPLETED_STATUS = "Completed";
-// Value written to the notified column so a row is announced once.
-const NOTIFIED_VALUE = "notified";
 // Set to true to @mention the assigned owner. The owner value must match a Slack handle.
 const MENTION_ASSIGNED_OWNER = false;
-// Name shown as the bot above the message.
-const BOT_NAME = "Lost customer survey";
 
 const InputSchema = z
   .object({
@@ -76,7 +74,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "channel_message",
-        connection: "slack",
+        connection: slack,
         inputs: {
           channel: SLACK_CHANNEL_ID,
           text,
@@ -94,7 +92,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "update_row",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,

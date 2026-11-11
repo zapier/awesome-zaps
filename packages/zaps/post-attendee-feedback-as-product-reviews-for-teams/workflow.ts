@@ -2,22 +2,17 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  TITLE_FIELD,
+  BODY_FIELD,
+  RATING_FIELD,
+  NAME_FIELD,
+  EMAIL_FIELD,
+  REVIEW_ENDPOINT_URL,
+  PRODUCT_ID,
+} from "@/config";
 
-// Typeform field key for the review title. Copy it from a sample entry's output.
-const TITLE_FIELD = "YOUR_TITLE_FIELD_KEY";
-// Typeform field key for the review text.
-const BODY_FIELD = "YOUR_BODY_FIELD_KEY";
-// Typeform field key for the star rating.
-const RATING_FIELD = "YOUR_RATING_FIELD_KEY";
-// Typeform field key for the reviewer's name.
-const NAME_FIELD = "YOUR_NAME_FIELD_KEY";
-// Typeform field key for the reviewer's email. The review endpoint matches reviewers on it.
-const EMAIL_FIELD = "YOUR_EMAIL_FIELD_KEY";
-// Review platform endpoint that accepts new reviews (a POST URL).
-const REVIEW_ENDPOINT_URL = "YOUR_REVIEW_ENDPOINT_URL";
-// Product identifier sent with every review.
-const PRODUCT_ID = "YOUR_PRODUCT_ID";
+const sdk = createZapierSdk();
 
 const InputSchema = z.record(z.string(), z.unknown());
 

@@ -2,13 +2,10 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import { EXTERNAL_ID_FIELD } from "@/config";
+import pipedrive from "@/connections/pipedrive";
 
-// Pipedrive app key and the connection alias it runs against.
-const PIPEDRIVE_APP_KEY = "pipedrive";
-const PIPEDRIVE_CONNECTION = "pipedrive";
-// Pipedrive custom deal field key that stores the external campaign identifier (the field's key under Settings > Data fields).
-const EXTERNAL_ID_FIELD = "YOUR_PIPEDRIVE_CUSTOM_FIELD_KEY";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -37,10 +34,10 @@ const workflow = defineDurable<unknown, unknown>(
 
     const lookup = await ctx.step("find-deal", async () =>
       sdk.runAction({
-        appKey: PIPEDRIVE_APP_KEY,
+        appKey: "pipedrive",
         actionType: "search",
         actionKey: "get_deal",
-        connection: PIPEDRIVE_CONNECTION,
+        connection: pipedrive,
         inputs: { id: String(dealId) },
       }),
     );
@@ -55,10 +52,10 @@ const workflow = defineDurable<unknown, unknown>(
 
     const update = await ctx.step("update-deal-external-id", async () =>
       sdk.runAction({
-        appKey: PIPEDRIVE_APP_KEY,
+        appKey: "pipedrive",
         actionType: "write",
         actionKey: "update_deal_v2",
-        connection: PIPEDRIVE_CONNECTION,
+        connection: pipedrive,
         inputs: { id: dealId, [EXTERNAL_ID_FIELD]: externalId },
       }),
     );

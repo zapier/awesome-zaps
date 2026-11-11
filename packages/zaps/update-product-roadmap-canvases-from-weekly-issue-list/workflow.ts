@@ -1,12 +1,11 @@
 import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 
+import { ROADMAP_LABEL, LOOKBACK } from "@/config";
+import jiraSoftwareCloud from "@/connections/jira-software-cloud";
+
 const sdk = createZapierSdk();
 
-// Jira label that marks an issue as roadmap-tracked.
-const ROADMAP_LABEL = "roadmap";
-// How far back to look for updated issues (JQL relative date).
-const LOOKBACK = "-7d";
 // Most issues handled per run.
 const MAX_ITEMS = 100;
 // Jira project key -> product roadmap canvas ID. Issues from a project with no entry are skipped.
@@ -72,7 +71,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "jira-software-cloud",
         actionType: "search",
         actionKey: "issue_jql",
-        connection: "jira-software-cloud",
+        connection: jiraSoftwareCloud,
         inputs: {
           jql: `labels = "${ROADMAP_LABEL}" AND updated >= ${LOOKBACK}`,
           maxResults: MAX_ITEMS,

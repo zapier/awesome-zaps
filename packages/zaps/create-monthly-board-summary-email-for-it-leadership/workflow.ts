@@ -1,18 +1,19 @@
 import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 
+import {
+  TRELLO_BOARD_ID,
+  RECIPIENT_EMAIL,
+  FROM_NAME,
+  SUBJECT_PREFIX,
+} from "@/config";
+import trello from "@/connections/trello";
+import gmail from "@/connections/gmail";
+
 const sdk = createZapierSdk();
 
-// Trello board to summarize (the ID in the board's URL, or from the board dropdown).
-const TRELLO_BOARD_ID = "YOUR_TRELLO_BOARD_ID";
 // Most cards to include in the summary, taken from the open cards on the board.
 const MAX_CARDS = 200;
-// Address the summary is emailed to (a leadership alias or the board owner).
-const RECIPIENT_EMAIL = "YOUR_LEADERSHIP_EMAIL";
-// Sender name shown on the email.
-const FROM_NAME = "IT Leadership Board Summary";
-// Text added in front of the email subject. Leave empty for production.
-const SUBJECT_PREFIX = "";
 
 type TrelloCard = {
   name?: string | null;
@@ -29,7 +30,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "trello",
         actionType: "search",
         actionKey: "organization_card_v2",
-        connection: "trello",
+        connection: trello,
         inputs: {
           board: TRELLO_BOARD_ID,
           open_cards_only: "true",
@@ -64,7 +65,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: "gmail",
+        connection: gmail,
         inputs: {
           to: [RECIPIENT_EMAIL],
           subject: `${SUBJECT_PREFIX}Monthly board summary: ${cards.length} open cards`,

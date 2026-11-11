@@ -1,6 +1,9 @@
 import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 
+import { CONTACT_ID_FILTER } from "@/config";
+import notion from "@/connections/notion";
+
 const sdk = createZapierSdk();
 
 // Where contacts go in Notion. Ask the user, then use the data source ID from the Notion action's
@@ -25,7 +28,6 @@ const PROPS = {
   originalTextType: "properties|||Original text type|||rich_text",
   originalText: "properties|||Original text|||rich_text",
 } as const;
-const CONTACT_ID_FILTER = "properties|||NexHello Contact ID|||filter";
 
 const EVENT_TYPE = "contact.activity.recorded"; // anything else (like the "webhook.test" connection check) is skipped
 const NOTION_TEXT_LIMIT = 2000; // Notion's limit per text property
@@ -129,7 +131,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "notion",
         actionType: "search",
         actionKey: "find_data_source_item",
-        connection: "notion",
+        connection: notion,
         inputs: {
           datasource: NOTION_DATA_SOURCE_ID,
           search_fields: ["NexHello Contact ID"],
@@ -148,7 +150,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "notion",
           actionType: "write",
           actionKey: "create_database_item",
-          connection: "notion",
+          connection: notion,
           inputs: {
             datasource: NOTION_DATA_SOURCE_ID,
             template_mode: "none",
@@ -187,7 +189,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "notion",
         actionType: "write",
         actionKey: "update_database_item",
-        connection: "notion",
+        connection: notion,
         inputs,
       }),
     );

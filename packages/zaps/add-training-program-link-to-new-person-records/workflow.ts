@@ -2,18 +2,17 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  TRAINING_TABLE_ID,
+  PROGRAM_KEY_FIELD,
+  PROGRAM_LINK_FIELD,
+  PERSON_TRAINING_FIELD,
+  PERSON_LINK_FIELD,
+} from "@/config";
+import zapierTables from "@/connections/zapier-tables";
+import pipedrive from "@/connections/pipedrive";
 
-// Zapier Tables table ID that holds the training programs (the long ID in the table's URL).
-const TRAINING_TABLE_ID = "YOUR_TABLE_ID";
-// Table field key for the program key to match exactly (f1 = first column).
-const PROGRAM_KEY_FIELD = "f1";
-// Table field key for the program link to copy (f2 = second column).
-const PROGRAM_LINK_FIELD = "f2";
-// Pipedrive custom field key on the person that holds the training/program reference.
-const PERSON_TRAINING_FIELD = "YOUR_PIPEDRIVE_TRAINING_FIELD_KEY";
-// Pipedrive custom field key on the person that receives the program link.
-const PERSON_LINK_FIELD = "YOUR_PIPEDRIVE_LINK_FIELD_KEY";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -39,7 +38,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "search",
         actionKey: "find_record",
-        connection: "zapier-tables",
+        connection: zapierTables,
         inputs: {
           table_id: TRAINING_TABLE_ID,
           filter_count: "1",
@@ -67,7 +66,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "pipedrive",
         actionType: "write",
         actionKey: "update_personV2",
-        connection: "pipedrive",
+        connection: pipedrive,
         inputs: {
           id: Number(personId),
           [PERSON_LINK_FIELD]: link,

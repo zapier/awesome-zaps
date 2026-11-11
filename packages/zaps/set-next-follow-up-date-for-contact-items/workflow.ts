@@ -2,14 +2,11 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { BOARD_ID, NEXT_FOLLOW_UP_COLUMN_ID } from "@/config";
+import monday from "@/connections/monday";
+
 const sdk = createZapierSdk();
 
-// monday.com board ID to watch and update (the number in the board's URL).
-const BOARD_ID = "YOUR_BOARD_ID";
-// Column ID of the date column whose change starts the workflow. Set the same value in the trigger's column_id.
-const TRIGGER_COLUMN_ID = "YOUR_TRIGGER_COLUMN_ID";
-// Column ID of the next-follow-up date column, overwritten on each update.
-const NEXT_FOLLOW_UP_COLUMN_ID = "YOUR_NEXT_FOLLOW_UP_COLUMN_ID";
 // Status value an item must have to qualify. null = every change qualifies.
 const QUALIFYING_STATUS: string | null = null;
 
@@ -53,7 +50,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "monday",
         actionType: "write",
         actionKey: "change_multiple_columns_value",
-        connection: "monday",
+        connection: monday,
         inputs: {
           item_id: Number(itemId),
           board_id: Number(BOARD_ID),

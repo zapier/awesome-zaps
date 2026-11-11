@@ -1,22 +1,20 @@
 import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 
+import {
+  REQUESTER_NAME,
+  REQUESTER_EMAIL,
+  TICKET_PRIORITY,
+  TICKET_TYPE,
+  TICKET_TAGS,
+  FIRST_COMMENT_PUBLIC,
+} from "@/config";
+import zendesk from "@/connections/zendesk";
+
 const sdk = createZapierSdk();
 
-// Name of the service account the ticket is requested by (Zendesk requester name).
-const REQUESTER_NAME = "YOUR_SERVICE_ACCOUNT_NAME";
-// Email of that service account (Zendesk requester email).
-const REQUESTER_EMAIL = "YOUR_SERVICE_ACCOUNT_EMAIL";
 // Numeric Zendesk group ID of the monitoring team; replace 0 with your group's ID.
 const MONITORING_GROUP_ID = 0;
-// Ticket priority: "urgent", "high", "normal" or "low".
-const TICKET_PRIORITY = "normal";
-// Ticket type: "problem", "incident", "question" or "task".
-const TICKET_TYPE = "incident";
-// Comma-separated tags added to every ticket.
-const TICKET_TAGS = "crawl-health,monitoring,daily-check";
-// Whether the checklist comment is public to the requester: "yes" or "no".
-const FIRST_COMMENT_PUBLIC = "no";
 // Items in the templated checklist that becomes the ticket body.
 const CHECKLIST_ITEMS = [
   "Review crawl errors and failed URLs",
@@ -44,7 +42,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zendesk",
         actionType: "write",
         actionKey: "ticket",
-        connection: "zendesk",
+        connection: zendesk,
         inputs: {
           subject,
           first_comment: checklist,

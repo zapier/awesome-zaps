@@ -2,15 +2,10 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import { TABLE_ID, SOURCE_ID_FIELD } from "@/config";
+import zapierTables from "@/connections/zapier-tables";
 
-// Google Calendar to watch. Set the same value as the trigger's calendarid when you configure the trigger.
-const CALENDAR_ID = "YOUR_CALENDAR_ID";
-// Zapier Tables table to log into: the table's ID, from its URL.
-const TABLE_ID = "YOUR_TABLE_ID";
-// Table field keys, matching the column order: Title, Start, End, Duration (minutes), Attendees, Source ID.
-// Source ID is the field the duplicate check looks up.
-const SOURCE_ID_FIELD = "f6";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -64,7 +59,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "search",
         actionKey: "find_record",
-        connection: "zapier-tables",
+        connection: zapierTables,
         inputs: {
           table_id: TABLE_ID,
           filter_count: "1",
@@ -88,7 +83,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "create_record",
-        connection: "zapier-tables",
+        connection: zapierTables,
         inputs: {
           table_id: TABLE_ID,
           new__data__f1: title,

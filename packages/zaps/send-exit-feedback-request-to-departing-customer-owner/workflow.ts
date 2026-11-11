@@ -2,12 +2,10 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import { FEEDBACK_FORM_URL, RETENTION_INBOX_CC } from "@/config";
+import microsoftOutlook from "@/connections/microsoft-outlook";
 
-// Feedback survey link, used when the cancellation payload has no feedback_url of its own.
-const FEEDBACK_FORM_URL = "YOUR_FEEDBACK_FORM_URL";
-// Retention inbox copied on every email; leave empty to send to the customer only.
-const RETENTION_INBOX_CC = "";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -66,7 +64,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "microsoft-outlook",
         actionType: "write",
         actionKey: "send_email",
-        connection: "microsoft-outlook",
+        connection: microsoftOutlook,
         inputs: {
           recipients: [email],
           subject,

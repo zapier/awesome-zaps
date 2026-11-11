@@ -2,12 +2,10 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import { TRELLO_BOARD_ID } from "@/config";
+import trello from "@/connections/trello";
 
-// Dropbox folder to watch for new design files, as a path such as "/Design/CAD".
-const DROPBOX_FOLDER = "YOUR_DROPBOX_FOLDER_PATH";
-// Trello board to search for matching cards (the ID in the board's URL).
-const TRELLO_BOARD_ID = "YOUR_TRELLO_BOARD_ID";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -32,7 +30,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "trello",
         actionType: "search",
         actionKey: "organization_card_v2",
-        connection: "trello",
+        connection: trello,
         inputs: {
           board: TRELLO_BOARD_ID,
           keyword: filename,
@@ -54,7 +52,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "trello",
         actionType: "write",
         actionKey: "card_attachment",
-        connection: "trello",
+        connection: trello,
         inputs: {
           card: card.id,
           file: input.file,

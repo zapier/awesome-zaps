@@ -2,12 +2,10 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { ENDPOINT_URL, VENDOR_SENDER } from "@/config";
+
 const sdk = createZapierSdk();
 
-// Verification endpoint that receives the code as JSON (POST).
-const ENDPOINT_URL = "YOUR_ENDPOINT_URL";
-// The vendor's sender address. Emails from it always pass the filter; others pass only if a code is found.
-const VENDOR_SENDER = "YOUR_VENDOR_SENDER_EMAIL";
 // Shortest and longest code accepted, in digits.
 const MIN_CODE_LENGTH = 4;
 const MAX_CODE_LENGTH = 8;

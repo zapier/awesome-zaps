@@ -2,12 +2,18 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  TABLE_ID,
+  REVIEW_ID_KEY,
+  REVIEW_TEXT_KEY,
+  REVIEWER_NAME_KEY,
+  RATING_KEY,
+  RECEIVED_AT_KEY,
+} from "@/config";
+import zapierTables from "@/connections/zapier-tables";
+
 const sdk = createZapierSdk();
 
-// Zapier Tables table that holds one row per review (the table's ID from its URL).
-const TABLE_ID = "YOUR_TABLE_ID";
-// Google Business Profile location to watch for new reviews.
-const LOCATION_ID = "YOUR_LOCATION_ID";
 // Table field keys, in the order the table was created.
 const FIELD = {
   externalId: "new__data__f1",
@@ -16,13 +22,6 @@ const FIELD = {
   rating: "new__data__f4",
   receivedAt: "new__data__f5",
 };
-// Keys in the New Review trigger payload that hold each value.
-// Not yet verified against a live sample: check them with get_trigger_fields once Google Business Profile is authorized.
-const REVIEW_ID_KEY = "review_id";
-const REVIEW_TEXT_KEY = "comment";
-const REVIEWER_NAME_KEY = "reviewer_name";
-const RATING_KEY = "star_rating";
-const RECEIVED_AT_KEY = "create_time";
 // Google sends star ratings as words (FIVE); the Rating field needs a number.
 const STAR_WORDS: Record<string, number> = {
   ONE: 1,
@@ -61,7 +60,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "search",
         actionKey: "find_record",
-        connection: "zapier-tables",
+        connection: zapierTables,
         inputs: {
           table_id: TABLE_ID,
           filter_count: "1",
@@ -81,7 +80,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "zapier-tables",
           actionType: "write",
           actionKey: "update_record",
-          connection: "zapier-tables",
+          connection: zapierTables,
           inputs: { table_id: TABLE_ID, record_id: rowId, ...row },
         }),
       );
@@ -98,7 +97,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "create_record",
-        connection: "zapier-tables",
+        connection: zapierTables,
         inputs: { table_id: TABLE_ID, ...row },
       }),
     );

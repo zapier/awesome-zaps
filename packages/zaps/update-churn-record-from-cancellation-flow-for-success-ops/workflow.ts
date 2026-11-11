@@ -2,26 +2,23 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  SPREADSHEET_ID,
+  WORKSHEET_ID,
+  CLIENT_UUID_COLUMN,
+  FLOW_NAME_COLUMN,
+  SUBSCRIPTION_COLUMN,
+  ANSWERS_COLUMN,
+  UPDATED_AT_COLUMN,
+} from "@/config";
+import googleSheets from "@/connections/google-sheets";
+
 const sdk = createZapierSdk();
 
-// Google Sheets spreadsheet ID (the long ID in the sheet's URL).
-const SPREADSHEET_ID = "YOUR_SPREADSHEET_ID";
-// Worksheet (tab) ID; the first tab is "0".
-const WORKSHEET_ID = "0";
 // Flow names that qualify for a churn update. Other flows are skipped.
 const ALLOWED_FLOW_NAMES = ["cancellation", "retention"];
 // Seconds to wait after the payload arrives so late edits are captured (7200 = 2 hours).
 const DELAY_SECONDS = 7200;
-// Column holding the client identifier to match on (COL$A = column A).
-const CLIENT_UUID_COLUMN = "COL$A";
-// Column for the flow the update came from.
-const FLOW_NAME_COLUMN = "COL$B";
-// Column for the subscription properties, joined into one line.
-const SUBSCRIPTION_COLUMN = "COL$C";
-// Column for the cancellation answers, formatted as "question: answer | ...".
-const ANSWERS_COLUMN = "COL$D";
-// Column for the time the row was last updated.
-const UPDATED_AT_COLUMN = "COL$E";
 
 const InputSchema = z
   .object({
@@ -65,7 +62,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "search",
         actionKey: "lookup_row",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,
@@ -96,7 +93,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "google-sheets",
           actionType: "write",
           actionKey: "update_row",
-          connection: "google-sheets",
+          connection: googleSheets,
           inputs: {
             spreadsheet: SPREADSHEET_ID,
             worksheet: WORKSHEET_ID,
@@ -118,7 +115,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "add_row",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,

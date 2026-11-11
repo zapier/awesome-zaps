@@ -2,10 +2,11 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { EVENT_NAME_MATCH } from "@/config";
+import pipedrive from "@/connections/pipedrive";
+
 const sdk = createZapierSdk();
 
-// Only bookings whose event name contains this text (case-insensitive) continue. Set to "" to accept every event type.
-const EVENT_NAME_MATCH = "coaching session";
 // Pipedrive stage ID (a number) that new deals open in. Replace 0 with your stage ID (YOUR_STAGE_ID).
 const INCOMING_STAGE_ID = 0;
 // Pipedrive user ID (a number) that owns new deals. Replace 0 with your user ID (YOUR_OWNER_ID).
@@ -46,7 +47,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "pipedrive",
         actionType: "write",
         actionKey: "create_personV2",
-        connection: "pipedrive",
+        connection: pipedrive,
         inputs: {
           name: inviteeName,
           emails: inviteeEmail ? [inviteeEmail] : [],
@@ -64,7 +65,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "pipedrive",
         actionType: "write",
         actionKey: "create_deal_v2",
-        connection: "pipedrive",
+        connection: pipedrive,
         inputs: {
           title: `${eventName || "Booking"}: ${inviteeName}`,
           person_id: Number(personId),

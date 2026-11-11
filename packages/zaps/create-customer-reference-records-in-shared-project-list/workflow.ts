@@ -2,18 +2,16 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  SITE_ID,
+  LIST_ID,
+  CUSTOMER_ID_COLUMN,
+  EMAIL_COLUMN,
+  PHONE_COLUMN,
+} from "@/config";
+import sharepoint from "@/connections/sharepoint";
 
-// Microsoft SharePoint site ID that holds the shared customer reference list.
-const SITE_ID = "YOUR_SITE_ID";
-// SharePoint list ID of the shared customer reference list.
-const LIST_ID = "YOUR_LIST_ID";
-// List column that stores the QuickBooks customer ID. Used to find an existing reference.
-const CUSTOMER_ID_COLUMN = "YOUR_CUSTOMER_ID_COLUMN";
-// List column for the customer's primary email address.
-const EMAIL_COLUMN = "YOUR_EMAIL_COLUMN";
-// List column for the customer's primary phone number.
-const PHONE_COLUMN = "YOUR_PHONE_COLUMN";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -55,7 +53,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "sharepoint",
         actionType: "search",
         actionKey: "find_list_item",
-        connection: "sharepoint",
+        connection: sharepoint,
         inputs: {
           siteId: SITE_ID,
           listId: LIST_ID,
@@ -74,7 +72,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "sharepoint",
             actionType: "write",
             actionKey: "update_list_item",
-            connection: "sharepoint",
+            connection: sharepoint,
             inputs: {
               siteId: SITE_ID,
               listId: LIST_ID,
@@ -97,7 +95,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "sharepoint",
         actionType: "write",
         actionKey: "create_list_item",
-        connection: "sharepoint",
+        connection: sharepoint,
         inputs: {
           siteId: SITE_ID,
           listId: LIST_ID,

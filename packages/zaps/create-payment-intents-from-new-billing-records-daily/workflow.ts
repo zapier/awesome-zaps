@@ -2,24 +2,21 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  TABLE_ID,
+  CUSTOMER_REF_FIELD,
+  AMOUNT_FIELD,
+  CURRENCY_FIELD,
+  DESCRIPTION_FIELD,
+  PAYMENT_INTENT_ID_FIELD,
+  PAYMENT_STATUS_FIELD,
+  PROCESSED_FIELD,
+} from "@/config";
+import stripe from "@/connections/stripe";
+import zapierTables from "@/connections/zapier-tables";
+
 const sdk = createZapierSdk();
 
-// Zapier Tables table that holds the billing records (the ID in the table's URL).
-const TABLE_ID = "YOUR_TABLE_ID";
-// Field holding the customer reference, matched against Stripe customers by email.
-const CUSTOMER_REF_FIELD = "f1";
-// Field holding the amount in major units (e.g. 49.99).
-const AMOUNT_FIELD = "f2";
-// Field holding the three-letter currency code (e.g. usd).
-const CURRENCY_FIELD = "f3";
-// Field holding an optional payment description.
-const DESCRIPTION_FIELD = "f4";
-// Field the created payment intent ID is written to.
-const PAYMENT_INTENT_ID_FIELD = "f5";
-// Field the payment intent status is written to.
-const PAYMENT_STATUS_FIELD = "f6";
-// Checkbox field marked true once the record has been processed.
-const PROCESSED_FIELD = "f7";
 // Whether Stripe should confirm (charge) the intent immediately. Off: intents are only created.
 const CONFIRM_PAYMENT = false;
 
@@ -118,7 +115,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "stripe",
           actionType: "search",
           actionKey: "find_customer",
-          connection: "stripe",
+          connection: stripe,
           inputs: { query: customerRef, selection: "email" },
         }),
       );
@@ -130,7 +127,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "stripe",
             actionType: "write",
             actionKey: "create_customer",
-            connection: "stripe",
+            connection: stripe,
             inputs: { email: customerRef },
           }),
         );
@@ -144,7 +141,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "stripe",
         actionType: "write",
         actionKey: "create_payment_intent",
-        connection: "stripe",
+        connection: stripe,
         inputs: {
           amount: amountMinor,
           currency,
@@ -169,7 +166,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "update_record",
-        connection: "zapier-tables",
+        connection: zapierTables,
         inputs: {
           table_id: TABLE_ID,
           record_id: recordId,

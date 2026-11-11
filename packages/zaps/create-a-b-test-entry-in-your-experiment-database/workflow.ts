@@ -2,14 +2,10 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import { EXPERIMENT_DATA_SOURCE, CONTENT_FORMAT } from "@/config";
+import notion from "@/connections/notion";
 
-// Asana workspace, project and section are set in the trigger config (Task Moved to Section).
-// Use the same values there as your A/B testing section: the workspace ID, the project ID and the section ID.
-// Notion data source (the experiment database) that new entries are created in.
-const EXPERIMENT_DATA_SOURCE = "YOUR_NOTION_DATA_SOURCE_ID";
-// Notion format of the entry body; markdown renders headings and links.
-const CONTENT_FORMAT = "markdown";
+const sdk = createZapierSdk();
 
 const TaskSchema = z
   .object({
@@ -46,7 +42,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "notion",
         actionType: "write",
         actionKey: "create_database_item",
-        connection: "notion",
+        connection: notion,
         inputs: {
           datasource: EXPERIMENT_DATA_SOURCE,
           template_mode: "none",

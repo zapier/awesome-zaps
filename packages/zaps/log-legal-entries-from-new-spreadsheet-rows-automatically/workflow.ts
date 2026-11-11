@@ -2,21 +2,16 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  LEGAL_ENTRIES_TABLE_ID,
+  TITLE_COLUMN,
+  SUBMISSION_ID_COLUMN,
+  NOTES_COLUMN,
+  PRIORITY_COLUMN,
+} from "@/config";
+import zapierTables from "@/connections/zapier-tables";
 
-// Microsoft Excel workbook ID. Set it in the trigger's Workbook field too; the code does not read it.
-const WORKBOOK_ID = "YOUR_WORKBOOK_ID";
-// Worksheet ID inside the workbook. Set it in the trigger's Worksheet field too; the code does not read it.
-const WORKSHEET_ID = "YOUR_WORKSHEET_ID";
-// Excel table ID new rows come from. Set it in the trigger's Table field too; the code does not read it.
-const EXCEL_TABLE_ID = "YOUR_EXCEL_TABLE_ID";
-// Zapier Table that receives one legal entry record per row.
-const LEGAL_ENTRIES_TABLE_ID = "YOUR_LEGAL_ENTRIES_TABLE_ID";
-// Excel column headers the row is read from. Check them against the sheet's header row.
-const TITLE_COLUMN = "Title";
-const SUBMISSION_ID_COLUMN = "Submission ID";
-const NOTES_COLUMN = "Notes";
-const PRIORITY_COLUMN = "Priority";
+const sdk = createZapierSdk();
 
 const InputSchema = z.record(z.string(), z.unknown());
 
@@ -43,7 +38,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "create_record",
-        connection: "zapier-tables",
+        connection: zapierTables,
         inputs: {
           table_id: LEGAL_ENTRIES_TABLE_ID,
           new__data__f1: title,

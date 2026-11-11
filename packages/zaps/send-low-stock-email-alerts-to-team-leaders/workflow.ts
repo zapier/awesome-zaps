@@ -2,14 +2,11 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { PRODUCT_COLUMN, BRANCH_COLUMN, STOCK_COLUMN } from "@/config";
+import gmail from "@/connections/gmail";
+
 const sdk = createZapierSdk();
 
-// Column holding the product title (COL$A = column A).
-const PRODUCT_COLUMN = "COL$A";
-// Column holding the branch identifier, used to pick the leaders and threshold.
-const BRANCH_COLUMN = "COL$B";
-// Column holding the current stock count.
-const STOCK_COLUMN = "COL$C";
 // Per branch: the team leader email addresses to alert, and the stock count below which to alert.
 // Add one entry per branch, keyed by the identifier that appears in BRANCH_COLUMN.
 const BRANCH_LEADERS: Record<string, { emails: string[]; threshold: number }> =
@@ -54,7 +51,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: "gmail",
+        connection: gmail,
         inputs: {
           to: settings.emails,
           subject: `Low stock at ${branch}: ${product}`,

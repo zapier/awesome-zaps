@@ -2,35 +2,29 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  DEPLOY_REACTION,
+  DEPLOY_MARKER,
+  SPREADSHEET_ID,
+  REGISTRY_WORKSHEET_ID,
+  ENV_NAME_COLUMN,
+  STATUS_COLUMN,
+  LAST_USED_COLUMN,
+  LAST_USED_BY_COLUMN,
+  IN_USE_STATUS,
+  LOG_WORKSHEET_ID,
+  LOG_TIMESTAMP_COLUMN,
+  LOG_ENV_COLUMN,
+  LOG_PREVIOUS_STATUS_COLUMN,
+  LOG_NEW_STATUS_COLUMN,
+  LOG_REACTED_BY_COLUMN,
+  LOG_MESSAGE_LINK_COLUMN,
+} from "@/config";
+import slack from "@/connections/slack";
+import googleSheets from "@/connections/google-sheets";
+
 const sdk = createZapierSdk();
 
-// Reaction that marks a deploy (emoji name without colons). Also set as the trigger's Reaction filter.
-const DEPLOY_REACTION = "rocket";
-// Text the reacted message must contain (case-insensitive) to count as a deploy message.
-const DEPLOY_MARKER = "deploy";
-// Google Sheets spreadsheet ID (the long ID in the sheet's URL) holding both tabs below.
-const SPREADSHEET_ID = "YOUR_SPREADSHEET_ID";
-// Worksheet (tab) ID of the environment registry; the first tab is "0".
-const REGISTRY_WORKSHEET_ID = "0";
-// Registry column holding the environment name to match on (COL$A = column A).
-const ENV_NAME_COLUMN = "COL$A";
-// Registry column for the environment's status, overwritten with IN_USE_STATUS.
-const STATUS_COLUMN = "COL$B";
-// Registry column for the last-used timestamp.
-const LAST_USED_COLUMN = "COL$C";
-// Registry column for who last used the environment.
-const LAST_USED_BY_COLUMN = "COL$D";
-// Status written to the matching registry row.
-const IN_USE_STATUS = "In use";
-// Worksheet (tab) ID of the usage log (the number after #gid= in the tab's URL).
-const LOG_WORKSHEET_ID = "YOUR_LOG_WORKSHEET_ID";
-// Usage-log columns: timestamp, environment, previous status, new status, reacting user, message link.
-const LOG_TIMESTAMP_COLUMN = "COL$A";
-const LOG_ENV_COLUMN = "COL$B";
-const LOG_PREVIOUS_STATUS_COLUMN = "COL$C";
-const LOG_NEW_STATUS_COLUMN = "COL$D";
-const LOG_REACTED_BY_COLUMN = "COL$E";
-const LOG_MESSAGE_LINK_COLUMN = "COL$F";
 // When true, the thread reply @-mentions the person who reacted. Off by default.
 const MENTION_REACTOR = false;
 
@@ -105,7 +99,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "slack",
           actionType: "search",
           actionKey: "user_by_id",
-          connection: "slack",
+          connection: slack,
           inputs: { id: reactorId },
         }),
       );
@@ -119,7 +113,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "search",
         actionKey: "lookup_row",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: REGISTRY_WORKSHEET_ID,
@@ -144,7 +138,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "google-sheets",
           actionType: "write",
           actionKey: "update_row",
-          connection: "google-sheets",
+          connection: googleSheets,
           inputs: {
             spreadsheet: SPREADSHEET_ID,
             worksheet: REGISTRY_WORKSHEET_ID,
@@ -163,7 +157,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "add_row",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: LOG_WORKSHEET_ID,
@@ -198,7 +192,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "channel_message",
-        connection: "slack",
+        connection: slack,
         inputs: {
           channel,
           thread_ts: threadTs,

@@ -2,14 +2,11 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { BASE_ID, CASE_TABLE, KPI_TABLE } from "@/config";
+import airtable from "@/connections/airtable";
+
 const sdk = createZapierSdk();
 
-// Airtable base ID (starts with "app") holding the case table and the KPI table.
-const BASE_ID = "YOUR_AIRTABLE_BASE_ID";
-// Case table (table ID or name) whose record is matched by Record ID and updated.
-const CASE_TABLE = "YOUR_CASE_TABLE_ID";
-// KPI tracking table (table ID or name) that receives one entry per track.
-const KPI_TABLE = "YOUR_KPI_TABLE_ID";
 // Case-table field names. Change these to match your table's headers.
 const CASE_FIELDS = {
   discoveryStatus: "Discovery Status",
@@ -59,7 +56,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "airtable",
         actionType: "search",
         actionKey: "findRecordById",
-        connection: "airtable",
+        connection: airtable,
         inputs: {
           applicationId: BASE_ID,
           tableName: CASE_TABLE,
@@ -95,7 +92,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "airtable",
           actionType: "write",
           actionKey: "createRecord",
-          connection: "airtable",
+          connection: airtable,
           inputs: {
             applicationId: BASE_ID,
             tableName: KPI_TABLE,
@@ -114,7 +111,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "airtable",
         actionType: "write",
         actionKey: "createRecord",
-        connection: "airtable",
+        connection: airtable,
         inputs: {
           applicationId: BASE_ID,
           tableName: KPI_TABLE,
@@ -133,7 +130,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "airtable",
         actionType: "write",
         actionKey: "updateRecord",
-        connection: "airtable",
+        connection: airtable,
         inputs: {
           applicationId: BASE_ID,
           tableName: CASE_TABLE,

@@ -2,12 +2,11 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { TRELLO_BOARD_ID, TRELLO_INSIGHTS_LIST_ID } from "@/config";
+import trello from "@/connections/trello";
+
 const sdk = createZapierSdk();
 
-// Trello board that holds the insight cards (the ID is in the board's URL).
-const TRELLO_BOARD_ID = "YOUR_TRELLO_BOARD_ID";
-// Trello list the cards are moved into (the insights list on that board).
-const TRELLO_INSIGHTS_LIST_ID = "YOUR_TRELLO_INSIGHTS_LIST_ID";
 // Seconds to pause between card moves, to avoid rate limits.
 const SECONDS_BETWEEN_MOVES = 60;
 
@@ -61,7 +60,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "trello",
             actionType: "write",
             actionKey: "card_list",
-            connection: "trello",
+            connection: trello,
             inputs: {
               card: cardId,
               board: TRELLO_BOARD_ID,

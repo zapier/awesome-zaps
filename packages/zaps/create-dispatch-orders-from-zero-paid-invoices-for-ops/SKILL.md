@@ -26,14 +26,17 @@ metadata:
 
 **How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
 
-**Source:** `workflow.ts` in this folder is the whole workflow. Deploy it as one source file. Change only the constants at the top; everything else stays as written.
+**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
+
+- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-dispatch-orders-from-zero-paid-invoices-for-ops` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-dispatch-orders-from-zero-paid-invoices-for-ops` from that project. Deploy asks for each open setting and account, and sets the trigger.
+- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
 
 1. **Trigger:** Xero, `xero` version `2.22.1`, action `updated_invoice_v2`. Params: `organization` set to the Xero organization, `status` set to `paid`. The trigger needs a Xero connection.
 2. **Connections** (each alias in the code is the app's slug):
    - `xero`: the Xero connection for the organization being watched (the trigger uses it).
    - `cartoncloud`: the CartonCloud connection for the warehouse account.
    - `gmail`: the Gmail connection that sends IT notices.
-3. **Constants** (top of `workflow.ts`):
+3. **Settings** (in `config.ts`; an `ask(…)` is asked when each person deploys):
    - `XERO_ORGANIZATION`: the Xero organization ID.
    - `MAX_INVOICE_TOTAL`: the largest total that counts as zero or near-zero. Set to `1`.
    - `SKIP_BRANCH_INDICATORS`: reference words that mark a branch invoice to skip. Empty by default, which skips nothing.

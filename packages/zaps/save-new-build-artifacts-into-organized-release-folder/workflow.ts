@@ -2,12 +2,10 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import { RELEASE_FOLDER_ID } from "@/config";
+import googleDrive from "@/connections/google-drive";
 
-// Google Drive folder ID to watch for new build artifacts. Set the trigger's Folder to this same ID.
-const SOURCE_FOLDER_ID = "YOUR_SOURCE_FOLDER_ID";
-// Google Drive folder ID where the timestamped copies are saved.
-const RELEASE_FOLDER_ID = "YOUR_RELEASE_FOLDER_ID";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -35,7 +33,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-drive",
         actionType: "write",
         actionKey: "copy_file",
-        connection: "google-drive",
+        connection: googleDrive,
         inputs: {
           file: input.id,
           folder: RELEASE_FOLDER_ID,

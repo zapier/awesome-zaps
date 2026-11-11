@@ -2,16 +2,16 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  OKR_ENDPOINT_URL,
+  STRATEGIC_PLAN_OBJECT,
+  EXTERNAL_ID_FIELD,
+  FISCAL_YEAR,
+} from "@/config";
+import salesforce from "@/connections/salesforce";
+
 const sdk = createZapierSdk();
 
-// OKR endpoint that returns the goal list as a JSON array (replace with your URL).
-const OKR_ENDPOINT_URL = "YOUR_OKR_ENDPOINT_URL";
-// Salesforce API name of the Strategic Plan object.
-const STRATEGIC_PLAN_OBJECT = "Strategic_Plan__c";
-// Salesforce field that stores the external OKR ID used to match records.
-const EXTERNAL_ID_FIELD = "External_OKR_ID__c";
-// Fiscal year written to records this workflow creates.
-const FISCAL_YEAR = "FY26";
 // Salesforce field API names for the mapped values.
 const FIELDS = {
   name: "Name",
@@ -67,7 +67,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "salesforce",
             actionType: "search",
             actionKey: "find_record_by_query",
-            connection: "salesforce",
+            connection: salesforce,
             inputs: {
               object: STRATEGIC_PLAN_OBJECT,
               whereClause: `${EXTERNAL_ID_FIELD} = '${externalId.replace(/'/g, "\\'")}'`,
@@ -84,7 +84,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "salesforce",
               actionType: "write",
               actionKey: "update_record_utc",
-              connection: "salesforce",
+              connection: salesforce,
               inputs: {
                 object: STRATEGIC_PLAN_OBJECT,
                 record_id: recordId,
@@ -99,7 +99,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "salesforce",
               actionType: "write",
               actionKey: "create_record_utc",
-              connection: "salesforce",
+              connection: salesforce,
               inputs: {
                 object: STRATEGIC_PLAN_OBJECT,
                 ...fields,

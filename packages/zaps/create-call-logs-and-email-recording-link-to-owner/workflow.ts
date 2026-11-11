@@ -2,16 +2,17 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  SPREADSHEET_ID,
+  WORKSHEET_ID,
+  OWNER_EMAIL,
+  COMPLETED_STATUS,
+} from "@/config";
+import googleSheets from "@/connections/google-sheets";
+import gmail from "@/connections/gmail";
+
 const sdk = createZapierSdk();
 
-// Google Sheets spreadsheet ID (the long ID in the sheet's URL).
-const SPREADSHEET_ID = "YOUR_SPREADSHEET_ID";
-// Worksheet (tab) ID; the first tab is "0".
-const WORKSHEET_ID = "0";
-// Email address that receives the recording link. Must be the connected Gmail account's own address.
-const OWNER_EMAIL = "YOUR_OWNER_EMAIL";
-// Status written to every logged call.
-const COMPLETED_STATUS = "Completed";
 // Column keys for the log sheet (COL$A = column A). Map these to your own headers.
 const COLUMNS = {
   callReference: "COL$A",
@@ -66,7 +67,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "add_row",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,
@@ -98,7 +99,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: "gmail",
+        connection: gmail,
         inputs: {
           to: [OWNER_EMAIL],
           subject: `Call recording: ${callReference} (agent ${input.agent_id ?? "unknown"})`,

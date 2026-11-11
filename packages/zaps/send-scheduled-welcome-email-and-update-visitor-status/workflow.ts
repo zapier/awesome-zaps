@@ -2,29 +2,28 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  TABLE_ID,
+  EMAIL_FIELD,
+  NAME_FIELD,
+  MILESTONE_FIELD,
+  STAGE_FIELD,
+  SENT_AT_FIELD,
+  MILESTONE_VALUE,
+  NEXT_STAGE,
+  EMAIL_SUBJECT,
+  FROM_NAME,
+} from "@/config";
+import gmail from "@/connections/gmail";
+import zapierTables from "@/connections/zapier-tables";
+
 const sdk = createZapierSdk();
 
-// Zapier Tables table to watch (the Table ID from the table's URL).
-const TABLE_ID = "YOUR_TABLE_ID";
-// Column keys in the table, in the order the columns were added: f1 is the first column.
-const EMAIL_FIELD = "f1";
-const NAME_FIELD = "f2";
-const MILESTONE_FIELD = "f3";
-const STAGE_FIELD = "f4";
-const SENT_AT_FIELD = "f5";
-// Milestone value that starts the welcome sequence.
-const MILESTONE_VALUE = "Signed up";
-// Stage the record moves to after the welcome email is sent.
-const NEXT_STAGE = "Welcome sent";
 // Seconds to wait after the milestone before sending. Minimum 1, which sends right away. Set a longer wait for a send window (for example 86400 for the next day).
 const SEND_DELAY_SECONDS = 1;
-// Email subject. {name} is replaced with the record's name.
-const EMAIL_SUBJECT = "Welcome, {name}!";
 // Email body (HTML). {name} is replaced with the record's name.
 const EMAIL_BODY =
   "<p>Hi {name},</p><p>Welcome aboard. We're glad you're here.</p>";
-// Sender name shown in the email.
-const FROM_NAME = "Customer Success";
 
 const InputSchema = z
   .object({
@@ -75,7 +74,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: "gmail",
+        connection: gmail,
         inputs: {
           to: email,
           subject: EMAIL_SUBJECT.replace("{name}", name),
@@ -95,7 +94,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "update_record",
-        connection: "zapier-tables",
+        connection: zapierTables,
         inputs: {
           table_id: TABLE_ID,
           record_id: recordId,

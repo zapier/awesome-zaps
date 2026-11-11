@@ -2,12 +2,10 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import { TOURING_PACKET_URL, AGENT_NAME } from "@/config";
+import gmail from "@/connections/gmail";
 
-// Link to the touring packet the prospect receives by email.
-const TOURING_PACKET_URL = "YOUR_TOURING_PACKET_URL";
-// Name the packet email is signed with.
-const AGENT_NAME = "YOUR_NAME";
+const sdk = createZapierSdk();
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -64,7 +62,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: "gmail",
+        connection: gmail,
         inputs: { to: [prospectEmail], subject, body },
       }),
     );

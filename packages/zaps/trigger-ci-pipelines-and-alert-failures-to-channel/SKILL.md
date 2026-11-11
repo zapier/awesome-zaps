@@ -27,12 +27,15 @@ metadata:
 
 **How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow.
 
-**Source:** `workflow.ts` in this folder is the whole workflow. Deploy it as one source file. Change only the constants listed below.
+**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
+
+- **With the zap CLI:** `npx zap-pack add awesome-zaps/trigger-ci-pipelines-and-alert-failures-to-channel` (it makes a zap project if you aren't in one), then `npx zap-pack deploy trigger-ci-pipelines-and-alert-failures-to-channel` from that project. Deploy asks for each open setting and account, and sets the trigger.
+- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
 
 1. **Trigger:** Webhooks by Zapier, Catch Hook (`webhook` / `hook_v2`). No connection, so `authentication_id` is `null`.
 2. **Connections** (the alias is the app key):
    - `slack`: your Slack workspace connection, for the account that posts alerts.
-3. **Constants** (top of `workflow.ts`):
+3. **Settings** (in `config.ts`; an `ask(…)` is asked when each person deploys):
    - `CI_BRANCHES`: branches that start a run. Default `["main", "master"]`.
    - `EXCLUDED_TOPICS`: repository topics that skip the run. Default `["no-ci"]`.
    - `ALLOWED_TOPICS`: if set, only repositories with one of these topics run. Empty means all.

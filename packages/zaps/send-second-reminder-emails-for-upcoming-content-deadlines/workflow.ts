@@ -2,16 +2,13 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { INTERNAL_DOMAIN, SUBMISSION_MARKER, TIMEZONE } from "@/config";
+import gmail from "@/connections/gmail";
+
 const sdk = createZapierSdk();
 
-// Your company's email domain. Contributors on this domain are skipped (internal-only addresses).
-const INTERNAL_DOMAIN = "YOUR_COMPANY_DOMAIN";
-// Text in the event description that means a submission has already arrived. Matched case-insensitively.
-const SUBMISSION_MARKER = "submission received";
 // Addresses that get a blind copy of every reminder.
 const BCC_RECIPIENTS = ["YOUR_EMAIL_ADDRESS"];
-// Time zone used when writing the event date into the email.
-const TIMEZONE = "America/New_York";
 
 const EMAIL_PATTERN = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/;
 
@@ -80,7 +77,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: "gmail",
+        connection: gmail,
         inputs: {
           to: [contributorEmail],
           bcc: BCC_RECIPIENTS,

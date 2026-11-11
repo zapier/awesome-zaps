@@ -2,25 +2,22 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  WORKBOOK_ID,
+  WORKSHEET_ID,
+  FOLDER_ID,
+  STORAGE_SOURCE,
+  EMPLOYEE_ID_COLUMN,
+  EMPLOYEE_NAME_COLUMN,
+  ABSENCE_TYPE_COLUMN,
+  START_DATE_COLUMN,
+  END_DATE_COLUMN,
+  PROVIDER_COLUMN,
+  NOTES_COLUMN,
+} from "@/config";
+import excel from "@/connections/excel";
+
 const sdk = createZapierSdk();
-
-// Microsoft Excel workbook ID (the OneDrive file the master sheet lives in).
-const WORKBOOK_ID = "YOUR_WORKBOOK_ID";
-// Worksheet (tab) ID inside that workbook.
-const WORKSHEET_ID = "YOUR_WORKSHEET_ID";
-// OneDrive folder ID holding the workbook; "root" is the top of the drive.
-const FOLDER_ID = "root";
-// "one_drive" or "sharepoint".
-const STORAGE_SOURCE = "one_drive";
-
-// Column headers in the master sheet. Each must match the worksheet's header row exactly.
-const EMPLOYEE_ID_COLUMN = "Employee ID";
-const EMPLOYEE_NAME_COLUMN = "Employee Name";
-const ABSENCE_TYPE_COLUMN = "Absence Type";
-const START_DATE_COLUMN = "Start Date";
-const END_DATE_COLUMN = "End Date";
-const PROVIDER_COLUMN = "Provider";
-const NOTES_COLUMN = "Notes";
 
 const InputSchema = z
   .object({
@@ -69,7 +66,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "excel",
         actionType: "write",
         actionKey: "add_row",
-        connection: "excel",
+        connection: excel,
         inputs: {
           folder_id: FOLDER_ID,
           workbook_id: WORKBOOK_ID,

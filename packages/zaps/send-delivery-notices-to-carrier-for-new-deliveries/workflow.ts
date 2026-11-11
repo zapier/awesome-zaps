@@ -2,10 +2,11 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { CARRIER_EMAIL } from "@/config";
+import gmail from "@/connections/gmail";
+
 const sdk = createZapierSdk();
 
-// Carrier inbox that receives every notice. Replace YOUR_EMAIL_ADDRESS with the carrier's address.
-const CARRIER_EMAIL = "YOUR_EMAIL_ADDRESS";
 // Skip notices for customers flagged as excluded or test customers in the payload.
 const SKIP_EXCLUDED_CUSTOMERS = true;
 // Subject prefix for each notice type the payload can send.
@@ -64,7 +65,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: "gmail",
+        connection: gmail,
         inputs: {
           to: [CARRIER_EMAIL],
           subject,

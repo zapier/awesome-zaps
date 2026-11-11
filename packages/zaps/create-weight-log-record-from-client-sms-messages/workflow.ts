@@ -2,16 +2,14 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { QUO_FROM_PHONE_NUMBER_ID, TABLE_ID, ACK_TEMPLATE } from "@/config";
+import zapierTables from "@/connections/zapier-tables";
+import quo from "@/connections/quo";
+
 const sdk = createZapierSdk();
 
-// Quo phone number ID the acknowledgement SMS is sent from (the "From" line).
-const QUO_FROM_PHONE_NUMBER_ID = "YOUR_QUO_PHONE_NUMBER_ID";
-// Zapier Table ID of the central weight log (the table the rows are added to).
-const TABLE_ID = "YOUR_TABLE_ID";
 // Weights must be greater than this to be logged.
 const MIN_WEIGHT = 0;
-// Acknowledgement SMS; {weight} is replaced with the logged value.
-const ACK_TEMPLATE = "Thanks, logged your weight: {weight}.";
 
 const InputSchema = z
   .object({
@@ -47,7 +45,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "create_record",
-        connection: "zapier-tables",
+        connection: zapierTables,
         inputs: {
           table_id: TABLE_ID,
           new__data__f1: input.createdAt ?? "now",
@@ -72,7 +70,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "quo",
         actionType: "write",
         actionKey: "send_message",
-        connection: "quo",
+        connection: quo,
         inputs: {
           to: input.from,
           body: ACK_TEMPLATE.replace("{weight}", String(weight)),

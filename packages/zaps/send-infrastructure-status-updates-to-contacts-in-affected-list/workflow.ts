@@ -2,12 +2,13 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { STATUS_SUBJECT } from "@/config";
+import gmail from "@/connections/gmail";
+
 const sdk = createZapierSdk();
 
 // Seconds to wait after a contact is added, so rapid list additions go out together.
 const DELAY_SECONDS = 60;
-// Subject line of the status email.
-const STATUS_SUBJECT = "Infrastructure status update";
 // Status message body. {name} is replaced with the contact's first name.
 const STATUS_TEMPLATE =
   "Hi {name},\n\nWe are aware of an infrastructure issue affecting some of our services and are working on it. We will send another update as soon as we have one.\n\nThank you for your patience.";
@@ -50,7 +51,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: "gmail",
+        connection: gmail,
         inputs: {
           to: [email],
           subject: STATUS_SUBJECT,

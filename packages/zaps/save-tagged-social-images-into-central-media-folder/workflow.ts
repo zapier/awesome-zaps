@@ -2,10 +2,10 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import { MEDIA_FOLDER_ID } from "@/config";
+import googleDrive from "@/connections/google-drive";
 
-// Google Drive folder ID of the shared media folder (the long ID in the folder's URL).
-const MEDIA_FOLDER_ID = "YOUR_MEDIA_FOLDER_ID";
+const sdk = createZapierSdk();
 
 // Only items with a downloadable media URL are saved. Set to false to fail the run instead of skipping.
 const SKIP_ITEMS_WITHOUT_MEDIA = true;
@@ -45,7 +45,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-drive",
         actionType: "write",
         actionKey: "file",
-        connection: "google-drive",
+        connection: googleDrive,
         inputs: {
           file: mediaUrl,
           folder: MEDIA_FOLDER_ID,

@@ -2,26 +2,22 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  SPREADSHEET_ID,
+  WORKSHEET_ID,
+  VENDOR_COLUMN,
+  TITLE_COLUMN,
+  SUMMARY_COLUMN,
+  DETAILS_COLUMN,
+  ALERT_COLUMN,
+  RECIPIENTS_COLUMN,
+} from "@/config";
+import microsoftOutlook from "@/connections/microsoft-outlook";
+
 const sdk = createZapierSdk();
 
-// Google Sheets spreadsheet ID of the vendor alert tracker (the long ID in the sheet's URL).
-const SPREADSHEET_ID = "YOUR_SPREADSHEET_ID";
-// Worksheet (tab) ID the trigger watches; the first tab is "0".
-const WORKSHEET_ID = "0";
-// Column holding the vendor name (COL$A = column A).
-const VENDOR_COLUMN = "COL$A";
-// Column holding the alert title, used as the email subject.
-const TITLE_COLUMN = "COL$B";
-// Column holding the short summary, used in the subject and body.
-const SUMMARY_COLUMN = "COL$C";
-// Column holding the longer details, excerpted in the body.
-const DETAILS_COLUMN = "COL$D";
-// Column that flags a row as an alert.
-const ALERT_COLUMN = "COL$E";
 // Values in ALERT_COLUMN that count as an alert (compared case-insensitively).
 const ALERT_VALUES = ["yes", "y", "true", "x", "alert"];
-// Column holding a per-row recipient list (comma or semicolon separated); blank uses DEFAULT_RECIPIENTS.
-const RECIPIENTS_COLUMN = "COL$F";
 // Crisis team inbox used when a row has no recipients of its own.
 const DEFAULT_RECIPIENTS = ["YOUR_CRISIS_TEAM_EMAIL"];
 // Maximum characters of the details column quoted in the email.
@@ -90,7 +86,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "microsoft-outlook",
         actionType: "write",
         actionKey: "send_email",
-        connection: "microsoft-outlook",
+        connection: microsoftOutlook,
         inputs: {
           recipients,
           subject,

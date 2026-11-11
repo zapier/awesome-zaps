@@ -2,22 +2,18 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  SPREADSHEET_ID,
+  WORKSHEET_ID,
+  ATTENDEE_ID_COLUMN,
+  STATUS_COLUMN,
+  LAST_UPDATED_COLUMN,
+  COMMENTS_COLUMN,
+  NO_SHOW_VALUE,
+} from "@/config";
+import googleSheets from "@/connections/google-sheets";
 
-// Google Sheets spreadsheet ID (the long ID in the sheet's URL).
-const SPREADSHEET_ID = "YOUR_SPREADSHEET_ID";
-// Worksheet (tab) ID; the first tab is "0".
-const WORKSHEET_ID = "0";
-// Column holding the attendee identifier to match on (COL$A = column A).
-const ATTENDEE_ID_COLUMN = "COL$A";
-// Column for the attendance status, overwritten with NO_SHOW_VALUE.
-const STATUS_COLUMN = "COL$C";
-// Column for the time the row was marked.
-const LAST_UPDATED_COLUMN = "COL$D";
-// Column for the note about where the update came from.
-const COMMENTS_COLUMN = "COL$E";
-// Status written to the matching row.
-const NO_SHOW_VALUE = "No-show";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -41,7 +37,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "search",
         actionKey: "lookup_row",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,
@@ -72,7 +68,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "update_row",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,

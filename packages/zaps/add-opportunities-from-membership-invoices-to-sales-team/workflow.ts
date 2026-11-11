@@ -2,20 +2,19 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  MEMBERSHIP_RECORD_TYPE_ID,
+  CONTACT_STRIPE_CUSTOMER_FIELD,
+  OPPORTUNITY_INVOICE_ID_FIELD,
+  OPPORTUNITY_PLAN_FIELD,
+  REVENUE_RECOGNITION_STAGE,
+} from "@/config";
+import salesforce from "@/connections/salesforce";
+
 const sdk = createZapierSdk();
 
 // Stripe price/plan nicknames that count as membership invoices. Invoices for any other plan are skipped.
 const QUALIFYING_PLAN_NAMES = ["YOUR_MEMBERSHIP_PLAN_NAME"];
-// Salesforce record type ID for membership opportunities.
-const MEMBERSHIP_RECORD_TYPE_ID = "YOUR_MEMBERSHIP_RECORD_TYPE_ID";
-// Salesforce API name of the Contact field that holds the Stripe customer ID.
-const CONTACT_STRIPE_CUSTOMER_FIELD = "YOUR_CONTACT_STRIPE_CUSTOMER_FIELD__c";
-// Salesforce API name of the Opportunity field that holds the Stripe invoice ID (external ID).
-const OPPORTUNITY_INVOICE_ID_FIELD = "YOUR_OPPORTUNITY_INVOICE_ID_FIELD__c";
-// Salesforce API name of the Opportunity membership plan picklist field.
-const OPPORTUNITY_PLAN_FIELD = "YOUR_OPPORTUNITY_PLAN_FIELD__c";
-// Opportunity stage set on new opportunities for paid invoices (the revenue recognition stage).
-const REVENUE_RECOGNITION_STAGE = "YOUR_REVENUE_RECOGNITION_STAGE";
 // Seconds to wait before CRM lookups, so upstream systems finish processing the invoice.
 const UPSTREAM_WAIT_SECONDS = 300;
 
@@ -91,7 +90,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "salesforce",
         actionType: "search",
         actionKey: "find_record",
-        connection: "salesforce",
+        connection: salesforce,
         inputs: {
           object: "Contact",
           searchField: CONTACT_STRIPE_CUSTOMER_FIELD,
@@ -111,7 +110,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "salesforce",
             actionType: "write",
             actionKey: "create_contact",
-            connection: "salesforce",
+            connection: salesforce,
             inputs: {
               LastName: invoice.customer_name ?? customerId,
               Email: invoice.customer_email ?? undefined,
@@ -130,7 +129,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "salesforce",
           actionType: "search",
           actionKey: "find_record",
-          connection: "salesforce",
+          connection: salesforce,
           inputs: {
             object: "Opportunity",
             searchField: OPPORTUNITY_INVOICE_ID_FIELD,
@@ -156,7 +155,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "salesforce",
           actionType: "write",
           actionKey: "create_record",
-          connection: "salesforce",
+          connection: salesforce,
           inputs: {
             object: "Opportunity",
             RecordTypeId: MEMBERSHIP_RECORD_TYPE_ID,
@@ -179,7 +178,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "salesforce",
           actionType: "write",
           actionKey: "create_record",
-          connection: "salesforce",
+          connection: salesforce,
           inputs: {
             object: "OpportunityContactRole",
             OpportunityId: opportunityId,

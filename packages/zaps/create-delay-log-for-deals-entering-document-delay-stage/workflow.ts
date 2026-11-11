@@ -2,14 +2,14 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  DELAY_STAGE_ID,
+  DELAY_LOG_TABLE_ID,
+  INITIAL_TRIAGE_STATUS,
+} from "@/config";
+import zapierTables from "@/connections/zapier-tables";
 
-// Pipedrive stage ID of the document-delay stage. Deals moving into any other stage are skipped.
-const DELAY_STAGE_ID = "YOUR_DELAY_STAGE_ID";
-// Zapier Tables table ID of the delay log.
-const DELAY_LOG_TABLE_ID = "YOUR_TABLE_ID";
-// Value written to the Triage status column of each new row.
-const INITIAL_TRIAGE_STATUS = "Open";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -40,7 +40,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "search",
         actionKey: "find_record",
-        connection: "zapier-tables",
+        connection: zapierTables,
         inputs: {
           table_id: DELAY_LOG_TABLE_ID,
           filter_count: "1",
@@ -65,7 +65,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "create_record",
-        connection: "zapier-tables",
+        connection: zapierTables,
         inputs: {
           table_id: DELAY_LOG_TABLE_ID,
           new__data__f1: dealId,

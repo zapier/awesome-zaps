@@ -2,16 +2,16 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  CONVERSION_ACTION_NAME,
+  GOOGLE_ADS_ACCOUNT_ID,
+  LIFECYCLE_PROPERTY,
+  CUSTOMER_STAGE,
+} from "@/config";
+import googleAds from "@/connections/google-ads";
+
 const sdk = createZapierSdk();
 
-// Google Ads conversion action to credit, by its name in Google Ads.
-const CONVERSION_ACTION_NAME = "YOUR_CONVERSION_ACTION_NAME";
-// Google Ads account to send from ("Use Google Ads as..."), digits only.
-const GOOGLE_ADS_ACCOUNT_ID = "YOUR_GOOGLE_ADS_ACCOUNT_ID";
-// HubSpot contact property that holds the lifecycle stage.
-const LIFECYCLE_PROPERTY = "lifecyclestage";
-// Lifecycle value that marks a contact as a customer.
-const CUSTOMER_STAGE = "customer";
 // Seconds to wait after the change before sending, so the attribution window can close (24 hours).
 const ATTRIBUTION_DELAY_SECONDS = 24 * 60 * 60;
 
@@ -59,7 +59,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-ads",
         actionType: "write",
         actionKey: "send_offline_conversion_v2",
-        connection: "google-ads",
+        connection: googleAds,
         inputs: {
           name: CONVERSION_ACTION_NAME,
           time: changedAt ?? new Date().toISOString(),

@@ -2,14 +2,11 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { BOOKINGS_CHANNEL_ID, BOT_NAME, BOT_ICON } from "@/config";
+import slack from "@/connections/slack";
+
 const sdk = createZapierSdk();
 
-// Slack channel ID to post live chat inquiries to (the bookings channel).
-const BOOKINGS_CHANNEL_ID = "YOUR_SLACK_CHANNEL_ID";
-// Bot name shown above each alert.
-const BOT_NAME = "Live Chat Inquiries";
-// Bot icon: an emoji or image URL.
-const BOT_ICON = ":speech_balloon:";
 // Longest message text included in the alert before it is cut off.
 const MESSAGE_PREVIEW_LENGTH = 280;
 
@@ -56,7 +53,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "slack",
           actionType: "write",
           actionKey: "channel_message",
-          connection: "slack",
+          connection: slack,
           inputs: {
             channel: BOOKINGS_CHANNEL_ID,
             text,

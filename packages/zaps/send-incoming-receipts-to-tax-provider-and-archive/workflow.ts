@@ -2,20 +2,18 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  PROCESSED_FOLDER_ID,
+  TAX_UPLOAD_ADDRESS,
+  SENDER_ADDRESS,
+  SUBJECT_TEMPLATE,
+  BODY_TEXT,
+} from "@/config";
+import googleDrive from "@/connections/google-drive";
+import gmail from "@/connections/gmail";
+
 const sdk = createZapierSdk();
 
-// Google Drive folder ID where receipts land. Also set it as the folder on the trigger.
-const INTAKE_FOLDER_ID = "YOUR_INTAKE_FOLDER_ID";
-// Google Drive folder ID that originals are moved into after the delay.
-const PROCESSED_FOLDER_ID = "YOUR_PROCESSED_FOLDER_ID";
-// Email address of the tax provider's upload inbox. Receives each receipt.
-const TAX_UPLOAD_ADDRESS = "YOUR_TAX_UPLOAD_EMAIL";
-// Sender address. Must be the connected Gmail account.
-const SENDER_ADDRESS = "YOUR_SENDER_EMAIL";
-// Subject line. {filename} is replaced with the receipt's file name.
-const SUBJECT_TEMPLATE = "Receipt: {filename}";
-// Body text of the email.
-const BODY_TEXT = "Attached is a new receipt for the tax file.";
 // Seconds to wait before archiving. 86400 = one day (spec default).
 const DELAY_SECONDS = 86400;
 
@@ -43,7 +41,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-drive",
         actionType: "search",
         actionKey: "file_v2",
-        connection: "google-drive",
+        connection: googleDrive,
         inputs: {
           title: fileName,
           folder: PROCESSED_FOLDER_ID,
@@ -60,7 +58,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-drive",
         actionType: "write",
         actionKey: "ae_461284_google_drive_download_file_custom_action",
-        connection: "google-drive",
+        connection: googleDrive,
         inputs: { fileId },
       }),
     );
@@ -71,7 +69,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: "gmail",
+        connection: gmail,
         inputs: {
           to: [TAX_UPLOAD_ADDRESS],
           from: SENDER_ADDRESS,
@@ -89,7 +87,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-drive",
         actionType: "write",
         actionKey: "move_file",
-        connection: "google-drive",
+        connection: googleDrive,
         inputs: {
           file: fileId,
           folder: PROCESSED_FOLDER_ID,

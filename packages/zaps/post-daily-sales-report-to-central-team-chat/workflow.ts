@@ -2,10 +2,11 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { SLACK_CHANNEL, LINK_NAMES } from "@/config";
+import slack from "@/connections/slack";
+
 const sdk = createZapierSdk();
 
-// Slack channel ID the summary is posted to (open the channel in Slack, then copy its ID).
-const SLACK_CHANNEL = "YOUR_SLACK_CHANNEL_ID";
 // Form question titles, exactly as they appear on the daily sales report form. Change each to match your form.
 const FIELD = {
   date: "Date",
@@ -15,8 +16,6 @@ const FIELD = {
   sellers: "Sellers",
   diagnostics: "Diagnostic flags",
 };
-// Keep "no" so the summary never links or mentions any user or channel.
-const LINK_NAMES = "no";
 
 const InputSchema = z.object({}).loose();
 
@@ -59,7 +58,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "channel_message",
-        connection: "slack",
+        connection: slack,
         inputs: {
           channel: SLACK_CHANNEL,
           text: summary,

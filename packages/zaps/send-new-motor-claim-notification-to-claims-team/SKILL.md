@@ -25,12 +25,15 @@ metadata:
 
 **How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
 
-**Source:** `workflow.ts` in this folder is the whole workflow. Deploy it as one source file. Change only the constants listed below; everything else stays as written.
+**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
+
+- **With the zap CLI:** `npx zap-pack add awesome-zaps/send-new-motor-claim-notification-to-claims-team` (it makes a zap project if you aren't in one), then `npx zap-pack deploy send-new-motor-claim-notification-to-claims-team` from that project. Deploy asks for each open setting and account, and sets the trigger.
+- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
 
 1. **Trigger:** Zapier Tables, New Record (`zapier-tables`, `new_record`). It needs no connection, so `authentication_id` is `null`. Its `table_id` is the claims table.
 2. **Connections** (each alias in the code is the app's slug):
    - `microsoft-outlook`: the Outlook account that sends the email. Pick the connection whose title marks it as a test or integration account, else the work account.
-3. **Constants** (top of `workflow.ts`):
+3. **Settings** (in `config.ts`; an `ask(…)` is asked when each person deploys):
    - `CLAIMS_TABLE_ID`: the claims table's ID.
    - `CLAIMS_INBOX`: the address that receives each notification. For tests, use the connected Outlook account's own address.
    - `TIME_ZONE`: the IANA time zone for printed dates. Defaults to `UTC`.

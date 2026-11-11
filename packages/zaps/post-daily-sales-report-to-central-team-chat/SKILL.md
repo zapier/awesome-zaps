@@ -30,7 +30,7 @@ metadata:
 - `google-forms`: the Google account that owns the sales report form.
 - `slack`: the Slack account that can post to the team channel.
 
-**Constants** (top of `workflow.ts`):
+**Settings** (in `config.ts`; an `ask(…)` is asked when each person deploys):
 
 - `SLACK_CHANNEL`: the channel ID of the team chat channel the summary goes to.
 - `FIELD`: the question titles on the form (`Date`, `Branch`, `Total sales`, `Number of orders`, `Sellers`, `Diagnostic flags`). Match each one to your form's exact wording.

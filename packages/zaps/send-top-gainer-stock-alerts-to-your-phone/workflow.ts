@@ -2,22 +2,22 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  TABLE_ID,
+  TICKER_LOOKUP_FIELD,
+  TICKER_FIELD,
+  NOTES_FIELD,
+  TIME_FIELD,
+  SEARCH_URL_PREFIX,
+} from "@/config";
+import ai from "@/connections/ai";
+import zapierTables from "@/connections/zapier-tables";
+import smsConnection from "@/connections/sms";
+
 const sdk = createZapierSdk();
 
-// Zapier Tables table that holds your stocks (its table ID).
-const TABLE_ID = "YOUR_STOCKS_TABLE_ID";
-// Field key the ticker is matched on when looking for an existing row ("f1" = first field).
-const TICKER_LOOKUP_FIELD = "f1";
-// Field key the ticker is written to on a new row.
-const TICKER_FIELD = "new__data__f1";
-// Field key the market text is saved to on a new row.
-const NOTES_FIELD = "new__data__f2";
-// Field key the time the ticker was added is saved to on a new row.
-const TIME_FIELD = "new__data__f3";
 // Most tickers handled per incoming message; any beyond this are ignored.
 const MAX_TICKERS = 10;
-// Search link prefix; the ticker and "+stock" are appended to it.
-const SEARCH_URL_PREFIX = "https://www.google.com/search?q=";
 // Instructions for the AI step that pulls ticker symbols out of the market text.
 const TICKER_PROMPT =
   "Read the market text in the message. List every stock ticker symbol it mentions as uppercase symbols separated by commas, with nothing else. If there are none, return an empty answer.";
@@ -48,7 +48,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "ai",
         actionType: "write",
         actionKey: "get_completion",
-        connection: "ai",
+        connection: ai,
         inputs: {
           model_id: "premium/auto",
           authentication_id: "0",
@@ -74,7 +74,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "zapier-tables",
             actionType: "search",
             actionKey: "find_record",
-            connection: "zapier-tables",
+            connection: zapierTables,
             inputs: {
               table_id: TABLE_ID,
               filter_count: "1",
@@ -96,7 +96,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "zapier-tables",
             actionType: "write",
             actionKey: "create_record",
-            connection: "zapier-tables",
+            connection: zapierTables,
             inputs: {
               table_id: TABLE_ID,
               [TICKER_FIELD]: ticker,
@@ -112,7 +112,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "sms",
             actionType: "write",
             actionKey: "send_v2",
-            connection: "sms",
+            connection: smsConnection,
             inputs: { message: `${ticker} top gainer: ${link}` },
           }),
         );

@@ -2,10 +2,10 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { HR_WEBHOOK_URL } from "@/config";
+
 const sdk = createZapierSdk();
 
-// HR system endpoint that creates the training record (Webhooks by Zapier POST target).
-const HR_WEBHOOK_URL = "YOUR_HR_WEBHOOK_URL";
 // Form question titles, as they appear in the Google Form. Match these to your form's questions.
 const FORM_FIELDS = {
   employeeId: "Employee ID",

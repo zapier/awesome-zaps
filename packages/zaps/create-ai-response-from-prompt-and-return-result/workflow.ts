@@ -2,10 +2,11 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { DEFAULT_MODEL } from "@/config";
+import chatgptConnection from "@/connections/chatgpt";
+
 const sdk = createZapierSdk();
 
-// Model used when the calling workflow does not send one.
-const DEFAULT_MODEL = "gpt-4o";
 // Seconds to wait before each check of the stored response.
 const POLL_INTERVAL_SECONDS = 300;
 // Checks before giving up; 12 checks at 5 minutes is one hour.
@@ -65,7 +66,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "chatgpt",
         actionType: "write",
         actionKey: "conversation_responses_api",
-        connection: "chatgpt",
+        connection: chatgptConnection,
         inputs: { model, instructions, user_message: prompt },
       }),
     );
@@ -85,7 +86,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "chatgpt",
             actionType: "write",
             actionKey: "_zap_raw_request",
-            connection: "chatgpt",
+            connection: chatgptConnection,
             inputs: {
               url: `https://api.openai.com/v1/responses/${responseId}`,
               fail_on_errors: "true",

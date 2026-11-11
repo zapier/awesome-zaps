@@ -2,26 +2,21 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  INVOICE_DOCUMENT_TYPE,
+  EXPENSE_DOCUMENT_TYPE,
+  DEFAULT_CUSTOMER_NAME,
+  DEFAULT_VENDOR_NAME,
+  BANK_ACCOUNT_ID,
+  EXPENSE_ACCOUNT_ID,
+  EXPENSE_PAYMENT_TYPE,
+} from "@/config";
+import quickbooks from "@/connections/quickbooks";
+
 const sdk = createZapierSdk();
 
-// Zapier Tables table to watch for new rows (the table ID in the table's URL).
-const TABLE_ID = "YOUR_TABLE_ID";
 // Seconds to wait before searching QuickBooks, so upstream row edits settle. Use 0 to skip the wait.
 const SETTLE_SECONDS = 120;
-// Document Type value (lowercase) that creates a QuickBooks invoice.
-const INVOICE_DOCUMENT_TYPE = "invoice";
-// Document Type value (lowercase) that creates a QuickBooks expense.
-const EXPENSE_DOCUMENT_TYPE = "expense";
-// Customer name used when the row has no customer.
-const DEFAULT_CUSTOMER_NAME = "YOUR_DEFAULT_CUSTOMER_NAME";
-// Vendor name used when the row has no vendor.
-const DEFAULT_VENDOR_NAME = "YOUR_DEFAULT_VENDOR_NAME";
-// QuickBooks ID of the bank or credit account expenses are paid from.
-const BANK_ACCOUNT_ID = "YOUR_BANK_ACCOUNT_ID";
-// QuickBooks ID of the expense account each expense is booked to.
-const EXPENSE_ACCOUNT_ID = "YOUR_EXPENSE_ACCOUNT_ID";
-// How expenses were paid: "Cash", "Check" or "CreditCard".
-const EXPENSE_PAYMENT_TYPE = "CreditCard";
 
 const OptionalText = z.string().nullable().optional();
 
@@ -84,7 +79,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "quickbooks",
           actionType: "search",
           actionKey: "invoice",
-          connection: "quickbooks",
+          connection: quickbooks,
           inputs: { number: documentNumber },
         }),
       );
@@ -101,7 +96,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "quickbooks",
           actionType: "search",
           actionKey: "customer_v2",
-          connection: "quickbooks",
+          connection: quickbooks,
           inputs: {
             search_field: "name",
             search_value: counterpartyName || DEFAULT_CUSTOMER_NAME,
@@ -118,7 +113,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "quickbooks",
           actionType: "write",
           actionKey: "new_invoice_v4",
-          connection: "quickbooks",
+          connection: quickbooks,
           inputs: {
             customer: String(customerId),
             number: documentNumber,
@@ -144,7 +139,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "quickbooks",
         actionType: "search",
         actionKey: "find_purchase_expense",
-        connection: "quickbooks",
+        connection: quickbooks,
         inputs: { docNumber: documentNumber },
       }),
     );
@@ -161,7 +156,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "quickbooks",
         actionType: "search",
         actionKey: "vendor",
-        connection: "quickbooks",
+        connection: quickbooks,
         inputs: { name: counterpartyName || DEFAULT_VENDOR_NAME },
       }),
     );
@@ -175,7 +170,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "quickbooks",
         actionType: "write",
         actionKey: "expense",
-        connection: "quickbooks",
+        connection: quickbooks,
         inputs: {
           payee_type: "Vendor",
           payee: String(vendorId),

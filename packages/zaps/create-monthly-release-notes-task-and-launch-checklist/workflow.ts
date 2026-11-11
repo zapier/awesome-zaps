@@ -1,22 +1,20 @@
 import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 
+import {
+  WORKSPACE_ID,
+  PROJECT_ID,
+  TEMPLATE_ID,
+  SECTION_NAME,
+  OWNER_ID,
+  TASK_NAME_PREFIX,
+} from "@/config";
+import asana from "@/connections/asana";
+
 const sdk = createZapierSdk();
 
-// Asana workspace ID (the number in the workspace's URL).
-const WORKSPACE_ID = "YOUR_WORKSPACE_ID";
-// Asana project that holds the recurring emails section.
-const PROJECT_ID = "YOUR_PROJECT_ID";
-// Asana task template the monthly task is created from.
-const TEMPLATE_ID = "YOUR_TEMPLATE_ID";
-// Name of the section in that project the monthly task is added to.
-const SECTION_NAME = "YOUR_SECTION_NAME";
-// Asana user ID of the person assigned the send-date subtask.
-const OWNER_ID = "YOUR_ASANA_USER_ID";
 // Day of the month the subtask is due (date only).
 const SUBTASK_DUE_DAY = 5;
-// Base name of the monthly task; the month and year are appended.
-const TASK_NAME_PREFIX = "Monthly release notes";
 
 const MONTHS = [
   "January",
@@ -52,7 +50,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "asana",
         actionType: "search",
         actionKey: "find_task_v3",
-        connection: "asana",
+        connection: asana,
         inputs: {
           name: taskName,
           project: [PROJECT_ID],
@@ -74,7 +72,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "asana",
           actionType: "write",
           actionKey: "create_task_from_template",
-          connection: "asana",
+          connection: asana,
           inputs: {
             name: taskName,
             workspace: WORKSPACE_ID,
@@ -90,7 +88,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "asana",
         actionType: "search",
         actionKey: "find_section",
-        connection: "asana",
+        connection: asana,
         inputs: {
           name: SECTION_NAME,
           project: PROJECT_ID,
@@ -108,7 +106,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "asana",
         actionType: "write",
         actionKey: "add_task_to_section",
-        connection: "asana",
+        connection: asana,
         inputs: {
           section: String(sectionRow.id),
           task_id: task.gid,
@@ -123,7 +121,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "asana",
         actionType: "write",
         actionKey: "create_subtask_v3",
-        connection: "asana",
+        connection: asana,
         inputs: {
           name: `Determine newsletter send date for ${monthName} ${year}`,
           task_id: task.gid,

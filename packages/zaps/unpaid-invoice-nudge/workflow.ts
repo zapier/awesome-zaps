@@ -1,6 +1,11 @@
 import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 
+import { STATUS_CHECK_URL } from "@/config";
+import quickbooks from "@/connections/quickbooks";
+import gmail from "@/connections/gmail";
+import smsConnection from "@/connections/sms";
+
 const sdk = createZapierSdk();
 
 // Who the reminder comes from, and how it should sound. Ask the user.
@@ -13,11 +18,6 @@ const OWNER_VOICE =
 const REMIND_AFTER_DAYS = 3; // email the customer this many days after the due date
 const ESCALATE_AFTER_DAYS = 7; // text the owner if it's still unpaid this many days after the due date
 const DAY = 86400;
-
-// Optional, webhook path only: a URL that returns the invoice's current status as JSON
-// (e.g. {"balance": 0} or {"status": "paid"}). "{invoice}" is replaced with the invoice id or number.
-// Leave empty to use the status the webhook sent (or send status_url in the payload).
-const STATUS_CHECK_URL = "";
 
 // Trigger: QuickBooks Online "New Invoice" (QuickBooks Online invoice_v2),
 // or Webhooks by Zapier Catch Hook (Webhooks by Zapier hook_v2) for any other billing tool.
@@ -202,7 +202,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "quickbooks",
             actionType: "search",
             actionKey: "invoice",
-            connection: "quickbooks",
+            connection: quickbooks,
             inputs: invoice.invoiceId
               ? { invoiceId: invoice.invoiceId }
               : { number: invoice.number },
@@ -298,7 +298,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: "gmail",
+        connection: gmail,
         inputs: {
           to: [invoice.email],
           subject,
@@ -344,7 +344,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "sms",
         actionType: "write",
         actionKey: "send_v2",
-        connection: "sms",
+        connection: smsConnection,
         inputs: { message },
       }),
     );

@@ -2,18 +2,13 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { SLACK_CHANNEL, BOT_NAME, BOT_ICON, MENTION_TEXT } from "@/config";
+import slack from "@/connections/slack";
+
 const sdk = createZapierSdk();
 
-// Slack channel ID to post alerts into (for example C0123456).
-const SLACK_CHANNEL = "YOUR_SLACK_CHANNEL_ID";
-// Bot name shown above each alert.
-const BOT_NAME = "Instagram Tags";
-// Bot icon: an emoji such as ":camera:" or an image URL.
-const BOT_ICON = ":camera:";
 // Set to true to mention a Slack user group or channel on every alert.
 const MENTION_ENABLED = false;
-// Mention markup prepended to the alert when MENTION_ENABLED is true.
-const MENTION_TEXT = "<!subteam^YOUR_GROUP_ID> ";
 // Longest caption included in the alert, in characters; longer captions are cut.
 const MAX_CAPTION_LENGTH = 280;
 
@@ -61,7 +56,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "channel_message",
-        connection: "slack",
+        connection: slack,
         inputs: {
           channel: SLACK_CHANNEL,
           text,

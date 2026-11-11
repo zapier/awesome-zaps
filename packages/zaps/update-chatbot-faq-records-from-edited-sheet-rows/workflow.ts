@@ -2,26 +2,21 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  TABLE_ID,
+  QUESTION_COLUMN,
+  ANSWER_COLUMN,
+  QUESTION_FIELD,
+  ANSWER_FIELD,
+  VERSION_FIELD,
+  LAST_EDITED_FIELD,
+  SHEET_ROW_FIELD,
+} from "@/config";
+
 const sdk = createZapierSdk();
 
-// Zapier Table holding the chatbot's FAQ records (the ID in the table's URL).
-const TABLE_ID = "YOUR_TABLE_ID";
-// Sheet column holding the question text (COL$A = column A).
-const QUESTION_COLUMN = "COL$A";
-// Sheet column holding the answer text.
-const ANSWER_COLUMN = "COL$B";
 // Sheet column holding the version (metadata); set to null if the sheet has none.
 const VERSION_COLUMN: string | null = "COL$C";
-// Table field ID for the question; records are matched on this field.
-const QUESTION_FIELD = "f1";
-// Table field ID for the answer.
-const ANSWER_FIELD = "f2";
-// Table field ID for the version.
-const VERSION_FIELD = "f3";
-// Table datetime field ID stamped each time the record is synced from the sheet.
-const LAST_EDITED_FIELD = "f4";
-// Table field ID recording which sheet row the record came from.
-const SHEET_ROW_FIELD = "f5";
 
 const InputSchema = z
   .object({

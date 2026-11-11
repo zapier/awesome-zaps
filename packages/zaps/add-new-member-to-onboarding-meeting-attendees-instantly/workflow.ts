@@ -2,16 +2,15 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  ONBOARDING_EVENT_TITLE,
+  ONBOARDING_WINDOW_START,
+  ONBOARDING_WINDOW_END,
+  CALENDAR_ID,
+} from "@/config";
+import microsoftOutlook from "@/connections/microsoft-outlook";
 
-// Title of the onboarding meeting, exactly as it appears in Outlook.
-const ONBOARDING_EVENT_TITLE = "YOUR_ONBOARDING_EVENT_TITLE";
-// Start of the window to search for that meeting (ISO 8601 with offset).
-const ONBOARDING_WINDOW_START = "YOUR_WINDOW_START_DATETIME";
-// End of the window to search for that meeting (ISO 8601 with offset).
-const ONBOARDING_WINDOW_END = "YOUR_WINDOW_END_DATETIME";
-// Outlook calendar ID to search. Leave empty for the connected account's default calendar.
-const CALENDAR_ID = "";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -43,7 +42,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "microsoft-outlook",
         actionType: "search",
         actionKey: "find_calendar_event",
-        connection: "microsoft-outlook",
+        connection: microsoftOutlook,
         inputs: {
           searchTerm: ONBOARDING_EVENT_TITLE,
           startTime: ONBOARDING_WINDOW_START,
@@ -72,7 +71,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "microsoft-outlook",
         actionType: "write",
         actionKey: "add_attendees",
-        connection: "microsoft-outlook",
+        connection: microsoftOutlook,
         inputs: {
           eventId: event.id,
           shouldMergeAttendees: true,

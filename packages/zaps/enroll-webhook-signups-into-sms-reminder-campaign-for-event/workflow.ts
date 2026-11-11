@@ -2,14 +2,10 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import { CAMPAIGN_ID, DEFAULT_COUNTRY_CODE, SIGNUP_SOURCE } from "@/config";
+import leadconnector from "@/connections/leadconnector";
 
-// LeadConnector workflow (campaign) ID to enroll each signup in. Copy it from the workflow's settings in LeadConnector.
-const CAMPAIGN_ID = "YOUR_CAMPAIGN_ID";
-// Country code added to 10-digit phone numbers that have no "+" prefix (1 = US and Canada).
-const DEFAULT_COUNTRY_CODE = "1";
-// Source written to the contact, so enrollments from this webhook can be traced in LeadConnector.
-const SIGNUP_SOURCE = "webhook";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -55,7 +51,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "leadconnector",
         actionType: "write",
         actionKey: "add_update_contact",
-        connection: "leadconnector",
+        connection: leadconnector,
         inputs: { ...contact, source: SIGNUP_SOURCE, lead: true },
       }),
     );
@@ -65,7 +61,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "leadconnector",
         actionType: "write",
         actionKey: "campaign",
-        connection: "leadconnector",
+        connection: leadconnector,
         inputs: {
           campaign_id: CAMPAIGN_ID,
           ...contact,

@@ -2,22 +2,21 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  TRACKING_TABLE_ID,
+  REFERENCE_FIELD,
+  POST_ID_FIELD,
+  STATUS_FIELD,
+  CMS_POSTS_URL,
+  CMS_DEFAULT_CATEGORY,
+  DISCORD_CHANNEL_ID,
+} from "@/config";
+import zapierTables from "@/connections/zapier-tables";
+import cmsApi from "@/connections/cms_api";
+import discord from "@/connections/discord";
+
 const sdk = createZapierSdk();
 
-// Zapier Tables table that tracks each project's public post.
-const TRACKING_TABLE_ID = "YOUR_TABLE_ID";
-// Table field key that holds the project reference (used to find the row).
-const REFERENCE_FIELD = "new__data__f1";
-// Table field key that stores the CMS post ID.
-const POST_ID_FIELD = "new__data__f2";
-// Table field key that stores the publish status.
-const STATUS_FIELD = "new__data__f3";
-// CMS posts endpoint. A POST creates a post; a PATCH to `${CMS_POSTS_URL}/<id>` updates one.
-const CMS_POSTS_URL = "https://YOUR_CMS_HOST/api/posts";
-// Category every post is published under.
-const CMS_DEFAULT_CATEGORY = "YOUR_CATEGORY_ID";
-// Discord channel that gets the team summary.
-const DISCORD_CHANNEL_ID = "YOUR_DISCORD_CHANNEL_ID";
 // Ping users, roles and @everyone/@here in the Discord message. Keep false.
 const PING_MENTIONS = false;
 
@@ -49,7 +48,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "search",
         actionKey: "find_record",
-        connection: "zapier-tables",
+        connection: zapierTables,
         inputs: {
           table_id: TRACKING_TABLE_ID,
           filter_count: "1",
@@ -69,7 +68,7 @@ const workflow = defineDurable<unknown, unknown>(
       const response = await sdk.fetch(
         existingPostId ? `${CMS_POSTS_URL}/${existingPostId}` : CMS_POSTS_URL,
         {
-          connection: "cms_api",
+          connection: cmsApi,
           method: existingPostId ? "PATCH" : "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -99,7 +98,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "zapier-tables",
           actionType: "write",
           actionKey: "update_record",
-          connection: "zapier-tables",
+          connection: zapierTables,
           inputs: { ...recordInputs, record_id: String(existing.id) },
         }),
       );
@@ -109,7 +108,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "zapier-tables",
           actionType: "write",
           actionKey: "create_record",
-          connection: "zapier-tables",
+          connection: zapierTables,
           inputs: recordInputs,
         }),
       );
@@ -120,7 +119,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "discord",
         actionType: "write",
         actionKey: "send_channel_message",
-        connection: "discord",
+        connection: discord,
         inputs: {
           channel_id: DISCORD_CHANNEL_ID,
           content: `${title} (${projectReference}): ${status}`,

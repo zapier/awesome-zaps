@@ -2,16 +2,14 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { BILLING_LEAD_EMAIL, FROM_NAME } from "@/config";
+
 const sdk = createZapierSdk();
 
-// Billing lead who receives each credit alert (comma-separate up to 5 addresses).
-const BILLING_LEAD_EMAIL = "YOUR_BILLING_LEAD_EMAIL";
 // Only alert when the transaction total is strictly greater than this amount.
 const MIN_CREDIT_AMOUNT = 0;
 // Xero statuses that count as posted; DELETED and VOIDED transactions are skipped.
 const POSTED_STATUSES = ["AUTHORISED"];
-// Display name the alert is sent from.
-const FROM_NAME = "Xero credit alerts";
 
 const InputSchema = z
   .object({

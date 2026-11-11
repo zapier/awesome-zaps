@@ -2,26 +2,22 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  SPREADSHEET_ID,
+  WORKSHEET_ID,
+  TEST_NAME_COLUMN,
+  VARIANT_A_COLUMN,
+  VARIANT_B_COLUMN,
+  TEST_URL_COLUMN,
+  REPORTER_COLUMN,
+  SCREENSHOT_COLUMN,
+  SLACK_CHANNEL_ID,
+} from "@/config";
+import googleSheets from "@/connections/google-sheets";
+import slack from "@/connections/slack";
+
 const sdk = createZapierSdk();
 
-// Google Sheets spreadsheet ID of the A/B test log (the long ID in the sheet's URL).
-const SPREADSHEET_ID = "YOUR_SPREADSHEET_ID";
-// Worksheet (tab) ID; the first tab is "0".
-const WORKSHEET_ID = "0";
-// Column holding the test name (COL$A = column A).
-const TEST_NAME_COLUMN = "COL$A";
-// Column holding the first variant's description.
-const VARIANT_A_COLUMN = "COL$B";
-// Column holding the second variant's description.
-const VARIANT_B_COLUMN = "COL$C";
-// Column holding the test URL; also used to skip repeat posts for the same test.
-const TEST_URL_COLUMN = "COL$D";
-// Column holding the reporter / user who logged the test.
-const REPORTER_COLUMN = "COL$E";
-// Column holding an optional screenshot URL.
-const SCREENSHOT_COLUMN = "COL$F";
-// Slack channel ID to post to (from the channel's details, e.g. "C0123456789").
-const SLACK_CHANNEL_ID = "YOUR_SLACK_CHANNEL_ID";
 // Prefix the post with @channel so everyone in the channel is notified.
 const MENTION_CHANNEL = true;
 
@@ -62,7 +58,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "google-sheets",
           actionType: "search",
           actionKey: "find_many_rows",
-          connection: "google-sheets",
+          connection: googleSheets,
           inputs: {
             spreadsheet: SPREADSHEET_ID,
             worksheet: WORKSHEET_ID,
@@ -105,7 +101,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "channel_message",
-        connection: "slack",
+        connection: slack,
         inputs: {
           channel: SLACK_CHANNEL_ID,
           text: lines.join("\n"),

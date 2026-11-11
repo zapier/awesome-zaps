@@ -2,12 +2,11 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { GOOGLE_ADS_ACCOUNT_ID } from "@/config";
+import googleAds from "@/connections/google-ads";
+
 const sdk = createZapierSdk();
 
-// Zapier Table ID the trigger watches; each new row is one contact.
-const TABLE_ID = "YOUR_TABLE_ID";
-// Google Ads account the upload acts as (the customer ID shown in Google Ads).
-const GOOGLE_ADS_ACCOUNT_ID = "YOUR_GOOGLE_ADS_ACCOUNT_ID";
 // Google Ads customer list the contacts are added to (a number, from Google Ads).
 const CUSTOMER_LIST_ID = 0;
 // Case statuses that qualify a row. Rows with any other status are skipped.
@@ -53,7 +52,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-ads",
         actionType: "write",
         actionKey: "add_email_to_customer_list_v3",
-        connection: "google-ads",
+        connection: googleAds,
         inputs: {
           mainAccountId: GOOGLE_ADS_ACCOUNT_ID,
           customer_list_id: CUSTOMER_LIST_ID,

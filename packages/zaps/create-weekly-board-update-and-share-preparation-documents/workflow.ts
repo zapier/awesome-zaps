@@ -1,16 +1,16 @@
 import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 
-const sdk = createZapierSdk();
+import {
+  DESTINATION_FOLDER_ID,
+  TEMPLATE_FILE_ID,
+  DOC_NAME_PREFIX,
+  BOARD_ITEM_ID,
+} from "@/config";
+import onedrive from "@/connections/onedrive";
+import mondayConnection from "@/connections/monday";
 
-// OneDrive folder ID where each dated board-update document is saved.
-const DESTINATION_FOLDER_ID = "YOUR_FOLDER_ID";
-// OneDrive file ID of the weekly board-update template to copy.
-const TEMPLATE_FILE_ID = "YOUR_TEMPLATE_FILE_ID";
-// Prefix for the dated document name; the week-of date is appended.
-const DOC_NAME_PREFIX = "Board update";
-// monday.com item ID that receives the weekly update.
-const BOARD_ITEM_ID = "YOUR_BOARD_ITEM_ID";
+const sdk = createZapierSdk();
 
 const workflow = defineDurable<unknown, unknown>(
   "create-weekly-board-update-and-share-preparation-documents",
@@ -37,7 +37,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "onedrive",
         actionType: "search",
         actionKey: "file",
-        connection: "onedrive",
+        connection: onedrive,
         inputs: { query: dates.docName },
       }),
     );
@@ -51,7 +51,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "onedrive",
           actionType: "write",
           actionKey: "copyFileOrFolder",
-          connection: "onedrive",
+          connection: onedrive,
           inputs: {
             directory: TEMPLATE_FILE_ID,
             folder: DESTINATION_FOLDER_ID,
@@ -77,7 +77,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "onedrive",
         actionType: "write",
         actionKey: "shareLink",
-        connection: "onedrive",
+        connection: onedrive,
         inputs: {
           directory: docId,
           type: "edit",
@@ -97,7 +97,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "monday",
         actionType: "write",
         actionKey: "create_update",
-        connection: "monday",
+        connection: mondayConnection,
         inputs: {
           item_id: Number(BOARD_ITEM_ID),
           body,

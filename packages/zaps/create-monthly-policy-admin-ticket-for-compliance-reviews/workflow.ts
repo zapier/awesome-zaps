@@ -1,21 +1,19 @@
 import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 
+import {
+  TICKET_SUBJECT_PREFIX,
+  TICKET_TYPE,
+  SUPPORT_QUEUE_GROUP_ID,
+  AUDIT_TAG,
+} from "@/config";
+import zendesk from "@/connections/zendesk";
+
 const sdk = createZapierSdk();
 
-// Subject prefix for each ticket; the run month (YYYY-MM) is added after it.
-const TICKET_SUBJECT_PREFIX = "Monthly policy admin review";
-// Zendesk ticket type for the policy/admin queue: problem, incident, question or task.
-const TICKET_TYPE = "task";
-// Zendesk group ID of the policy support queue (the numeric ID from Zendesk, as a string).
-const SUPPORT_QUEUE_GROUP_ID = "YOUR_ZENDESK_GROUP_ID";
-// Tag added to each ticket so the monthly tickets can be found for the audit trail.
-const AUDIT_TAG = "compliance-monthly-review";
 // Internal note added to each ticket for the audit trail (not shown to the requester).
 const AUDIT_NOTE =
   "Created automatically by the monthly policy admin review schedule.";
-// Zendesk connection alias (the app key).
-const ZENDESK_CONNECTION = "zendesk";
 
 const workflow = defineDurable<unknown, unknown>(
   "create-monthly-policy-admin-ticket-for-compliance-reviews",
@@ -31,7 +29,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zendesk",
         actionType: "write",
         actionKey: "ticket",
-        connection: ZENDESK_CONNECTION,
+        connection: zendesk,
         inputs: {
           subject,
           first_comment: `Monthly policy report review for ${runMonth}. Confirm distribution and record the outcome on this ticket.`,
@@ -52,7 +50,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zendesk",
         actionType: "write",
         actionKey: "update_ticket_v2",
-        connection: ZENDESK_CONNECTION,
+        connection: zendesk,
         inputs: {
           ticket: String(createdTicket.id),
           group_id: Number(SUPPORT_QUEUE_GROUP_ID),

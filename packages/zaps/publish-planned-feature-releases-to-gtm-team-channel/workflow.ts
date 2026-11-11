@@ -2,25 +2,24 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  SLACK_CHANNEL,
+  BOT_USERNAME,
+  BOT_ICON,
+  TITLE_FIELD,
+  STATUS_FIELD,
+  DATE_FIELD,
+  AUDIENCE_FIELD,
+  URL_FIELD,
+} from "@/config";
+import slack from "@/connections/slack";
+
 const sdk = createZapierSdk();
 
-// Notion data source ID of the release tracker database the trigger watches.
-const NOTION_DATA_SOURCE_ID = "YOUR_NOTION_DATA_SOURCE_ID";
-// Slack channel ID that receives the announcements.
-const SLACK_CHANNEL = "YOUR_SLACK_CHANNEL_ID";
-// Display name and icon for the posting bot.
-const BOT_USERNAME = "Release Bot";
-const BOT_ICON = ":rocket:";
 // Notion status values that count as ready to announce.
 const READY_STATUSES = ["Planned", "Ready"];
 // Set to true only if announcements should be allowed to @-mention people or channels.
 const ALLOW_MENTIONS = false;
-// Notion property names read from each release item.
-const TITLE_FIELD = "Name";
-const STATUS_FIELD = "Status";
-const DATE_FIELD = "Release Date";
-const AUDIENCE_FIELD = "Audience";
-const URL_FIELD = "URL";
 
 const InputSchema = z
   .object({
@@ -82,7 +81,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "channel_message",
-        connection: "slack",
+        connection: slack,
         inputs: {
           channel: SLACK_CHANNEL,
           text: message,

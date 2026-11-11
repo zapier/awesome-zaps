@@ -2,18 +2,16 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  AIRTABLE_BASE_ID,
+  EMPLOYEE_TABLE,
+  EMAIL_FIELD,
+  FULL_NAME_FIELD,
+  TIME_TRACKING_LINK_FIELD,
+} from "@/config";
+import airtable from "@/connections/airtable";
 
-// Airtable base ID (the "app..." part of the base URL).
-const AIRTABLE_BASE_ID = "YOUR_AIRTABLE_BASE_ID";
-// Name of the Airtable table that holds employee records.
-const EMPLOYEE_TABLE = "YOUR_EMPLOYEE_TABLE_NAME";
-// Employee column matched first, against the entry's email.
-const EMAIL_FIELD = "YOUR_EMAIL_FIELD";
-// Employee column matched as fallback, against the entry's full name (exact match).
-const FULL_NAME_FIELD = "YOUR_FULL_NAME_FIELD";
-// Multi-link column the time-tracking record ID is appended to. Existing links are kept.
-const TIME_TRACKING_LINK_FIELD = "YOUR_TIME_TRACKING_LINK_FIELD";
+const sdk = createZapierSdk();
 
 const EntrySchema = z
   .object({
@@ -59,7 +57,7 @@ const workflow = defineDurable<unknown, unknown>(
                 appKey: "airtable",
                 actionType: "search",
                 actionKey: "findRecord",
-                connection: "airtable",
+                connection: airtable,
                 inputs: {
                   applicationId: AIRTABLE_BASE_ID,
                   tableName: EMPLOYEE_TABLE,
@@ -81,7 +79,7 @@ const workflow = defineDurable<unknown, unknown>(
                 appKey: "airtable",
                 actionType: "search",
                 actionKey: "findRecord",
-                connection: "airtable",
+                connection: airtable,
                 inputs: {
                   applicationId: AIRTABLE_BASE_ID,
                   tableName: EMPLOYEE_TABLE,
@@ -125,7 +123,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "airtable",
               actionType: "write",
               actionKey: "updateRecord",
-              connection: "airtable",
+              connection: airtable,
               inputs: {
                 applicationId: AIRTABLE_BASE_ID,
                 tableName: EMPLOYEE_TABLE,

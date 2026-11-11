@@ -2,14 +2,9 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import { QUALIFYING_PRODUCT_ID, USER_API_URL, ACCESS_STATUS } from "@/config";
 
-// Shopify product ID that qualifies a paid order for provisioning.
-const QUALIFYING_PRODUCT_ID = "YOUR_SHOPIFY_PRODUCT_ID";
-// User management API endpoint that receives the user record (POST, JSON).
-const USER_API_URL = "YOUR_USER_MANAGEMENT_API_URL";
-// Access status sent with each user record. New users default to active.
-const ACCESS_STATUS = "active";
+const sdk = createZapierSdk();
 
 const AddressSchema = z.object({}).loose().nullable().optional();
 

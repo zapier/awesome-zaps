@@ -1,14 +1,13 @@
 import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 
+import { NOTION_PAGE_ID, FX_API_URL } from "@/config";
+import notion from "@/connections/notion";
+
 const sdk = createZapierSdk();
 
-// Notion page (database item) that holds the daily rates. Replace with your page ID.
-const NOTION_PAGE_ID = "YOUR_NOTION_PAGE_ID";
 // Currencies to write to that page, as ISO codes.
 const TARGET_CURRENCIES = ["CAD", "ILS"];
-// Free FX API that returns every rate for one base currency. Swap for your provider.
-const FX_API_URL = "https://open.er-api.com/v6/latest/USD";
 
 const workflow = defineDurable<unknown, unknown>(
   "update-daily-currency-rates-across-your-finance-records",
@@ -43,7 +42,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "notion",
         actionType: "write",
         actionKey: "update_database_item",
-        connection: "notion",
+        connection: notion,
         inputs: {
           page: NOTION_PAGE_ID,
           content: lines.join("\n"),

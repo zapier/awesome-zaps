@@ -2,16 +2,18 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  BUSINESS_PHONE_NUMBER_ID,
+  TEMPLATES_TABLE_ID,
+  FALLBACK_REPLY,
+} from "@/config";
+import zapierTables from "@/connections/zapier-tables";
+import quo from "@/connections/quo";
+
 const sdk = createZapierSdk();
 
-// Quo phone number that replies are sent from (your business number). Find its ID with Quo's "List Phone Numbers" action.
-const BUSINESS_PHONE_NUMBER_ID = "YOUR_QUO_BUSINESS_PHONE_NUMBER_ID";
-// Zapier Table with the reply templates. Fields: identifier (the reply code, e.g. "1") and body (the SMS text).
-const TEMPLATES_TABLE_ID = "YOUR_TEMPLATES_TABLE_ID";
 // Replies that qualify for a template. Any other incoming text is ignored.
 const QUALIFYING_REPLIES = ["1", "2", "3"];
-// Sent instead when no template matches a qualifying reply.
-const FALLBACK_REPLY = "Thanks for your reply. We'll follow up shortly.";
 
 const InputSchema = z
   .object({
@@ -45,7 +47,7 @@ const workflow = defineDurable<Input, unknown>(
         appKey: "zapier-tables",
         actionType: "search",
         actionKey: "find_record",
-        connection: "zapier-tables",
+        connection: zapierTables,
         inputs: {
           table_id: TEMPLATES_TABLE_ID,
           filter_count: "1",
@@ -69,7 +71,7 @@ const workflow = defineDurable<Input, unknown>(
         appKey: "quo",
         actionType: "write",
         actionKey: "send_message",
-        connection: "quo",
+        connection: quo,
         inputs: {
           phone_number_id: BUSINESS_PHONE_NUMBER_ID,
           to: clientNumber,

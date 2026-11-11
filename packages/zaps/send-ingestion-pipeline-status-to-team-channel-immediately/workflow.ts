@@ -2,12 +2,11 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { SLACK_CHANNEL, COMPLETED_STATUS } from "@/config";
+import slack from "@/connections/slack";
+
 const sdk = createZapierSdk();
 
-// Slack channel ID to post the status summary to (the ID, not the name, e.g. "C0123456").
-const SLACK_CHANNEL = "YOUR_SLACK_CHANNEL_ID";
-// Status value that counts as a finished run. A post also happens whenever error_count is above zero.
-const COMPLETED_STATUS = "completed";
 // Set to true to @channel-mention the team on messages that report errors.
 const MENTION_ON_ERRORS = false;
 
@@ -52,7 +51,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "channel_message",
-        connection: "slack",
+        connection: slack,
         inputs: {
           channel: SLACK_CHANNEL,
           text,

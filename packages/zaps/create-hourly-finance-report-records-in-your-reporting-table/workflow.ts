@@ -1,10 +1,23 @@
 import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 
+import {
+  REPORT_ID,
+  REPORTING_TABLE_ID,
+  FIELD_RECORD_KEY,
+  FIELD_ACCOUNT,
+  FIELD_OPPORTUNITY,
+  FIELD_AMOUNT,
+  FIELD_CLOSE_DATE,
+  FIELD_STAGE,
+  FIELD_OWNER,
+  FIELD_SYNCED_AT,
+} from "@/config";
+import salesforce from "@/connections/salesforce";
+import zapierTables from "@/connections/zapier-tables";
+
 const sdk = createZapierSdk();
 
-// Salesforce report to run each hour (the report's ID, the 15/18-character ID in its URL).
-const REPORT_ID = "YOUR_REPORT_ID";
 // Detail columns of that report, in the order they appear in the report.
 // Each row's cells are read by position: account, opportunity, amount, close date, stage, owner.
 const DETAIL_COLUMNS = [
@@ -15,17 +28,6 @@ const DETAIL_COLUMNS = [
   "STAGE_NAME",
   "OWNER_FULL_NAME",
 ];
-// Zapier Tables table that receives the report rows (the table's ID).
-const REPORTING_TABLE_ID = "YOUR_TABLE_ID";
-// Field keys of the reporting table, as Zapier Tables names them.
-const FIELD_RECORD_KEY = "new__data__f1";
-const FIELD_ACCOUNT = "new__data__f2";
-const FIELD_OPPORTUNITY = "new__data__f3";
-const FIELD_AMOUNT = "new__data__f4";
-const FIELD_CLOSE_DATE = "new__data__f5";
-const FIELD_STAGE = "new__data__f6";
-const FIELD_OWNER = "new__data__f7";
-const FIELD_SYNCED_AT = "new__data__f8";
 // Most rows processed in one run. Each row costs one lookup and one write.
 const MAX_ROWS = 200;
 
@@ -66,7 +68,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "salesforce",
         actionType: "write",
         actionKey: "run_report",
-        connection: "salesforce",
+        connection: salesforce,
         inputs: {
           reportId: REPORT_ID,
           reportFormat: "TABULAR",
@@ -99,7 +101,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "zapier-tables",
             actionType: "search",
             actionKey: "find_record",
-            connection: "zapier-tables",
+            connection: zapierTables,
             inputs: {
               table_id: REPORTING_TABLE_ID,
               filter_count: "1",
@@ -138,7 +140,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "zapier-tables",
               actionType: "write",
               actionKey: "update_record",
-              connection: "zapier-tables",
+              connection: zapierTables,
               inputs: { ...fields, record_id: lookup.id },
             }),
           );
@@ -149,7 +151,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "zapier-tables",
               actionType: "write",
               actionKey: "create_record",
-              connection: "zapier-tables",
+              connection: zapierTables,
               inputs: fields,
             }),
           );

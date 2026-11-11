@@ -2,10 +2,10 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { INTAKE_WEBHOOK_URL } from "@/config";
+
 const sdk = createZapierSdk();
 
-// Intake endpoint that receives the normalized lead JSON (a Webhooks by Zapier catch hook or your own URL).
-const INTAKE_WEBHOOK_URL = "YOUR_INTAKE_WEBHOOK_URL";
 // Set to true to include the raw Facebook lead payload in the body for troubleshooting.
 const INCLUDE_RAW_LEAD = true;
 

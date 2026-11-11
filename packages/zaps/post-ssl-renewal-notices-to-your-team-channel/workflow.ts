@@ -2,10 +2,11 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { SLACK_CHANNEL } from "@/config";
+import slack from "@/connections/slack";
+
 const sdk = createZapierSdk();
 
-// Slack channel ID to post notices into (the long ID shown in the channel's details).
-const SLACK_CHANNEL = "YOUR_SLACK_CHANNEL_ID";
 // Words in the subject or body that mark a renewal or failure notice. Messages without one are skipped.
 const RENEWAL_PATTERN = /\b(renew\w*|expir\w*|fail\w*)\b/i;
 // Number of characters of the email body to include as the message preview.
@@ -63,7 +64,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "channel_message",
-        connection: "slack",
+        connection: slack,
         inputs: {
           channel: SLACK_CHANNEL,
           text,

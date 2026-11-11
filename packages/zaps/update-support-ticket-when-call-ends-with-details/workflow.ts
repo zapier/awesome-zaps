@@ -2,16 +2,16 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  CALLS_TABLE_ID,
+  PHONE_FIELD,
+  TICKET_REFERENCE_FIELD,
+  ALERT_EMAIL,
+} from "@/config";
+import gmail from "@/connections/gmail";
+import hubspot from "@/connections/hubspot";
 
-// Zapier Tables table of temporary call records. Its ID is in the table's URL.
-const CALLS_TABLE_ID = "YOUR_CALLS_TABLE_ID";
-// Column in the Calls table that holds the normalized caller phone number.
-const PHONE_FIELD = "phone";
-// Column in the Calls table that holds the HubSpot ticket ID for the call.
-const TICKET_REFERENCE_FIELD = "ticket_reference";
-// Address that receives an alert when a call has no ticket. Use an address you read.
-const ALERT_EMAIL = "YOUR_ALERT_EMAIL";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -41,7 +41,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "gmail",
           actionType: "write",
           actionKey: "message",
-          connection: "gmail",
+          connection: gmail,
           inputs: {
             to: [ALERT_EMAIL],
             subject: `[Call ended] No support ticket for ${input.caller_number}`,
@@ -75,7 +75,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "hubspot",
         actionType: "write",
         actionKey: "get_ticket_by_id",
-        connection: "hubspot",
+        connection: hubspot,
         inputs: { id: String(ticketId) },
       }),
     );
@@ -90,7 +90,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "hubspot",
             actionType: "search",
             actionKey: "find_owner_by_email",
-            connection: "hubspot",
+            connection: hubspot,
             inputs: { owner_email: input.caller_email },
           }),
         )
@@ -108,7 +108,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "hubspot",
         actionType: "write",
         actionKey: "update_crm_ticket",
-        connection: "hubspot",
+        connection: hubspot,
         inputs: {
           id: ticket.id,
           subject: `Call ${callStatus} from ${input.caller_number}`,
@@ -127,7 +127,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "hubspot",
         actionType: "write",
         actionKey: "create_engagement",
-        connection: "hubspot",
+        connection: hubspot,
         inputs: {
           type: "NOTE",
           ticketIds: [ticket.id],

@@ -2,15 +2,10 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import { ASSET_LABEL, MODEL_LABEL, CONTENT_FORMAT } from "@/config";
+import notion from "@/connections/notion";
 
-// Notion data source item to update is taken from the webhook payload's page_id.
-// Asset number label to look for in device_text (the value after it is kept).
-const ASSET_LABEL = "asset";
-// Model label to look for in device_text (the value after it is kept).
-const MODEL_LABEL = "model";
-// Notion content format for the text written to the page body.
-const CONTENT_FORMAT = "markdown";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -56,7 +51,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "notion",
         actionType: "write",
         actionKey: "update_database_item",
-        connection: "notion",
+        connection: notion,
         inputs: {
           page: input.page_id,
           content,
