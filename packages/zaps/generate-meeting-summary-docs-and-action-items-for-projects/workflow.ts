@@ -2,14 +2,13 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { DOC_FOLDER, AI_MODEL } from "@/config";
+import googleDocs from "@/connections/google-docs";
+
 const sdk = createZapierSdk();
 
-// Google Drive folder ID for the new doc. "root" puts it at the top level of My Drive.
-const DOC_FOLDER = "root";
 // Seconds to wait after the tracker row is written, before the AI steps read it.
 const SETTLE_SECONDS = 120;
-// Model for both AI steps. "premium/auto" is Zapier's managed default.
-const AI_MODEL = "premium/auto";
 
 const RecordSchema = z
   .object({
@@ -139,7 +138,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-docs",
         actionType: "write",
         actionKey: "newtxtdocument",
-        connection: "google-docs",
+        connection: googleDocs,
         inputs: {
           title: docTitle,
           file: body,

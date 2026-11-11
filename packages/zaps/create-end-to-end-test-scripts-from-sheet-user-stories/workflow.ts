@@ -2,24 +2,21 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  SPREADSHEET_ID,
+  OUTPUT_WORKSHEET_ID,
+  STORY_ID_COLUMN,
+  STORY_DESCRIPTION_COLUMN,
+  OUTPUT_ID_COLUMN,
+  OUTPUT_TEST_IDS_COLUMN,
+  OUTPUT_SUMMARY_COLUMN,
+  OUTPUT_SCRIPT_COLUMN,
+  CHATGPT_MODEL,
+} from "@/config";
+import chatgpt from "@/connections/chatgpt";
+import googleSheets from "@/connections/google-sheets";
 
-// Google Sheets spreadsheet ID holding the user stories and the output tab (the long ID in the sheet's URL).
-const SPREADSHEET_ID = "YOUR_SPREADSHEET_ID";
-// Worksheet (tab) holding the user stories; the first tab is "0".
-const STORIES_WORKSHEET_ID = "0";
-// Worksheet (tab) that receives the generated test cases and scripts.
-const OUTPUT_WORKSHEET_ID = "YOUR_OUTPUT_WORKSHEET_ID";
-// Story columns on the stories tab (COL$A = column A).
-const STORY_ID_COLUMN = "COL$A";
-const STORY_DESCRIPTION_COLUMN = "COL$B";
-// Output columns on the output tab.
-const OUTPUT_ID_COLUMN = "COL$A";
-const OUTPUT_TEST_IDS_COLUMN = "COL$B";
-const OUTPUT_SUMMARY_COLUMN = "COL$C";
-const OUTPUT_SCRIPT_COLUMN = "COL$D";
-// ChatGPT model used for the test-case and script prompts.
-const CHATGPT_MODEL = "gpt-3.5-turbo-instruct";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -49,7 +46,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "chatgpt",
         actionType: "write",
         actionKey: "send_prompt",
-        connection: "chatgpt",
+        connection: chatgpt,
         inputs: {
           model: CHATGPT_MODEL,
           prompt: [
@@ -85,7 +82,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "chatgpt",
         actionType: "write",
         actionKey: "send_prompt",
-        connection: "chatgpt",
+        connection: chatgpt,
         inputs: {
           model: CHATGPT_MODEL,
           prompt: [
@@ -109,7 +106,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "search",
         actionKey: "lookup_row",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: OUTPUT_WORKSHEET_ID,
@@ -126,7 +123,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "google-sheets",
           actionType: "write",
           actionKey: "update_row",
-          connection: "google-sheets",
+          connection: googleSheets,
           inputs: {
             spreadsheet: SPREADSHEET_ID,
             worksheet: OUTPUT_WORKSHEET_ID,
@@ -149,7 +146,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "add_row",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: OUTPUT_WORKSHEET_ID,

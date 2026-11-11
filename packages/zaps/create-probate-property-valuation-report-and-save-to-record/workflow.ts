@@ -2,16 +2,16 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  TABLE_ID,
+  TEMPLATE_DOC_ID,
+  FOLDER_ID,
+  SHARING_PREFERENCE,
+} from "@/config";
+import zapierTables from "@/connections/zapier-tables";
+import googleDocs from "@/connections/google-docs";
 
-// Zapier Tables table that holds the valuation records (the table ID).
-const TABLE_ID = "YOUR_TABLE_ID";
-// Google Doc used as the valuation report template (the long ID in its URL).
-const TEMPLATE_DOC_ID = "YOUR_TEMPLATE_DOC_ID";
-// Folder for new reports. "root" puts them at the top level of My Drive.
-const FOLDER_ID = "YOUR_FOLDER_ID";
-// Who can open the new report by link: "org_link_edit" means anyone at your organization with the link can edit.
-const SHARING_PREFERENCE = "org_link_edit";
+const sdk = createZapierSdk();
 
 const MONTHS = [
   "January",
@@ -74,7 +74,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "search",
         actionKey: "find_record",
-        connection: "zapier-tables",
+        connection: zapierTables,
         inputs: {
           table_id: TABLE_ID,
           filter_count: "1",
@@ -98,7 +98,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-docs",
         actionType: "write",
         actionKey: "create_from_template",
-        connection: "google-docs",
+        connection: googleDocs,
         inputs: {
           file: TEMPLATE_DOC_ID,
           title: `Probate valuation report - ${address || recordId}`,
@@ -125,7 +125,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "update_record",
-        connection: "zapier-tables",
+        connection: zapierTables,
         inputs: {
           table_id: TABLE_ID,
           record_id: recordId,

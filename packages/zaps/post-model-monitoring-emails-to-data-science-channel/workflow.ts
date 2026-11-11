@@ -2,18 +2,15 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { SLACK_CHANNEL, ALERT_HEADER, MENTION_PREFIX } from "@/config";
+import slack from "@/connections/slack";
+
 const sdk = createZapierSdk();
 
-// Slack channel ID that receives the alert posts (the channel's ID, not its name).
-const SLACK_CHANNEL = "YOUR_SLACK_CHANNEL_ID";
 // Words that mark an email as a monitoring alert. Matched case-insensitively in the subject or body.
 const ALERT_KEYWORDS = ["alert", "monitoring", "drift", "threshold"];
 // Maximum characters of the email body to post.
 const BODY_SNIPPET_LENGTH = 400;
-// Heading placed before each alert's subject.
-const ALERT_HEADER = "Model monitoring alert";
-// Text placed before each post, e.g. "<!channel> " to ping the channel. Empty means nobody is pinged.
-const MENTION_PREFIX = "";
 
 const InputSchema = z
   .object({
@@ -64,7 +61,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "channel_message",
-        connection: "slack",
+        connection: slack,
         inputs: {
           channel: SLACK_CHANNEL,
           text,

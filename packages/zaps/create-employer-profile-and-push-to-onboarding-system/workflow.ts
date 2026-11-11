@@ -2,24 +2,20 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  ONBOARDING_TABLE_ID,
+  ONBOARDING_API_URL,
+  ONBOARDING_API_TOKEN,
+  SALESFORCE_OBJECT,
+  SALESFORCE_SECTOR_FIELD,
+  SALESFORCE_EXTERNAL_ID_FIELD,
+  SALESFORCE_SYNC_STATUS_FIELD,
+  INITIAL_STATUS,
+} from "@/config";
+import salesforce from "@/connections/salesforce";
+import zapierTables from "@/connections/zapier-tables";
 
-// Zapier Tables ID of the onboarding table (the ID in the table's URL).
-const ONBOARDING_TABLE_ID = "YOUR_ONBOARDING_TABLE_ID";
-// Onboarding/payroll API endpoint that receives each new profile. Until this is a real https URL, the run skips.
-const ONBOARDING_API_URL = "YOUR_ONBOARDING_API_URL";
-// Bearer token for the onboarding API. Replaces the spec's sub-flow token lookup, which has no equivalent here.
-const ONBOARDING_API_TOKEN = "YOUR_ONBOARDING_API_TOKEN";
-// Salesforce object the trigger watches.
-const SALESFORCE_OBJECT = "Account";
-// Salesforce custom field that stores the Sector value (change to match your org).
-const SALESFORCE_SECTOR_FIELD = "Sector__c";
-// Salesforce custom field that receives the onboarding system's external ID (change to match your org).
-const SALESFORCE_EXTERNAL_ID_FIELD = "YOUR_SALESFORCE_EXTERNAL_ID_FIELD";
-// Salesforce custom field that receives the sync status (change to match your org).
-const SALESFORCE_SYNC_STATUS_FIELD = "YOUR_SALESFORCE_SYNC_STATUS_FIELD";
-// Status written to each new onboarding record until the API confirms it.
-const INITIAL_STATUS = "In Progress";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -75,7 +71,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "salesforce",
             actionType: "search",
             actionKey: "find_record",
-            connection: "salesforce",
+            connection: salesforce,
             inputs: {
               object: "User",
               searchField: "Id",
@@ -107,7 +103,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "create_record",
-        connection: "zapier-tables",
+        connection: zapierTables,
         inputs: {
           table_id: ONBOARDING_TABLE_ID,
           Title: input.Name ?? "",
@@ -159,7 +155,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "update_record",
-        connection: "zapier-tables",
+        connection: zapierTables,
         inputs: {
           table_id: ONBOARDING_TABLE_ID,
           record_id: recordId,
@@ -174,7 +170,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "salesforce",
         actionType: "write",
         actionKey: "update_record",
-        connection: "salesforce",
+        connection: salesforce,
         inputs: {
           object: SALESFORCE_OBJECT,
           record_id: input.Id,

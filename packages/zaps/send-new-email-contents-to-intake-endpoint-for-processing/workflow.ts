@@ -2,10 +2,10 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { INTAKE_ENDPOINT_URL } from "@/config";
+
 const sdk = createZapierSdk();
 
-// URL of the intake endpoint that receives each email as JSON for processing.
-const INTAKE_ENDPOINT_URL = "YOUR_INTAKE_ENDPOINT_URL";
 // Only forward emails whose subject or body contains one of these words (case-insensitive). Empty = forward every email.
 const ROUTING_KEYWORDS: string[] = [];
 // Only forward emails from these sender addresses (lowercase). Empty = forward from any sender.

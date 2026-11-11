@@ -2,12 +2,12 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { SPREADSHEET_ID, WORKSHEET_ID } from "@/config";
+import googleSheets from "@/connections/google-sheets";
+import microsoftOutlook from "@/connections/microsoft-outlook";
+
 const sdk = createZapierSdk();
 
-// Google Sheets spreadsheet ID (the long ID in the sheet's URL).
-const SPREADSHEET_ID = "YOUR_SPREADSHEET_ID";
-// Worksheet (tab) ID the lead rows are appended to; the first tab is "0".
-const WORKSHEET_ID = "0";
 // Recruiter addresses that get the alert email. Send-from is the connected Outlook account.
 const RECRUITER_EMAILS = ["YOUR_RECRUITER_EMAIL@example.com"];
 // Keys of the lead fields in the Facebook Lead Ads payload. Confirm these against a real lead before publishing.
@@ -82,7 +82,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "add_row",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,
@@ -111,7 +111,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "microsoft-outlook",
         actionType: "write",
         actionKey: "send_email",
-        connection: "microsoft-outlook",
+        connection: microsoftOutlook,
         inputs: {
           recipients: RECRUITER_EMAILS,
           subject: `New candidate lead: ${lead.name || lead.submissionId}`,

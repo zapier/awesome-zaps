@@ -2,13 +2,10 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import { COMPANY_CALENDAR_ID, MIRROR_MARKER } from "@/config";
+import googleCalendar from "@/connections/google-calendar";
 
-// Google Calendar ID of the company calendar that receives the mirrored events.
-const COMPANY_CALENDAR_ID = "YOUR_COMPANY_CALENDAR_ID";
-// Line added to each mirrored event's description, followed by the source event ID.
-// The company copy is found on later updates by searching for this marker.
-const MIRROR_MARKER = "Mirrored from personal calendar event";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -59,7 +56,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-calendar",
         actionType: "search",
         actionKey: "event_v2",
-        connection: "google-calendar",
+        connection: googleCalendar,
         inputs: { calendarid: COMPANY_CALENDAR_ID, search_term: sourceId },
       }),
     );
@@ -74,7 +71,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "google-calendar",
           actionType: "write",
           actionKey: "update_event",
-          connection: "google-calendar",
+          connection: googleCalendar,
           inputs: {
             calendarid: COMPANY_CALENDAR_ID,
             eventid: existing.id,
@@ -94,7 +91,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-calendar",
         actionType: "write",
         actionKey: "detailed_event",
-        connection: "google-calendar",
+        connection: googleCalendar,
         inputs: {
           calendarid: COMPANY_CALENDAR_ID,
           summary,

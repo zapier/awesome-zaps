@@ -2,20 +2,18 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  TABLE_ID,
+  MEETING_ID_FIELD,
+  CLIENT_NAME_FIELD,
+  DROPBOX_FOLDER,
+  PLACEHOLDER_STATUS,
+  FILE_SUFFIX,
+} from "@/config";
+import zapierTables from "@/connections/zapier-tables";
+import dropbox from "@/connections/dropbox";
 
-// Zapier Tables table that holds one row per client call, keyed by Zoom meeting ID.
-const TABLE_ID = "YOUR_TABLE_ID";
-// Table field key for the Zoom meeting ID column (used to match rows).
-const MEETING_ID_FIELD = "f1";
-// Table field key for the client name column (used in the file name).
-const CLIENT_NAME_FIELD = "f2";
-// Dropbox folder the audio is saved into, for example "/Team/Client calls".
-const DROPBOX_FOLDER = "/YOUR_DROPBOX_FOLDER";
-// Status written to a placeholder row when a meeting has no matching row.
-const PLACEHOLDER_STATUS = "Needs client";
-// Words added after the client name and date in the saved file name.
-const FILE_SUFFIX = "AudioRecording";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -60,7 +58,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "search",
         actionKey: "find_record",
-        connection: "zapier-tables",
+        connection: zapierTables,
         inputs: {
           table_id: TABLE_ID,
           filter_count: "1",
@@ -78,7 +76,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "zapier-tables",
           actionType: "write",
           actionKey: "create_record",
-          connection: "zapier-tables",
+          connection: zapierTables,
           inputs: {
             table_id: TABLE_ID,
             new__data__f1: meetingId,
@@ -101,7 +99,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "dropbox",
         actionType: "write",
         actionKey: "file",
-        connection: "dropbox",
+        connection: dropbox,
         inputs: {
           file: audio.download_url,
           directory: DROPBOX_FOLDER,

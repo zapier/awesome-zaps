@@ -2,12 +2,10 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import { TEMPLATE_DOC_ID, TITLE_PREFIX } from "@/config";
+import googleDocs from "@/connections/google-docs";
 
-// Google Docs template to copy (the document ID from its URL).
-const TEMPLATE_DOC_ID = "YOUR_TEMPLATE_DOC_ID";
-// Start of the new document's name; the practice, provider and time are appended.
-const TITLE_PREFIX = "Termination letter";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -57,7 +55,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-docs",
         actionType: "write",
         actionKey: "create_from_template",
-        connection: "google-docs",
+        connection: googleDocs,
         inputs: {
           file: TEMPLATE_DOC_ID,
           title,

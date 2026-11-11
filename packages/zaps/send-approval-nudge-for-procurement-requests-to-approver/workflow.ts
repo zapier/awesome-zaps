@@ -2,12 +2,10 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import { APPROVAL_PHASE, RECORD_URL_PREFIX } from "@/config";
+import slack from "@/connections/slack";
 
-// Only requests in this phase get a nudge; anything else is skipped.
-const APPROVAL_PHASE = "Awaiting approval";
-// Prefix of your procurement system's request page; the record ID is appended.
-const RECORD_URL_PREFIX = "https://YOUR_PROCUREMENT_SYSTEM/requests/";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -39,7 +37,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "search",
         actionKey: "user_by_email",
-        connection: "slack",
+        connection: slack,
         inputs: { email: input.approver_email },
       }),
     );
@@ -65,7 +63,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "direct_message",
-        connection: "slack",
+        connection: slack,
         inputs: {
           channel: approverId,
           text: lines.join("\n"),

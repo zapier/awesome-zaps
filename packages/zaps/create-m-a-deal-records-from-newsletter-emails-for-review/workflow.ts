@@ -2,17 +2,14 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { TABLE_ID, SLACK_CHANNEL, MESSAGE_PREFIX } from "@/config";
+import zapierTables from "@/connections/zapier-tables";
+import slack from "@/connections/slack";
+
 const sdk = createZapierSdk();
 
-// Zapier Tables table ID that receives one record per deal. Create the table with
-// the six columns Seller, Buyer, Deal Description, Date, Advisor, Deal Reference.
-const TABLE_ID = "YOUR_TABLE_ID";
-// Slack channel ID for the team summary (the long ID shown in the channel's details).
-const SLACK_CHANNEL = "YOUR_SLACK_CHANNEL_ID";
 // Set to true to @channel-mention the team in the summary. Keep false until you want pings.
 const MENTION_CHANNEL = false;
-// Text in front of the Slack summary. "[install-test] " marks test messages; set to "" for real use.
-const MESSAGE_PREFIX = "[install-test] ";
 // Most deals taken from one newsletter.
 const MAX_DEALS = 10;
 
@@ -117,7 +114,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "zapier-tables",
             actionType: "write",
             actionKey: "create_record",
-            connection: "zapier-tables",
+            connection: zapierTables,
             inputs: {
               table_id: TABLE_ID,
               new__data__f1: deal.seller ?? "",
@@ -155,7 +152,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "channel_message",
-        connection: "slack",
+        connection: slack,
         inputs: {
           channel: SLACK_CHANNEL,
           text,

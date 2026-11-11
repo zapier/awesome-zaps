@@ -2,22 +2,22 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  EMPLOYEES_TABLE_ID,
+  TRELLO_BOARD_ID,
+  TRELLO_LIST_ID,
+  EVALUATION_FORM_URL,
+  CHECKLIST_NAME,
+} from "@/config";
+import zapierTables from "@/connections/zapier-tables";
+import trello from "@/connections/trello";
+
 const sdk = createZapierSdk();
 
-// Zapier Tables table ID of the employees table (the long ID in the table's URL). Needs Employee ID, First Name, Last Name, Evaluation Date, Supervisor ID and Trello Member ID columns.
-const EMPLOYEES_TABLE_ID = "YOUR_EMPLOYEES_TABLE_ID";
-// Trello board ID that review cards are created on.
-const TRELLO_BOARD_ID = "YOUR_TRELLO_BOARD_ID";
-// Trello list ID of the 'Due Soon' list on that board.
-const TRELLO_LIST_ID = "YOUR_DUE_SOON_LIST_ID";
-// Evaluation form URL; each card's checklist links to it with the employee ID appended.
-const EVALUATION_FORM_URL = "YOUR_EVALUATION_FORM_URL";
 // How many days ahead to look for evaluations due.
 const LOOKAHEAD_DAYS = 21;
 // How many days after creation a card is due.
 const CARD_DUE_DAYS = 7;
-// Name of the checklist added to each card.
-const CHECKLIST_NAME = "To Complete";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -40,7 +40,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "ae_538493_zapier_tables_get_all_records_from_zapie",
-        connection: "zapier-tables",
+        connection: zapierTables,
         inputs: { tableId: EMPLOYEES_TABLE_ID },
       });
       return result.data;
@@ -96,7 +96,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "trello",
               actionType: "search",
               actionKey: "organization_card_v2",
-              connection: "trello",
+              connection: trello,
               inputs: {
                 board: TRELLO_BOARD_ID,
                 keyword: employee.name,
@@ -128,7 +128,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "trello",
             actionType: "write",
             actionKey: "card_v2",
-            connection: "trello",
+            connection: trello,
             inputs: {
               board: TRELLO_BOARD_ID,
               list: TRELLO_LIST_ID,

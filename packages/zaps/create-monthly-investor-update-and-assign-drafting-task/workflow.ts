@@ -1,20 +1,19 @@
 import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 
+import {
+  TEMPLATE_DOC_ID,
+  DOC_FOLDER,
+  ORG_DOMAIN,
+  TITLE_PREFIX,
+  CLICKUP_WORKSPACE_ID,
+  DRAFTER_EMAIL,
+} from "@/config";
+import googleDocs from "@/connections/google-docs";
+import clickup from "@/connections/clickup";
+
 const sdk = createZapierSdk();
 
-// Google Doc copied each month. Use the ID from its URL (docs.google.com/document/d/<ID>/edit). It needs a {{report_date}} placeholder.
-const TEMPLATE_DOC_ID = "YOUR_TEMPLATE_DOC_ID";
-// Drive folder ID for new documents. Use your folder's ID, or "root" for the top level of My Drive.
-const DOC_FOLDER = "YOUR_FOLDER_ID";
-// Your Google Workspace domain, used for the organization sharing setting.
-const ORG_DOMAIN = "YOUR_ORG_DOMAIN";
-// Prefix on new document, task and email titles. Empty for real use.
-const TITLE_PREFIX = "";
-// ClickUp workspace (team) ID, the number in the workspace URL.
-const CLICKUP_WORKSPACE_ID = "YOUR_CLICKUP_WORKSPACE_ID";
-// Email of the ClickUp user who gets the drafting task.
-const DRAFTER_EMAIL = "YOUR_EMAIL@example.com";
 // Addresses that get the ready email. Email by Zapier sends from zapiermail.com.
 const COLLABORATOR_EMAILS = ["YOUR_COLLABORATOR_EMAIL@example.com"];
 // Days after the run date that the drafting task is due.
@@ -56,7 +55,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-docs",
         actionType: "write",
         actionKey: "create_from_template",
-        connection: "google-docs",
+        connection: googleDocs,
         inputs: {
           file: TEMPLATE_DOC_ID,
           title: docTitle,
@@ -78,7 +77,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "clickup",
         actionType: "write",
         actionKey: "ae_39348_clickup_find_task_by_name_custom_action",
-        connection: "clickup",
+        connection: clickup,
         inputs: { taskName: taskTitle, workspaceId: CLICKUP_WORKSPACE_ID },
       }),
     );
@@ -89,7 +88,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "clickup",
           actionType: "write",
           actionKey: "task",
-          connection: "clickup",
+          connection: clickup,
           inputs: {
             name: taskTitle,
             content: doc.alternateLink,

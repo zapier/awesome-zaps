@@ -2,10 +2,11 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { COMPANY_SIGNATURE_HTML } from "@/config";
+import microsoftOutlook from "@/connections/microsoft-outlook";
+
 const sdk = createZapierSdk();
 
-// Company signature block, as HTML, appended to every reply.
-const COMPANY_SIGNATURE_HTML = "<p>YOUR_COMPANY_SIGNATURE</p>";
 // Seconds to wait before replying, so the sender can correct or add information.
 const REPLY_DELAY_SECONDS = 300;
 // Messages whose preview is this short and start with a thank-you or confirmation are skipped.
@@ -85,7 +86,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "microsoft-outlook",
         actionType: "write",
         actionKey: "send_email",
-        connection: "microsoft-outlook",
+        connection: microsoftOutlook,
         inputs: {
           recipients: [senderAddress],
           subject: `Re: ${subject || "your message"}`,

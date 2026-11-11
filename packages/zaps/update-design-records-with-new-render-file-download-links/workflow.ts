@@ -2,14 +2,14 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  NOTION_DATA_SOURCE_ID,
+  NOTION_TITLE_PROPERTY,
+  NOTION_DOWNLOAD_URL_PROPERTY,
+} from "@/config";
+import notion from "@/connections/notion";
 
-// Notion data source (database) that holds the design records. Find it in the database's "..." menu, or from its URL.
-const NOTION_DATA_SOURCE_ID = "YOUR_NOTION_DATA_SOURCE_ID";
-// Title property on the design records. The uploaded file's name, without its extension, must match this.
-const NOTION_TITLE_PROPERTY = "Name";
-// URL property on the design record that receives the Dropbox share link.
-const NOTION_DOWNLOAD_URL_PROPERTY = "Download URL";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -47,7 +47,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "notion",
         actionType: "write",
         actionKey: "_zap_raw_request",
-        connection: "notion",
+        connection: notion,
         inputs: {
           url: `https://api.notion.com/v1/data_sources/${NOTION_DATA_SOURCE_ID}/query`,
           method: "POST",
@@ -72,7 +72,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "notion",
         actionType: "write",
         actionKey: "_zap_raw_request",
-        connection: "notion",
+        connection: notion,
         inputs: {
           url: `https://api.notion.com/v1/pages/${pageId}`,
           method: "PATCH",

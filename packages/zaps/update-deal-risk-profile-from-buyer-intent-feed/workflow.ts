@@ -2,16 +2,15 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  CUSTOM_OBJECT_TYPE_ID,
+  RISK_INDICATORS_FIELD,
+  RISK_NOTES_FIELD,
+  RISK_SIGNALS_LIST_FIELD,
+} from "@/config";
+import close from "@/connections/close";
 
-// Close custom object type that holds the deal risk record (the type's ID in Close).
-const CUSTOM_OBJECT_TYPE_ID = "YOUR_CUSTOM_OBJECT_TYPE_ID";
-// Close custom object field that receives the intent signals as risk indicators.
-const RISK_INDICATORS_FIELD = "YOUR_RISK_INDICATORS_FIELD_KEY";
-// Close custom object field that receives the notes.
-const RISK_NOTES_FIELD = "YOUR_RISK_NOTES_FIELD_KEY";
-// Close custom object list field that receives each intent signal as its own entry.
-const RISK_SIGNALS_LIST_FIELD = "YOUR_RISK_SIGNALS_LIST_FIELD_KEY";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -42,7 +41,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "close",
         actionType: "search",
         actionKey: "search_lead_v6",
-        connection: "close",
+        connection: close,
         inputs: { email },
       }),
     );
@@ -58,7 +57,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "close",
         actionType: "search",
         actionKey: "search_custom_objects",
-        connection: "close",
+        connection: close,
         inputs: {
           search_custom_object_type_id: CUSTOM_OBJECT_TYPE_ID,
           search_lead_id: leadId,
@@ -74,7 +73,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "close",
           actionType: "write",
           actionKey: "new_custom_object_v2",
-          connection: "close",
+          connection: close,
           inputs: {
             lead_id: leadId,
             custom_object_type_id: CUSTOM_OBJECT_TYPE_ID,
@@ -96,7 +95,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "close",
         actionType: "write",
         actionKey: "update_custom_object",
-        connection: "close",
+        connection: close,
         inputs: {
           custom_object_id: customObjectId,
           custom_object_type_id: CUSTOM_OBJECT_TYPE_ID,

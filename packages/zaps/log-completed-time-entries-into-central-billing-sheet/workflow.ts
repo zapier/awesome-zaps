@@ -2,23 +2,24 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  SPREADSHEET_ID,
+  WORKSHEET_ID,
+  ENTRY_ID_COLUMN,
+  DATE_COLUMN,
+  STAFF_COLUMN,
+  PROJECT_COLUMN,
+  HOURS_COLUMN,
+  DESCRIPTION_COLUMN,
+} from "@/config";
+import googleSheets from "@/connections/google-sheets";
+
 const sdk = createZapierSdk();
 
-// Google Sheets spreadsheet ID for the central billing sheet (the long ID in the sheet's URL).
-const SPREADSHEET_ID = "YOUR_SPREADSHEET_ID";
-// Worksheet (tab) ID; the first tab is "0".
-const WORKSHEET_ID = "0";
 // Projects whose time is internal and never billed. Matched exactly against the payload's project name.
 const INTERNAL_PROJECTS = ["Internal"];
 // Categories that are not billable. Matched exactly against the payload's category.
 const NON_BILLABLE_CATEGORIES = ["Non-billable"];
-// Sheet column keys (COL$A = column A). Map these to the billing sheet's headers.
-const ENTRY_ID_COLUMN = "COL$A";
-const DATE_COLUMN = "COL$B";
-const STAFF_COLUMN = "COL$C";
-const PROJECT_COLUMN = "COL$D";
-const HOURS_COLUMN = "COL$E";
-const DESCRIPTION_COLUMN = "COL$F";
 
 const InputSchema = z
   .object({
@@ -72,7 +73,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "search",
         actionKey: "lookup_row",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,
@@ -91,7 +92,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "add_row",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,

@@ -2,12 +2,11 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { OUTREACH_LIST_ID, TRIAL_TAG } from "@/config";
+import activecampaign from "@/connections/activecampaign";
+
 const sdk = createZapierSdk();
 
-// ActiveCampaign list ID for your sales outreach list. Every trial signup is added to it.
-const OUTREACH_LIST_ID = "YOUR_LIST_ID";
-// Tag added to each trial buyer after they are on the outreach list.
-const TRIAL_TAG = "Trial buyer";
 // Set to false to skip tagging.
 const ADD_TRIAL_TAG = true;
 
@@ -36,7 +35,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "activecampaign",
         actionType: "write",
         actionKey: "action_4",
-        connection: "activecampaign",
+        connection: activecampaign,
         inputs: {
           email,
           first_name: input.contact__first_name ?? "",
@@ -50,7 +49,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "activecampaign",
         actionType: "write",
         actionKey: "list_subscription",
-        connection: "activecampaign",
+        connection: activecampaign,
         inputs: {
           action: "subscribe",
           list_id: OUTREACH_LIST_ID,
@@ -66,7 +65,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "activecampaign",
           actionType: "write",
           actionKey: "contact_tag",
-          connection: "activecampaign",
+          connection: activecampaign,
           inputs: {
             action: "Add",
             contact_email: email,

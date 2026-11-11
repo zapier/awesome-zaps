@@ -26,12 +26,15 @@ metadata:
 
 **How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
 
-**Source:** `workflow.ts` in this folder is the whole workflow. Deploy it as one source file. Change only the constants listed below; everything else stays as written.
+**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
+
+- **With the zap CLI:** `npx zap-pack add awesome-zaps/update-loan-records-from-external-loan-status-feed` (it makes a zap project if you aren't in one), then `npx zap-pack deploy update-loan-records-from-external-loan-status-feed` from that project. Deploy asks for each open setting and account, and sets the trigger.
+- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
 
 1. **Trigger:** Webhooks by Zapier, Catch Hook (`webhook`, `hook_v2`). It needs no connection, so its `authentication_id` is `null`.
 2. **Connections** (each alias in the code is the app's slug):
    - `salesforce`: the user's Salesforce connection for the account that owns the loan records.
-3. **Constants** (all at the top of `workflow.ts`):
+3. **Settings** (in `config.ts`; an `ask(…)` is asked when each person deploys):
    - `LOAN_OBJECT`: the Salesforce API name of the loan object.
    - `EXTERNAL_LOAN_ID_FIELD`: the loan object field that holds the feed's loan ID.
    - `CRM_FIELDS`: the Salesforce field keys for status, the four property address parts, principal balance, interest rate, next payment date and maturity date.

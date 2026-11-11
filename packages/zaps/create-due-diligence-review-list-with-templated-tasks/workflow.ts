@@ -2,14 +2,11 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { TEAM_ID, SPACE_ID, TEMPLATE_ID, DOCUMENT_TASK_MATCH } from "@/config";
+import clickup from "@/connections/clickup";
+
 const sdk = createZapierSdk();
 
-// ClickUp workspace (team) ID. Found in the ClickUp URL after app.clickup.com/.
-const TEAM_ID = "YOUR_TEAM_ID";
-// ClickUp space the review lists are created in.
-const SPACE_ID = "YOUR_SPACE_ID";
-// ClickUp list template that holds the due-diligence task set.
-const TEMPLATE_ID = "YOUR_TEMPLATE_ID";
 // Payload field -> ClickUp custom field ID that receives its value on each task.
 const CUSTOM_FIELD_IDS: Record<string, string> = {
   counterparty: "YOUR_COUNTERPARTY_FIELD_ID",
@@ -18,8 +15,6 @@ const CUSTOM_FIELD_IDS: Record<string, string> = {
   address: "YOUR_ADDRESS_FIELD_ID",
   invoice_number: "YOUR_INVOICE_NUMBER_FIELD_ID",
 };
-// Tasks whose name contains this text get the document due date; all others get the review due date.
-const DOCUMENT_TASK_MATCH = "document";
 // Set to false to skip assigning the requestor to each task.
 const ASSIGN_REQUESTOR = true;
 
@@ -79,7 +74,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "clickup",
           actionType: "write",
           actionKey: "_zap_raw_request",
-          connection: "clickup",
+          connection: clickup,
           inputs: {
             fail_on_errors: true,
             method: "POST",
@@ -104,7 +99,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "clickup",
               actionType: "search",
               actionKey: "findUser",
-              connection: "clickup",
+              connection: clickup,
               inputs: {
                 team_id: TEAM_ID,
                 field: "email",
@@ -122,7 +117,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "clickup",
         actionType: "write",
         actionKey: "_zap_raw_request",
-        connection: "clickup",
+        connection: clickup,
         inputs: {
           fail_on_errors: true,
           method: "GET",
@@ -150,7 +145,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "clickup",
             actionType: "write",
             actionKey: "_zap_raw_request",
-            connection: "clickup",
+            connection: clickup,
             inputs: {
               fail_on_errors: true,
               method: "PUT",
@@ -177,7 +172,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "clickup",
               actionType: "write",
               actionKey: "_zap_raw_request",
-              connection: "clickup",
+              connection: clickup,
               inputs: {
                 fail_on_errors: true,
                 method: "POST",

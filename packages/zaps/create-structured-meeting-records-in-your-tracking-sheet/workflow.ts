@@ -2,28 +2,20 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  SPREADSHEET_ID,
+  WORKSHEET_ID,
+  EVENT_ID_COLUMN,
+  TITLE_COLUMN,
+  ORGANIZER_COLUMN,
+  START_COLUMN,
+  ATTENDEES_COLUMN,
+  CREATED_COLUMN,
+  UPDATED_COLUMN,
+} from "@/config";
+import googleSheets from "@/connections/google-sheets";
 
-// Google Calendar the trigger watches (the calendar's email or ID). Set the same value in the trigger's Calendar setting. The code does not read it.
-const CALENDAR_ID = "YOUR_CALENDAR_ID";
-// Google Sheets spreadsheet ID (the long ID in the sheet's URL).
-const SPREADSHEET_ID = "YOUR_SPREADSHEET_ID";
-// Worksheet (tab) ID for the meeting audit rows. Use a dedicated tab; the first tab is "0".
-const WORKSHEET_ID = "YOUR_WORKSHEET_ID";
-// Column for the calendar event ID, used to match events later (COL$A = column A).
-const EVENT_ID_COLUMN = "COL$A";
-// Column for the event title.
-const TITLE_COLUMN = "COL$B";
-// Column for the organizer's email.
-const ORGANIZER_COLUMN = "COL$C";
-// Column for the event start time.
-const START_COLUMN = "COL$D";
-// Column for the attendee emails, as one comma-separated string.
-const ATTENDEES_COLUMN = "COL$E";
-// Column for when the event was created.
-const CREATED_COLUMN = "COL$F";
-// Column for when the event was last updated.
-const UPDATED_COLUMN = "COL$G";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -65,7 +57,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "add_row",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,

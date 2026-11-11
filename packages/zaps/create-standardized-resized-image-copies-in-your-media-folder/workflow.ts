@@ -1,16 +1,15 @@
 import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 
-const sdk = createZapierSdk();
+import {
+  SOURCE_FOLDER_ID,
+  DESTINATION_FOLDER_ID,
+  SIZE_SUFFIX,
+  MIME_PREFIX,
+} from "@/config";
+import googleDrive from "@/connections/google-drive";
 
-// Google Drive folder ID holding the original images (the long ID in the folder's URL).
-const SOURCE_FOLDER_ID = "YOUR_SOURCE_FOLDER_ID";
-// Google Drive folder ID where the resized copies are written.
-const DESTINATION_FOLDER_ID = "YOUR_DESTINATION_FOLDER_ID";
-// Suffix added before the file extension: photo.jpg becomes photo-1080x1080.jpg.
-const SIZE_SUFFIX = "-1080x1080";
-// Only files whose MIME type starts with this prefix are processed.
-const MIME_PREFIX = "image/";
+const sdk = createZapierSdk();
 
 type DriveFile = { id?: string; name?: string; mimeType?: string };
 
@@ -28,7 +27,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-drive",
         actionType: "write",
         actionKey: "ae_50140_google_drive_get_files_from_folder_custom",
-        connection: "google-drive",
+        connection: googleDrive,
         inputs: { folderId: SOURCE_FOLDER_ID },
       }),
     );
@@ -58,7 +57,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "google-drive",
               actionType: "search",
               actionKey: "file_v2",
-              connection: "google-drive",
+              connection: googleDrive,
               inputs: {
                 title: newName,
                 folder: DESTINATION_FOLDER_ID,
@@ -73,7 +72,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "google-drive",
               actionType: "write",
               actionKey: "copy_file",
-              connection: "google-drive",
+              connection: googleDrive,
               inputs: {
                 file: file.id,
                 new_name: newName,

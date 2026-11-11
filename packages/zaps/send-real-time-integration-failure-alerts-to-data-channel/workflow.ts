@@ -2,15 +2,14 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { SLACK_CHANNEL, MENTION_PREFIX } from "@/config";
+import slack from "@/connections/slack";
+
 const sdk = createZapierSdk();
 
-// Slack channel ID that receives the failure alerts (the long ID shown in the channel's details).
-const SLACK_CHANNEL = "YOUR_SLACK_CHANNEL_ID";
 // Only alert for errors from these apps, matched against the alert's service name (e.g. "Slack").
 // Leave empty to alert for every Zap error.
 const ONLY_SERVICES: string[] = [];
-// Text placed before each alert, e.g. "<!channel> " to ping the channel. Leave empty for no mention.
-const MENTION_PREFIX = "";
 
 const InputSchema = z
   .object({
@@ -49,7 +48,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "channel_message",
-        connection: "slack",
+        connection: slack,
         inputs: {
           channel: SLACK_CHANNEL,
           text,

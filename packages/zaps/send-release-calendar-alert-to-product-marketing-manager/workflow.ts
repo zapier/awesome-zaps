@@ -2,12 +2,13 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { FALLBACK_SLACK_USER_ID } from "@/config";
+import slack from "@/connections/slack";
+
 const sdk = createZapierSdk();
 
 // Words in the event title that make it a release event. Matching is case-insensitive.
 const RELEASE_KEYWORDS = ["release", "launch"];
-// Slack user ID to message when no Slack user matches the event organizer's email.
-const FALLBACK_SLACK_USER_ID = "YOUR_SLACK_USER_ID";
 // Keep false so the message never notifies anyone. Set true only if mentions should ping people.
 const SEND_MENTIONS = false;
 
@@ -87,7 +88,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "slack",
             actionType: "search",
             actionKey: "user_by_email",
-            connection: "slack",
+            connection: slack,
             inputs: { email: organizerEmail },
           }),
         )
@@ -109,7 +110,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "direct_message",
-        connection: "slack",
+        connection: slack,
         inputs: {
           channel: recipientId,
           text,

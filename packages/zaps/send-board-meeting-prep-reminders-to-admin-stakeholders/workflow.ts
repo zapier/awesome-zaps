@@ -1,16 +1,10 @@
 import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 
-const sdk = createZapierSdk();
+import { RECIPIENT, MEETING_TITLE, MEETING_DATE, AGENDA_LINK } from "@/config";
+import gmail from "@/connections/gmail";
 
-// Who receives the reminder: a stakeholder address or a distribution list.
-const RECIPIENT = "YOUR_EMAIL_ADDRESS";
-// Board meeting name, used in the subject and body.
-const MEETING_TITLE = "Board meeting";
-// Board meeting date, written the way you want it to read in the email.
-const MEETING_DATE = "YOUR_MEETING_DATE";
-// Link to the agenda and packet submission page. If empty, no reminder is sent.
-const AGENDA_LINK = "YOUR_AGENDA_LINK";
+const sdk = createZapierSdk();
 
 const workflow = defineDurable<unknown, unknown>(
   "send-board-meeting-prep-reminders-to-admin-stakeholders",
@@ -32,7 +26,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: "gmail",
+        connection: gmail,
         inputs: { to: RECIPIENT, subject, body, body_type: "plain" },
       }),
     );

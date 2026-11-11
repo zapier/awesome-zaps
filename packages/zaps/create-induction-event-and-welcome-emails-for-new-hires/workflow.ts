@@ -2,30 +2,29 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  TABLE_ID,
+  HR_CALENDAR_ID,
+  HR_COORDINATOR_EMAIL,
+  IT_EMAIL,
+  LICENSE_OWNERS_EMAIL,
+  NAME,
+  EMAIL,
+  START_DATE,
+  INDUCTION_LINK,
+  HIRING_MANAGER_EMAIL,
+  INVITED_AT,
+} from "@/config";
+import zapierTables from "@/connections/zapier-tables";
+import gmail from "@/connections/gmail";
+import googleCalendar from "@/connections/google-calendar";
+
 const sdk = createZapierSdk();
 
-// Zapier Tables table ID that holds the new-hire records. Also set this as the table in the trigger.
-const TABLE_ID = "YOUR_TABLE_ID";
-// Google Calendar ID of the HR calendar that the induction event is created on.
-const HR_CALENDAR_ID = "YOUR_HR_CALENDAR_ID";
-// HR coordinator address, CC'd on the welcome email to the new hire.
-const HR_COORDINATOR_EMAIL = "YOUR_HR_COORDINATOR_EMAIL";
-// IT address: receives the internal provisioning email and is invited to the induction event.
-const IT_EMAIL = "YOUR_IT_EMAIL";
-// License owners address: receives the internal provisioning email.
-const LICENSE_OWNERS_EMAIL = "YOUR_LICENSE_OWNERS_EMAIL";
 // How many days before the start date the induction event is scheduled.
 const INDUCTION_OFFSET_DAYS = 1;
 // Length of the induction event, in minutes.
 const INDUCTION_LENGTH_MINUTES = 60;
-
-// Field keys on the Zapier Tables record, as they appear in the trigger payload.
-const NAME = "f1";
-const EMAIL = "f2";
-const START_DATE = "f3";
-const INDUCTION_LINK = "f4";
-const HIRING_MANAGER_EMAIL = "f5";
-const INVITED_AT = "f6";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -96,7 +95,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "update_record",
-        connection: "zapier-tables",
+        connection: zapierTables,
         inputs: {
           table_id: TABLE_ID,
           record_id: recordId,
@@ -125,7 +124,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: "gmail",
+        connection: gmail,
         inputs: {
           to: email,
           cc: HR_COORDINATOR_EMAIL,
@@ -140,7 +139,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: "gmail",
+        connection: gmail,
         inputs: {
           to: `${IT_EMAIL}, ${LICENSE_OWNERS_EMAIL}`,
           subject: `New hire provisioning: ${name} (starts ${displayDate})`,
@@ -154,7 +153,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-calendar",
         actionType: "write",
         actionKey: "detailed_event",
-        connection: "google-calendar",
+        connection: googleCalendar,
         inputs: {
           calendarid: HR_CALENDAR_ID,
           summary: `Induction: ${name}`,

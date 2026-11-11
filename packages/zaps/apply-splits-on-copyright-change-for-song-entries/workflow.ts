@@ -2,14 +2,15 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  BOARD_ID,
+  ALLOCATION_COLUMN_ID,
+  TOTAL_PERCENTAGE_COLUMN_ID,
+} from "@/config";
+import monday from "@/connections/monday";
+
 const sdk = createZapierSdk();
 
-// monday.com board ID holding the song entries (integer). Set to your board.
-const BOARD_ID = "YOUR_BOARD_ID";
-// Copyright/allocation column. Only changes to this column trigger a recalculation.
-const ALLOCATION_COLUMN_ID = "YOUR_ALLOCATION_COLUMN_ID";
-// Column holding the number of co-writers (contributors) on the song.
-const CONTRIBUTOR_COUNT_COLUMN_ID = "YOUR_CONTRIBUTOR_COUNT_COLUMN_ID";
 // Split percentage columns, one per contributor slot, in order. Up to 5 contributors.
 const SPLIT_COLUMN_IDS = [
   "YOUR_SPLIT_1_COLUMN_ID",
@@ -18,8 +19,6 @@ const SPLIT_COLUMN_IDS = [
   "YOUR_SPLIT_4_COLUMN_ID",
   "YOUR_SPLIT_5_COLUMN_ID",
 ];
-// Main percentage column, set to the calculated total of the splits.
-const TOTAL_PERCENTAGE_COLUMN_ID = "YOUR_TOTAL_PERCENTAGE_COLUMN_ID";
 
 const InputSchema = z
   .object({
@@ -64,7 +63,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "monday",
         actionType: "write",
         actionKey: "change_multiple_columns_value",
-        connection: "monday",
+        connection: monday,
         inputs: {
           item_id: String(input.item_id),
           board_id: BOARD_ID,

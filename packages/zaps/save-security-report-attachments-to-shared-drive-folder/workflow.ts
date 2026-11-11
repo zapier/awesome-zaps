@@ -2,20 +2,17 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  SUBJECT_CRITERIA,
+  RECIPIENT_PATTERN,
+  DRIVE_FOLDER_ID,
+  SHARED_DRIVE_ID,
+  PROCESSED_LABEL_ID,
+} from "@/config";
+import googleDrive from "@/connections/google-drive";
+import gmail from "@/connections/gmail";
 
-// Gmail search that starts the workflow, in Gmail search syntax.
-const SEARCH_QUERY = "YOUR_GMAIL_SEARCH_QUERY";
-// Text the subject must contain before attachments are saved.
-const SUBJECT_CRITERIA = "YOUR_SUBJECT_TEXT";
-// Text the To header must contain, such as the receiving mailbox address.
-const RECIPIENT_PATTERN = "YOUR_RECIPIENT_ADDRESS";
-// Google Drive folder ID that receives the files (the long ID in the folder's URL).
-const DRIVE_FOLDER_ID = "YOUR_FOLDER_ID";
-// Shared drive ID; leave empty to upload to My Drive.
-const SHARED_DRIVE_ID = "";
-// Gmail label ID added to a message once all its attachments are saved.
-const PROCESSED_LABEL_ID = "YOUR_PROCESSED_LABEL_ID";
+const sdk = createZapierSdk();
 
 const AttachmentSchema = z
   .object({
@@ -69,7 +66,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "google-drive",
             actionType: "write",
             actionKey: "file",
-            connection: "google-drive",
+            connection: googleDrive,
             inputs: {
               file: attachment.url,
               drive: SHARED_DRIVE_ID,
@@ -97,7 +94,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "add_label",
-        connection: "gmail",
+        connection: gmail,
         inputs: { message_id: input.id, new_label_ids: [PROCESSED_LABEL_ID] },
       }),
     );

@@ -1,6 +1,8 @@
 import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 
+import smsConnection from "@/connections/sms";
+
 const sdk = createZapierSdk();
 
 const workflow = defineDurable<unknown, unknown>(
@@ -48,7 +50,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "sms",
         actionType: "write",
         actionKey: "send_v2",
-        connection: "sms",
+        connection: smsConnection,
         inputs: { message },
       }),
     );

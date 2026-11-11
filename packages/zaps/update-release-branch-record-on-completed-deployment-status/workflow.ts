@@ -2,45 +2,32 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  BRANCH_OBJECT,
+  STATUS_FIELD,
+  COMPLETED_VALUE,
+  BRANCH_REFERENCE_FIELD,
+  BRANCH_ID_FIELD,
+  PROCESS_TYPE_FIELD,
+  DEPLOYMENT_PROCESS_TYPE,
+  RUN_RESULT_FIELD,
+  SUCCESS_RESULT_VALUE,
+  ERROR_FIELD,
+  RELEASE_TYPE_FIELD,
+  DEPLOYMENT_DATE_FIELD,
+  PRODUCTION_RELEASE_FIELD,
+  HOTFIX_FIELD,
+  LAST_UAT_DEPLOYMENT_FIELD,
+} from "@/config";
+import salesforce from "@/connections/salesforce";
+
 const sdk = createZapierSdk();
 
-// Salesforce object API name of the deployment metadata log (the object whose status changes).
-const METADATA_LOG_OBJECT = "YOUR_METADATA_LOG_OBJECT";
-// Salesforce object API name of the branch record to update.
-const BRANCH_OBJECT = "YOUR_BRANCH_OBJECT";
-// Metadata log field holding the deployment status; the zap runs when it changes.
-const STATUS_FIELD = "YOUR_STATUS_FIELD";
-// Status value that means the deployment finished.
-const COMPLETED_VALUE = "Completed";
-// Metadata log field holding the reference to the branch record.
-const BRANCH_REFERENCE_FIELD = "YOUR_BRANCH_REFERENCE_FIELD";
-// Branch field the reference is matched against (the branch ID).
-const BRANCH_ID_FIELD = "YOUR_BRANCH_ID_FIELD";
-// Metadata log field holding the process type.
-const PROCESS_TYPE_FIELD = "YOUR_PROCESS_TYPE_FIELD";
-// Process type value that marks a deployment.
-const DEPLOYMENT_PROCESS_TYPE = "Deployment";
-// Metadata log field holding the run result.
-const RUN_RESULT_FIELD = "YOUR_RUN_RESULT_FIELD";
-// Run result value that means the run succeeded.
-const SUCCESS_RESULT_VALUE = "Success";
-// Metadata log field that is filled in when the run errored.
-const ERROR_FIELD = "YOUR_ERROR_FIELD";
-// Metadata log field holding the release type (regular or hotfix).
-const RELEASE_TYPE_FIELD = "YOUR_RELEASE_TYPE_FIELD";
 // Release type value to hotfix flag, one entry per value. Missing or unlisted values count as regular (false).
 const HOTFIX_LOOKUP: Record<string, boolean> = {
   Regular: false,
   Hotfix: true,
 };
-// Metadata log field holding the deployment date.
-const DEPLOYMENT_DATE_FIELD = "YOUR_DEPLOYMENT_DATE_FIELD";
-// Branch checkbox set to true when the release reaches production.
-const PRODUCTION_RELEASE_FIELD = "YOUR_PRODUCTION_RELEASE_FIELD";
-// Branch checkbox that records whether the release is a hotfix.
-const HOTFIX_FIELD = "YOUR_HOTFIX_FIELD";
-// Branch datetime field for the last UAT deployment.
-const LAST_UAT_DEPLOYMENT_FIELD = "YOUR_LAST_UAT_DEPLOYMENT_FIELD";
 
 const InputSchema = z.looseObject({});
 
@@ -72,7 +59,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "salesforce",
         actionType: "search",
         actionKey: "find_record",
-        connection: "salesforce",
+        connection: salesforce,
         inputs: {
           object: BRANCH_OBJECT,
           searchField: BRANCH_ID_FIELD,
@@ -94,7 +81,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "salesforce",
         actionType: "write",
         actionKey: "update_record",
-        connection: "salesforce",
+        connection: salesforce,
         inputs: {
           object: BRANCH_OBJECT,
           record_id: branch.id,

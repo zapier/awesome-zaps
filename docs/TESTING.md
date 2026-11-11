@@ -6,60 +6,64 @@ CI checks each zap folder with `scripts/catalog.test.ts`. A test run executes th
 
 A test run executes real side effects that cannot be taken back, so it must never touch production data. A zap that writes anywhere (a chat channel, a spreadsheet, a ticket) must:
 
-- Point at a test target (a test channel, a copy of the sheet) through the constants at the top of `workflow.ts` before the run.
+- Point at a test target (a test channel, a copy of the sheet) through its settings, passed on the deploy command line (`--set NAME=value`), never written into `config.ts`.
 - Follow the test its `SKILL.md` describes, and name anything the run creates "[install-test] …".
 
 ## Run a zap
 
-1. Define a `zapier-sdk` function that runs the CLI without a global install, then sign in. Keep the function in your shell profile so every command below works as written:
+Test runs go through the [zap-pack](https://www.npmjs.com/package/zap-pack) CLI, from a scratch zap project outside this repo. It deploys the zap's folder as a workflow in your Zapier account, so you can run it, read its logs, and turn it off.
+
+1. Make the scratch project once, and sign in:
 
    ```bash
-   zapier-sdk() { pnpm --silent dlx @zapier/zapier-sdk-cli "$@"; }
-   zapier-sdk login
-   zapier-sdk get-profile
+   npx zap-pack init ~/zap-tests --no-git
+   cd ~/zap-tests
+   npx zap-pack login
    ```
 
-2. Run the full checks:
+2. Run the full checks in this repo:
 
    ```bash
    pnpm check
    ```
 
-3. Find the connection IDs the zap needs. Each zap's `SKILL.md` names its connection aliases:
+3. Copy the zap's folder into the scratch project. It needs a `package.json` and `tsconfig.json` there: copy them from `zaps/daily-zen/`, set the package `name` to the zap's folder name, add `zod` (the version pinned in `packages/zaps/package.json`) if the zap imports it, and run `npm install`.
 
    ```bash
-   zapier-sdk list-connections <app> --owner me --json
+   cp -R <awesome-zaps>/packages/zaps/<zap-name> zaps/
    ```
 
-4. Bundle the zap's `workflow.ts`:
+4. Find the connection IDs the zap needs. Each zap's `SKILL.md` names its connection aliases, and `npx zap-pack info` lists them too.
+
+5. Deploy it with the test connections and test settings on the command line. They're saved in the scratch project's gitignored `.zap.json`, never in the zap's files. Deploying turns the trigger on, so point it at test resources only.
 
    ```bash
-   SOURCE_FILES=$(jq -n \
-     --rawfile workflow packages/zaps/<zap-name>/workflow.ts \
-     '{"workflow.ts": $workflow}')
+   npx zap-pack deploy <zap-name> --yes \
+     --connection <alias>=<connection id> \
+     --set <SETTING>=<test value> \
+     --answer <trigger field>=<value>
    ```
 
-5. Start the run with `test: true` in the input. Use the exact versions pinned in `packages/zaps/package.json`. The sandbox rejects any dependency published less than 24 hours ago.
+   `--yes` stops with the flag that supplies whatever is still missing.
+
+6. Run it with `test: true` in the input, then read what happened:
 
    ```bash
-   zapier-sdk --stability experimental run-durable "$SOURCE_FILES" \
-     --dependencies '{"zod":"<version>"}' \
-     --zapier-durable-version '<version>' \
-     --connections '{"<alias>":{"connectionId":"<id>"}}' \
-     --input '{"test":true}' \
-     --private \
-     --json
+   npx zap-pack run <zap-name> --input '{"test":true}'
+   npx zap-pack logs <zap-name>
    ```
 
-   Add `@zapier/zapier-sdk` to `--dependencies` if the zap imports it. Omit `--connections` for a zap that uses none.
-
-6. The command returns a run ID straight away. Poll it until the status is `finished`:
+7. Check the result at the test target, and confirm nothing changed in production. Then turn it off:
 
    ```bash
-   zapier-sdk --stability experimental get-durable-run <run-id> --json
+   npx zap-pack disable <zap-name>
    ```
 
-7. Check the result at the test target, and confirm nothing changed in production.
+8. Clean up: delete the test workflow once you're done with it. This needs zap-pack 0.0.6 or later; you can also delete it in the Zapier editor.
+
+   ```bash
+   npx zap-pack remove <zap-name> --force
+   ```
 
 ## Before asking for review
 

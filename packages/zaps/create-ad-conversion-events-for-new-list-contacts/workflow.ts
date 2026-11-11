@@ -2,14 +2,10 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import { LINKEDIN_ACCOUNT_ID, LINKEDIN_CONVERSION_ID } from "@/config";
+import linkedinConversions from "@/connections/linkedin-conversions";
 
-// HubSpot contact list whose additions create conversion events. Use the list ID from the list's URL.
-const HUBSPOT_LIST_ID = "YOUR_HUBSPOT_LIST_ID";
-// LinkedIn ad account ID that owns the conversion (dropdown value on the LinkedIn action).
-const LINKEDIN_ACCOUNT_ID = "YOUR_LINKEDIN_ACCOUNT_ID";
-// LinkedIn Conversions API conversion that receives each event (dropdown value on the LinkedIn action).
-const LINKEDIN_CONVERSION_ID = "YOUR_LINKEDIN_CONVERSION_ID";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -59,7 +55,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "linkedin-conversions",
           actionType: "write",
           actionKey: "create_conversion_event",
-          connection: "linkedin-conversions",
+          connection: linkedinConversions,
           inputs: {
             account: LINKEDIN_ACCOUNT_ID,
             conversion: LINKEDIN_CONVERSION_ID,

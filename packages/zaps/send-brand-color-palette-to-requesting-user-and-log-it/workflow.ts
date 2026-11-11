@@ -2,22 +2,22 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  AIRTABLE_BASE_ID,
+  AIRTABLE_TABLE_NAME,
+  AIRTABLE_REQUESTER_ID_FIELD,
+  AIRTABLE_REQUESTER_NAME_FIELD,
+  AIRTABLE_COMMAND_FIELD,
+  AIRTABLE_MESSAGE_FIELD,
+  AIRTABLE_ORIGIN_FIELD,
+  SLACK_CHANNEL_ID,
+  RESOURCE_PREFIX,
+} from "@/config";
+import airtable from "@/connections/airtable";
+import slack from "@/connections/slack";
+
 const sdk = createZapierSdk();
 
-// Airtable base ID that holds the request log (the long ID in the base's URL).
-const AIRTABLE_BASE_ID = "YOUR_AIRTABLE_BASE_ID";
-// Table in that base that holds one row per palette request.
-const AIRTABLE_TABLE_NAME = "YOUR_TABLE_NAME";
-// Column names in that table. They must match the table's field names exactly.
-const AIRTABLE_REQUESTER_ID_FIELD = "Requester ID";
-const AIRTABLE_REQUESTER_NAME_FIELD = "Requester name";
-const AIRTABLE_COMMAND_FIELD = "Command";
-const AIRTABLE_MESSAGE_FIELD = "Message note";
-const AIRTABLE_ORIGIN_FIELD = "Origin";
-// Slack channel ID that receives the palette (the long ID from the channel's details).
-const SLACK_CHANNEL_ID = "YOUR_SLACK_CHANNEL_ID";
-// Prefix on every record and message this workflow creates. Test runs use "[install-test] "; set it to "" once installed.
-const RESOURCE_PREFIX = "[install-test] ";
 // Brand palette posted in reply to the request. Replace these with your brand's colors.
 const PRIMARY_COLORS = ["#1A3C6E", "#2E86AB", "#F4F1EA"];
 const COMPLEMENTARY_COLORS = ["#E07A3F", "#7FB069"];
@@ -51,7 +51,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "airtable",
           actionType: "search",
           actionKey: "findRecord",
-          connection: "airtable",
+          connection: airtable,
           inputs: {
             applicationId: AIRTABLE_BASE_ID,
             tableName: AIRTABLE_TABLE_NAME,
@@ -68,7 +68,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "airtable",
           actionType: "write",
           actionKey: "createRecord",
-          connection: "airtable",
+          connection: airtable,
           inputs: {
             applicationId: AIRTABLE_BASE_ID,
             tableName: AIRTABLE_TABLE_NAME,
@@ -94,7 +94,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "channel_message",
-        connection: "slack",
+        connection: slack,
         inputs: {
           channel: SLACK_CHANNEL_ID,
           text,

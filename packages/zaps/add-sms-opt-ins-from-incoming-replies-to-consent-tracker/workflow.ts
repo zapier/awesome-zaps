@@ -2,24 +2,20 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  AIRTABLE_BASE_ID,
+  AIRTABLE_TABLE_NAME,
+  PHONE_FIELD,
+  NAME_FIELD,
+  NOTES_FIELD,
+  OPT_IN_FIELD,
+  SUBMISSION_ID_FIELD,
+  DEFAULT_COUNTRY_CODE,
+} from "@/config";
+import airtable from "@/connections/airtable";
+
 const sdk = createZapierSdk();
 
-// Airtable base ID (starts with "app"), from the base's URL or API docs.
-const AIRTABLE_BASE_ID = "YOUR_AIRTABLE_BASE_ID";
-// Table that holds consent records.
-const AIRTABLE_TABLE_NAME = "YOUR_TABLE_NAME";
-// Airtable field that receives the normalized sender number (E.164).
-const PHONE_FIELD = "Phone";
-// Airtable field that receives the name parsed from the reply, if any.
-const NAME_FIELD = "Name";
-// Airtable field that receives the raw reply text.
-const NOTES_FIELD = "Notes";
-// Airtable checkbox field set to true for every consent record created.
-const OPT_IN_FIELD = "Opted in";
-// Airtable field that receives the submission identifier from the payload.
-const SUBMISSION_ID_FIELD = "Submission ID";
-// Country code added to 10-digit numbers that were sent without a "+".
-const DEFAULT_COUNTRY_CODE = "+1";
 // A reply counts as an opt-in when its first word is one of these (case-insensitive).
 const OPT_IN_KEYWORDS = ["YES", "Y", "START", "UNSTOP", "SUBSCRIBE", "JOIN"];
 
@@ -75,7 +71,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "airtable",
         actionType: "write",
         actionKey: "createRecord",
-        connection: "airtable",
+        connection: airtable,
         inputs: {
           applicationId: AIRTABLE_BASE_ID,
           tableName: AIRTABLE_TABLE_NAME,

@@ -2,18 +2,15 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { CALENDAR_ID, DEFAULT_CONTACT, CONTACT_LABEL } from "@/config";
+import googleCalendar from "@/connections/google-calendar";
+
 const sdk = createZapierSdk();
 
-// Google Calendar ID of the rotation calendar. The trigger watches it and this step updates its events.
-const CALENDAR_ID = "YOUR_CALENDAR_ID";
 // Rotation names as they appear in event titles, mapped to the on-call contact's email.
 const ROSTER: Record<string, string> = {
   YOUR_ROTATION_NAME: "YOUR_CONTACT_EMAIL",
 };
-// Contact written when no rotation name in the event title matches ROSTER.
-const DEFAULT_CONTACT = "YOUR_DEFAULT_CONTACT_EMAIL";
-// Label for the line written into the event description, so a re-run replaces it instead of adding another.
-const CONTACT_LABEL = "On call:";
 
 const InputSchema = z
   .object({
@@ -56,7 +53,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-calendar",
         actionType: "write",
         actionKey: "update_event",
-        connection: "google-calendar",
+        connection: googleCalendar,
         inputs: {
           calendarid: CALENDAR_ID,
           eventid: input.id,

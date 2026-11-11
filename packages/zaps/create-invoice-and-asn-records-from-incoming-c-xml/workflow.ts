@@ -2,16 +2,18 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  DRIVE_FOLDER_ID,
+  TABLE_ID,
+  XERO_ORGANIZATION,
+  ASN_TEMPLATE_ID,
+} from "@/config";
+import googleDrive from "@/connections/google-drive";
+import zapierTables from "@/connections/zapier-tables";
+import xero from "@/connections/xero";
+import pdffiller from "@/connections/pdffiller";
 
-// Google Drive folder ID where each raw cXML file is saved (the long ID in the folder's URL). Needs a Google Drive connection.
-const DRIVE_FOLDER_ID = "YOUR_DRIVE_FOLDER_ID";
-// Zapier Tables table ID that holds one row per invoice or ASN.
-const TABLE_ID = "YOUR_TABLE_ID";
-// Xero organization that invoice lookups run against (organization name or ID).
-const XERO_ORGANIZATION = "YOUR_XERO_ORGANIZATION";
-// pdfFiller document ID of the ASN PDF template.
-const ASN_TEMPLATE_ID = "YOUR_PDFFILLER_TEMPLATE_ID";
+const sdk = createZapierSdk();
 
 const MESSAGE_ROOTS = [
   { root: "InvoiceDetailRequest", messageType: "Invoice" },
@@ -65,7 +67,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-drive",
         actionType: "write",
         actionKey: "newtxtfile",
-        connection: "google-drive",
+        connection: googleDrive,
         inputs: {
           file: xml,
           title: `${doc.messageType}-${doc.orderReference ?? "no-order"}-${timestamp}.xml`,
@@ -81,7 +83,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "search",
         actionKey: "find_record",
-        connection: "zapier-tables",
+        connection: zapierTables,
         inputs: {
           table_id: TABLE_ID,
           filter_count: "2",
@@ -102,7 +104,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "zapier-tables",
           actionType: "write",
           actionKey: "create_record",
-          connection: "zapier-tables",
+          connection: zapierTables,
           inputs: {
             table_id: TABLE_ID,
             new__data__f1: doc.orderReference ?? "",
@@ -126,7 +128,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "xero",
           actionType: "search",
           actionKey: "find_invoice_by_id",
-          connection: "xero",
+          connection: xero,
           inputs: {
             organization: XERO_ORGANIZATION,
             invoice_id: invoiceId,
@@ -144,7 +146,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "pdffiller",
           actionType: "write",
           actionKey: "download_template",
-          connection: "pdffiller",
+          connection: pdffiller,
           inputs: {
             template_id: ASN_TEMPLATE_ID,
             template_name: `ASN-${doc.orderReference ?? "no-order"}-${timestamp}`,

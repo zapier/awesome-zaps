@@ -2,16 +2,15 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { REPLY_TO_EMAIL, SUBJECT_PREFIX } from "@/config";
+import microsoftOutlook from "@/connections/microsoft-outlook";
+
 const sdk = createZapierSdk();
 
 // Advisor addresses the meeting notes are sent to (To:).
 const ADVISOR_EMAILS = ["YOUR_ADVISOR_EMAIL"];
 // Operations coordinators copied on every email (CC:). Leave empty for no CC.
 const OPS_CC_EMAILS = ["YOUR_OPS_COORDINATOR_EMAIL"];
-// Team mailbox replies should go to (Reply-To:). Leave "" to reply to the sender.
-const REPLY_TO_EMAIL = "YOUR_TEAM_MAILBOX";
-// Prefix added to every subject, e.g. "Meeting notes: ".
-const SUBJECT_PREFIX = "[install-test] Meeting notes: ";
 
 const Participant = z.union([
   z.string(),
@@ -79,7 +78,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "microsoft-outlook",
           actionType: "search",
           actionKey: "find_email",
-          connection: "microsoft-outlook",
+          connection: microsoftOutlook,
           inputs: { searchValue: eventId },
         }),
       );
@@ -119,7 +118,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "microsoft-outlook",
         actionType: "write",
         actionKey: "send_email",
-        connection: "microsoft-outlook",
+        connection: microsoftOutlook,
         inputs: {
           recipients: ADVISOR_EMAILS,
           ...(OPS_CC_EMAILS.length ? { ccRecipients: OPS_CC_EMAILS } : {}),

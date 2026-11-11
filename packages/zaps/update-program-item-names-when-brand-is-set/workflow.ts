@@ -2,19 +2,16 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { BOARD_ID, BRAND_COLUMN_ID, TITLE_SEPARATOR } from "@/config";
+import monday from "@/connections/monday";
+
 const sdk = createZapierSdk();
 
-// monday.com board ID of the program board. Used by the trigger and every action.
-const BOARD_ID = "YOUR_BOARD_ID";
-// Column ID of the Brand column. Setting it starts the rename.
-const BRAND_COLUMN_ID = "YOUR_BRAND_COLUMN_ID";
 // Column IDs of the dropdowns that come before the Brand value in the title, in order.
 const TITLE_PART_COLUMN_IDS = [
   "YOUR_TITLE_PART_COLUMN_ID_1",
   "YOUR_TITLE_PART_COLUMN_ID_2",
 ];
-// Text placed between title parts.
-const TITLE_SEPARATOR = " - ";
 // Start of the update note posted when an item is renamed. The new name is appended.
 const CHANGE_NOTE =
   "Item name updated automatically when Brand was set. New name:";
@@ -44,7 +41,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "monday",
         actionType: "search",
         actionKey: "get_column_values",
-        connection: "monday",
+        connection: monday,
         inputs: {
           board_id: BOARD_ID,
           item_id: itemId,
@@ -71,7 +68,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "monday",
         actionType: "write",
         actionKey: "change_item_name_column_value",
-        connection: "monday",
+        connection: monday,
         inputs: {
           board_id: BOARD_ID,
           item_id: Number(itemId),
@@ -85,7 +82,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "monday",
         actionType: "write",
         actionKey: "create_update",
-        connection: "monday",
+        connection: monday,
         inputs: {
           item_id: Number(itemId),
           body: `${CHANGE_NOTE} ${newName}`,

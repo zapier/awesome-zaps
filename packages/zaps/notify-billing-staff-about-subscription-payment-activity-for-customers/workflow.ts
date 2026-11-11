@@ -2,12 +2,10 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import { BILLING_EMAIL, SUBSCRIPTION_LINK_BASE } from "@/config";
+import gmail from "@/connections/gmail";
 
-// Billing inbox that receives the alert. Use a Gmail address connected to your account.
-const BILLING_EMAIL = "YOUR_BILLING_EMAIL";
-// Base link to the subscription record in Stripe; the subscription ID is appended.
-const SUBSCRIPTION_LINK_BASE = "https://dashboard.stripe.com/subscriptions/";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -59,7 +57,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: "gmail",
+        connection: gmail,
         inputs: {
           to: BILLING_EMAIL,
           subject,

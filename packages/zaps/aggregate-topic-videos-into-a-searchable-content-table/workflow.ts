@@ -2,14 +2,10 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import { TITLE_KEYWORD, TABLE_ID } from "@/config";
+import zapierTables from "@/connections/zapier-tables";
 
-// Search string the YouTube trigger watches for new uploads (your topic).
-const TOPIC_QUERY = "YOUR_TOPIC_QUERY";
-// Keyword a video title must contain to be kept (case-insensitive).
-const TITLE_KEYWORD = "YOUR_TOPIC_KEYWORD";
-// Zapier Tables table ID of the content database that receives rows.
-const TABLE_ID = "YOUR_TABLE_ID";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -38,7 +34,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "create_record",
-        connection: "zapier-tables",
+        connection: zapierTables,
         inputs: {
           table_id: TABLE_ID,
           new__data__f1: title,

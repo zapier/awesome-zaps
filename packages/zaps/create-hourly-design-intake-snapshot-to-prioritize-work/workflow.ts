@@ -2,14 +2,16 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  INTAKE_SPREADSHEET_ID,
+  WORKSHEET_ID,
+  DIGEST_RECIPIENT,
+} from "@/config";
+import googleSheets from "@/connections/google-sheets";
+import gmail from "@/connections/gmail";
+
 const sdk = createZapierSdk();
 
-// Google Sheets spreadsheet holding design requests (the long ID in the sheet's URL).
-const INTAKE_SPREADSHEET_ID = "YOUR_SPREADSHEET_ID";
-// Worksheet (tab) ID; the first tab is "0".
-const WORKSHEET_ID = "0";
-// Address the digest is emailed to. Must be the connected Gmail account itself.
-const DIGEST_RECIPIENT = "YOUR_EMAIL_ADDRESS";
 // How many items the digest lists, highest priority first.
 const MAX_ITEMS = 15;
 // How many rows to read from the sheet (the action allows up to 1,500).
@@ -34,7 +36,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "search",
         actionKey: "get_many_rows",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           spreadsheet: INTAKE_SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,
@@ -115,7 +117,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: "gmail",
+        connection: gmail,
         inputs: {
           to: [DIGEST_RECIPIENT],
           subject,

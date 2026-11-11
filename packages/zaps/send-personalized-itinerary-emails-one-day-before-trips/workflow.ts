@@ -2,14 +2,11 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { ITINERARY_BASE_URL, SENDER_ADDRESS } from "@/config";
+import gmail from "@/connections/gmail";
+
 const sdk = createZapierSdk();
 
-// Google Calendar ID of the travel calendar to watch. Set the same value as the trigger's calendarid.
-const CALENDAR_ID = "YOUR_CALENDAR_ID";
-// Base URL of your itinerary site. The token taken from the event's location URL is appended.
-const ITINERARY_BASE_URL = "https://YOUR_ITINERARY_SITE/";
-// Sender alias on the connected Gmail account. Leave empty to send from the account's default address.
-const SENDER_ADDRESS = "";
 // Trips with less notice than this (in days) go out right away instead of one day before the trip.
 const SHORT_NOTICE_DAYS = 11;
 // How many days before the trip the itinerary email goes out.
@@ -117,7 +114,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: "gmail",
+        connection: gmail,
         inputs: {
           to: [recipient],
           subject,

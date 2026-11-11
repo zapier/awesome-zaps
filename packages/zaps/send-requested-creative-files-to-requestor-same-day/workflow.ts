@@ -2,24 +2,20 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  SPREADSHEET_ID,
+  WORKSHEET_ID,
+  REQUESTOR_EMAIL_COLUMN,
+  SUBJECT_COLUMN,
+  MESSAGE_COLUMN,
+  FILE_LINK_COLUMN,
+  STATUS_COLUMN,
+  COMPLETED_VALUE,
+} from "@/config";
+import gmail from "@/connections/gmail";
+
 const sdk = createZapierSdk();
 
-// Google Sheets spreadsheet ID (the long ID in the sheet's URL).
-const SPREADSHEET_ID = "YOUR_SPREADSHEET_ID";
-// Worksheet (tab) ID; the first tab is "0".
-const WORKSHEET_ID = "0";
-// Column with the requestor's email address (the To address).
-const REQUESTOR_EMAIL_COLUMN = "COL$A";
-// Column with the subject text.
-const SUBJECT_COLUMN = "COL$B";
-// Column with the message fragments for the body.
-const MESSAGE_COLUMN = "COL$C";
-// Column with the link to the finished files.
-const FILE_LINK_COLUMN = "COL$D";
-// Column whose value marks a request as finished.
-const STATUS_COLUMN = "COL$E";
-// Status value that means the request is completed.
-const COMPLETED_VALUE = "Completed";
 // Design owners to CC on each delivery.
 const CC_ADDRESSES = ["YOUR_DESIGN_OWNER_EMAIL"];
 
@@ -68,7 +64,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: "gmail",
+        connection: gmail,
         inputs: {
           to: [to],
           cc: CC_ADDRESSES,

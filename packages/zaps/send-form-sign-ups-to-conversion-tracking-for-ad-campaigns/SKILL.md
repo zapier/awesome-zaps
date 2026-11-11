@@ -25,13 +25,16 @@ metadata:
 
 **How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
 
-**Source:** `workflow.ts` in this folder is the whole workflow. Deploy it as one source file. Change only the constants at the top of the file and the trigger's form.
+**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
+
+- **With the zap CLI:** `npx zap-pack add awesome-zaps/send-form-sign-ups-to-conversion-tracking-for-ad-campaigns` (it makes a zap project if you aren't in one), then `npx zap-pack deploy send-form-sign-ups-to-conversion-tracking-for-ad-campaigns` from that project. Deploy asks for each open setting and account, and sets the trigger.
+- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
 
 1. **Trigger:** HubSpot, `form_submission_resthook_v3` (New Form Submission), `selected_api` `hubspot`. Set the trigger's `form_guid` param to the form's ID. It needs the HubSpot connection.
 2. **Connections** (each alias in the code is the app's slug):
    - `hubspot`: the HubSpot connection for the portal that owns the form.
    - `linkedin-conversions`: the LinkedIn connection for the Campaign Manager account that owns the conversion.
-3. **Constants** (top of `workflow.ts`):
+3. **Settings** (in `config.ts`; an `ask(…)` is asked when each person deploys):
    - `LINKEDIN_AD_ACCOUNT`: the LinkedIn ad account ID.
    - `LINKEDIN_CONVERSION`: the Conversions API conversion to report to. Create it in Campaign Manager first; it must be of type "Conversions API".
 4. Test with the steps below, then publish, wait until the trigger is active, and give the user the trigger's webhook details if the editor shows any. Nothing runs until the form submits.

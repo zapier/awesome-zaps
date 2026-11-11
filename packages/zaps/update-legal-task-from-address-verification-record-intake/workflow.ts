@@ -2,12 +2,12 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { INTAKE_TABLE_ID, CLICKUP_TEAM_ID } from "@/config";
+import clickup from "@/connections/clickup";
+import zapierTables from "@/connections/zapier-tables";
+
 const sdk = createZapierSdk();
 
-// Zapier Tables table that receives address verification intake rows. The trigger watches it, and processed rows are deleted from it.
-const INTAKE_TABLE_ID = "YOUR_INTAKE_TABLE_ID";
-// ClickUp workspace (team) ID that holds the legal tasks.
-const CLICKUP_TEAM_ID = "YOUR_CLICKUP_WORKSPACE_ID";
 // Delete the intake row after the task update succeeds. Off by default: the update below writes no fields yet, so deleting would drop the verification data. Turn on once the ClickUp field mapping is filled in.
 const DELETE_PROCESSED_RECORDS = false;
 
@@ -68,7 +68,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "clickup",
         actionType: "search",
         actionKey: "findTaskById",
-        connection: "clickup",
+        connection: clickup,
         inputs: { task_id: taskReference },
       }),
     );
@@ -87,7 +87,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "clickup",
         actionType: "write",
         actionKey: "updateTask",
-        connection: "clickup",
+        connection: clickup,
         inputs: { team_id: CLICKUP_TEAM_ID, task_id: task.id },
       }),
     );
@@ -107,7 +107,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "delete_record",
-        connection: "zapier-tables",
+        connection: zapierTables,
         inputs: { table_id: INTAKE_TABLE_ID, record_id: input.record_id },
       }),
     );

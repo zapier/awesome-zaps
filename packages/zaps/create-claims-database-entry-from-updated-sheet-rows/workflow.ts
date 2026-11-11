@@ -2,23 +2,20 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  SPREADSHEET_ID,
+  WORKSHEET_ID,
+  CLAIMS_TABLE_ID,
+  REFERENCE_FIELD,
+  CLAIM_ID_COLUMN,
+  CLAIMANT_NAME_COLUMN,
+  POLICY_NUMBER_COLUMN,
+  CLAIM_AMOUNT_COLUMN,
+  STATUS_COLUMN,
+  RECEIVED_AT_COLUMN,
+} from "@/config";
 
-// Google Sheets spreadsheet ID (the long ID in the sheet's URL). Also used to build the link back to the row.
-const SPREADSHEET_ID = "YOUR_SPREADSHEET_ID";
-// Worksheet (tab) ID; the first tab is "0".
-const WORKSHEET_ID = "0";
-// Zapier Table ID for the claims database (the table's ID from its URL).
-const CLAIMS_TABLE_ID = "YOUR_TABLE_ID";
-// Table field key that holds the claim ID. A claim already in the table is skipped. "f1" is the table's first field.
-const REFERENCE_FIELD = "f1";
-// Sheet column keys (COL$A = column A) for the claim fields. Map these to your sheet's column letters.
-const CLAIM_ID_COLUMN = "COL$A";
-const CLAIMANT_NAME_COLUMN = "COL$B";
-const POLICY_NUMBER_COLUMN = "COL$C";
-const CLAIM_AMOUNT_COLUMN = "COL$D";
-const STATUS_COLUMN = "COL$E";
-const RECEIVED_AT_COLUMN = "COL$F";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({

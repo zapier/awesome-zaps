@@ -2,10 +2,15 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  CUSTOMER_API_URL,
+  DEFAULT_QUICK_START_URL,
+  ONBOARDING_SUBJECT,
+} from "@/config";
+import microsoftOutlook from "@/connections/microsoft-outlook";
+
 const sdk = createZapierSdk();
 
-// Base URL of your customer platform API, without a trailing slash.
-const CUSTOMER_API_URL = "YOUR_CUSTOMER_API_URL";
 // Role label from the intake form → role ID in your customer platform. First match wins.
 const ROLE_IDS: Record<string, string> = {
   "Store Admin": "YOUR_STORE_ADMIN_ROLE_ID",
@@ -16,9 +21,6 @@ const QUICK_START_URLS: Record<string, string> = {
   "Store Admin": "YOUR_ADMIN_QUICK_START_URL",
   "Store Staff": "YOUR_STAFF_QUICK_START_URL",
 };
-const DEFAULT_QUICK_START_URL = "YOUR_DEFAULT_QUICK_START_URL";
-// Subject line of the onboarding email.
-const ONBOARDING_SUBJECT = "Welcome to the store";
 // Ask the new user to reset the temporary password at first sign-in.
 const REQUIRE_PASSWORD_RESET = true;
 
@@ -105,7 +107,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "microsoft-outlook",
         actionType: "write",
         actionKey: "send_email",
-        connection: "microsoft-outlook",
+        connection: microsoftOutlook,
         inputs: {
           recipients: [email],
           subject: ONBOARDING_SUBJECT,

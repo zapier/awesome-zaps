@@ -2,20 +2,18 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  TABLE_ID,
+  STRATEGY_FIELD,
+  ANALYSIS_FIELD,
+  REVIEWED_AT_FIELD,
+  MARKET_DATA_URL,
+  MODEL,
+} from "@/config";
+import chatgpt from "@/connections/chatgpt";
+import zapierTables from "@/connections/zapier-tables";
 
-// Zapier Tables table ID that the trigger watches for new signal-alert records.
-const TABLE_ID = "YOUR_TABLE_ID";
-// Field key holding the record's strategy text, which the AI review checks signals against.
-const STRATEGY_FIELD = "YOUR_STRATEGY_FIELD_KEY";
-// Field key the AI verdict and reasoning are written to (overwritten on each review).
-const ANALYSIS_FIELD = "YOUR_ANALYSIS_FIELD_KEY";
-// Field key for the time the record was reviewed.
-const REVIEWED_AT_FIELD = "YOUR_REVIEWED_AT_FIELD_KEY";
-// GET endpoint that returns recent price and volume series as JSON.
-const MARKET_DATA_URL = "YOUR_MARKET_DATA_URL";
-// OpenAI model used for the review.
-const MODEL = "gpt-4o";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -56,7 +54,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "chatgpt",
         actionType: "write",
         actionKey: "conversation_responses_api",
-        connection: "chatgpt",
+        connection: chatgpt,
         inputs: {
           model: MODEL,
           instructions:
@@ -78,7 +76,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "update_record",
-        connection: "zapier-tables",
+        connection: zapierTables,
         inputs: {
           table_id: TABLE_ID,
           record_id: recordId,

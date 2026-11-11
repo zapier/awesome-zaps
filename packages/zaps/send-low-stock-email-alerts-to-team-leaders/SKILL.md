@@ -25,13 +25,16 @@ metadata:
 
 **How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
 
-**Source:** `workflow.ts` in this folder is the whole workflow. Deploy it as one source file. Change only the constants listed below; everything else stays as written.
+**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
+
+- **With the zap CLI:** `npx zap-pack add awesome-zaps/send-low-stock-email-alerts-to-team-leaders` (it makes a zap project if you aren't in one), then `npx zap-pack deploy send-low-stock-email-alerts-to-team-leaders` from that project. Deploy asks for each open setting and account, and sets the trigger.
+- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
 
 1. **Trigger:** Google Sheets, `google-sheets` / `updated_row_notify_hook` ("New or Updated Spreadsheet Row"). Params: `spreadsheet` = `YOUR_SPREADSHEET_ID`, `worksheet` = `"0"` (the first tab). Leave `dedupe_column` unset so every row change is seen.
 2. **Connections** (each alias in the code is the app's slug):
    - `google-sheets`: the Google Sheets connection for the account that owns the inventory sheet.
    - `gmail`: the Gmail connection that should send the alerts.
-3. **Constants** (at the top of `workflow.ts`):
+3. **Settings** (in `config.ts`; an `ask(…)` is asked when each person deploys):
    - `PRODUCT_COLUMN`, `BRANCH_COLUMN`, `STOCK_COLUMN`: column keys such as `COL$A`, not header names. Map the user's headers to their column letters.
    - `BRANCH_LEADERS`: one entry per branch, keyed by the identifier in the branch column, with the leaders' email addresses (`emails`) and the minimum stock count (`threshold`). The example entry uses placeholders.
 4. Test with the steps below, then publish, wait until the trigger is active, and give the user the spreadsheet link to confirm the trigger is pointed at the right tab.

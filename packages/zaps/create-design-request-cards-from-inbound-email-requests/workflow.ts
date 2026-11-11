@@ -2,16 +2,13 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { TRELLO_BOARD_ID, TRELLO_INTAKE_LIST_ID } from "@/config";
+import trello from "@/connections/trello";
+
 const sdk = createZapierSdk();
 
-// Zapier Mail address name (the part before @zapiermail.com) that receives forwarded requests.
-const MAIL_IDENTIFIER = "YOUR_ZAPIERMAIL_IDENTIFIER";
 // Only emails whose subject matches this pattern become cards; everything else stops the run.
 const SUBJECT_PATTERN = /design request/i;
-// Trello board ID that holds the design project board.
-const TRELLO_BOARD_ID = "YOUR_TRELLO_BOARD_ID";
-// Trello intake list ID; new cards are placed at the bottom of this list.
-const TRELLO_INTAKE_LIST_ID = "YOUR_TRELLO_INTAKE_LIST_ID";
 
 const InputSchema = z
   .object({
@@ -127,7 +124,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "trello",
         actionType: "search",
         actionKey: "organization_card_v2",
-        connection: "trello",
+        connection: trello,
         inputs: {
           board: TRELLO_BOARD_ID,
           keyword: cardName,
@@ -153,7 +150,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "trello",
         actionType: "write",
         actionKey: "card_v2",
-        connection: "trello",
+        connection: trello,
         inputs: {
           board: TRELLO_BOARD_ID,
           list: TRELLO_INTAKE_LIST_ID,

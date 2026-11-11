@@ -2,22 +2,23 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  TARGETS_FILE_NAME,
+  SPREADSHEET_ID,
+  WORKSHEET_ID,
+  BATCH_ID_COLUMN,
+  SUBMITTED_AT_COLUMN,
+  WORKSHOP_COLUMN,
+  TEAM_COLUMN,
+  TOTAL_RMSE_COLUMN,
+  HIGH_ERROR_RMSE_COLUMN,
+  PROFIT_ESTIMATE_COLUMN,
+} from "@/config";
+import googleDrive from "@/connections/google-drive";
+import googleSheets from "@/connections/google-sheets";
+
 const sdk = createZapierSdk();
 
-// Name of the canonical targets JSON file in Google Drive (the first match is used).
-const TARGETS_FILE_NAME = "YOUR_TARGETS_FILE_NAME";
-// Google Sheets spreadsheet ID (the long ID in the sheet's URL).
-const SPREADSHEET_ID = "YOUR_SPREADSHEET_ID";
-// Worksheet (tab) ID; the first tab is "0".
-const WORKSHEET_ID = "0";
-// Sheet columns for each recorded field.
-const BATCH_ID_COLUMN = "COL$A";
-const SUBMITTED_AT_COLUMN = "COL$B";
-const WORKSHOP_COLUMN = "COL$C";
-const TEAM_COLUMN = "COL$D";
-const TOTAL_RMSE_COLUMN = "COL$E";
-const HIGH_ERROR_RMSE_COLUMN = "COL$F";
-const PROFIT_ESTIMATE_COLUMN = "COL$G";
 // Absolute prediction errors at or above this value count toward the high-error RMSE.
 const HIGH_ERROR_THRESHOLD = 1.0;
 
@@ -57,7 +58,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-drive",
         actionType: "search",
         actionKey: "file_v2",
-        connection: "google-drive",
+        connection: googleDrive,
         inputs: { title: TARGETS_FILE_NAME, search_type: "exact" },
       }),
     );
@@ -72,7 +73,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-drive",
         actionType: "write",
         actionKey: "ae_461284_google_drive_download_file_custom_action",
-        connection: "google-drive",
+        connection: googleDrive,
         inputs: { fileId: String(fileId) },
       }),
     );
@@ -124,7 +125,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "add_row",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,

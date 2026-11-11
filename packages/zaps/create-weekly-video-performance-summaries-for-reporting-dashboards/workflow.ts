@@ -2,10 +2,11 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { CHANNEL_ID } from "@/config";
+import youtube from "@/connections/youtube";
+
 const sdk = createZapierSdk();
 
-// YouTube channel ID to report on (the "UC..." ID of your channel).
-const CHANNEL_ID = "YOUR_CHANNEL_ID";
 // Metrics requested from the YouTube report.
 const METRICS = [
   "views",
@@ -59,7 +60,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "youtube",
         actionType: "search",
         actionKey: "get_report",
-        connection: "youtube",
+        connection: youtube,
         inputs: {
           report_type: "video_top",
           report_breakdown: "Channel",

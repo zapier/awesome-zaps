@@ -2,43 +2,32 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  BASE_ID,
+  ASSET_TABLE,
+  TICKETS_TABLE,
+  ASSET_ID_FIELD,
+  ASSET_TITLE_FIELD,
+  ASSET_SUBMITTER_FIELD,
+  ASSET_DATE_FIELD,
+  ASSET_LINK_FIELD,
+  ASSET_PRIORITY_FIELD,
+  ASSET_TICKET_LINK_FIELD,
+  TICKET_ID_FIELD,
+  TICKET_TITLE_FIELD,
+  TICKET_START_FIELD,
+  TICKET_DESCRIPTION_FIELD,
+  TICKET_PRIORITY_FIELD,
+  TICKET_STATUS_FIELD,
+  INITIAL_STATUS,
+  DEFAULT_PRIORITY,
+} from "@/config";
+import airtable from "@/connections/airtable";
+
 const sdk = createZapierSdk();
 
-// Airtable base ID (starts with "app") that holds the asset and IT tickets tables.
-const BASE_ID = "YOUR_BASE_ID";
-// Website asset table. The trigger watches this table for new or updated records.
-const ASSET_TABLE = "YOUR_ASSET_TABLE_NAME";
-// Last-modified-time column in the asset table that the trigger uses to detect updates.
-const ASSET_MODIFIED_FIELD = "YOUR_LAST_MODIFIED_FIELD";
-// IT tickets table where new tickets are created.
-const TICKETS_TABLE = "YOUR_TICKETS_TABLE_NAME";
-// Asset column holding the unique asset ID. Tickets are matched on it.
-const ASSET_ID_FIELD = "Asset ID";
-// Asset column holding the title, used in the ticket title.
-const ASSET_TITLE_FIELD = "Title";
-// Asset column holding the submitter's name, used in the ticket title.
-const ASSET_SUBMITTER_FIELD = "Submitter";
-// Asset column holding the date, used as the ticket start date.
-const ASSET_DATE_FIELD = "Date";
-// Asset column holding a link back to the asset record, put in the ticket description.
-const ASSET_LINK_FIELD = "Asset link";
-// Asset column holding a priority. Only "High" or "Critical" override the default.
-const ASSET_PRIORITY_FIELD = "Priority";
-// Asset column that receives the new ticket's record ID. Used only if LINK_TICKET_ON_ASSET is true.
-const ASSET_TICKET_LINK_FIELD = "IT ticket";
 // Set to false to skip writing the ticket link back to the asset row.
 const LINK_TICKET_ON_ASSET = true;
-// IT tickets column names.
-const TICKET_ID_FIELD = "Asset ID";
-const TICKET_TITLE_FIELD = "Title";
-const TICKET_START_FIELD = "Start date";
-const TICKET_DESCRIPTION_FIELD = "Description";
-const TICKET_PRIORITY_FIELD = "Priority";
-const TICKET_STATUS_FIELD = "Status";
-// Status for a newly created ticket (the configured initial state).
-const INITIAL_STATUS = "Open";
-// Priority used unless the asset flags a higher one.
-const DEFAULT_PRIORITY = "Medium";
 
 const InputSchema = z
   .object({
@@ -65,7 +54,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "airtable",
         actionType: "search",
         actionKey: "findRecord",
-        connection: "airtable",
+        connection: airtable,
         inputs: {
           applicationId: BASE_ID,
           tableName: TICKETS_TABLE,
@@ -97,7 +86,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "airtable",
         actionType: "write",
         actionKey: "createRecord",
-        connection: "airtable",
+        connection: airtable,
         inputs: {
           applicationId: BASE_ID,
           tableName: TICKETS_TABLE,
@@ -120,7 +109,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "airtable",
           actionType: "write",
           actionKey: "updateRecord",
-          connection: "airtable",
+          connection: airtable,
           inputs: {
             applicationId: BASE_ID,
             tableName: ASSET_TABLE,

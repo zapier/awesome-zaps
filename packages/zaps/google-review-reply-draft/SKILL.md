@@ -41,7 +41,10 @@ Dana, I'm glad Marcus could get there within two hours and show you the burnt ca
 
 **How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names. Without Zapier MCP, the Zapier SDK CLI works too (`npx skills add zapier/agent-skills --skill workflows-create`).
 
-**Source:** `workflow.ts` in this folder is the whole workflow. Deploy it as one source file. Change only the constants listed below; everything else stays as written.
+**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
+
+- **With the zap CLI:** `npx zap-pack add awesome-zaps/google-review-reply-draft` (it makes a zap project if you aren't in one), then `npx zap-pack deploy google-review-reply-draft` from that project. Deploy asks for each open setting and account, and sets the trigger.
+- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
 
 1. **Triggers:** pick by where reviews come from. The code handles both payload shapes.
    - **Google reviews:** Google Business Profile **New Review** (`google-business-profile`, `new_review_v3`, param `location`), authenticated with the user's Google Business Profile connection.

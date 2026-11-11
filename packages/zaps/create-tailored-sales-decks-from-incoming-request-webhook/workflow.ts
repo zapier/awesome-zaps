@@ -2,20 +2,20 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  TEMPLATE_PRESENTATION_ID,
+  TABLE_ID,
+  REQUEST_ID_FIELD,
+  CLIENT_NAME_FIELD,
+  STATUS_FIELD,
+  NEW_RECORD_STATUS,
+} from "@/config";
+import storage from "@/connections/storage";
+import zapierTables from "@/connections/zapier-tables";
+import googleSlides from "@/connections/google-slides";
+
 const sdk = createZapierSdk();
 
-// Google Slides template presentation ID (the long ID in the template's URL). Every deck is copied from it.
-const TEMPLATE_PRESENTATION_ID = "YOUR_TEMPLATE_PRESENTATION_ID";
-// Zapier Tables table that holds the account and opportunity records.
-const TABLE_ID = "YOUR_TABLE_ID";
-// Table column key for the request identifier, used to find the matching record. Map it to your column.
-const REQUEST_ID_FIELD = "new__data__f2";
-// Table column key for the client name, written when a new record is created. Map it to your column.
-const CLIENT_NAME_FIELD = "new__data__f1";
-// Table column key for the record status, written when a new record is created. Map it to your column.
-const STATUS_FIELD = "new__data__f3";
-// Status written to a newly created record.
-const NEW_RECORD_STATUS = "Deck requested";
 // Share each new deck with anyone who has the link. Off keeps it visible only to the connected Google account.
 const SHARE_DECK_WITH_LINK = false;
 
@@ -69,7 +69,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "storage",
         actionType: "search",
         actionKey: "get_value",
-        connection: "storage",
+        connection: storage,
         inputs: { key: storageKey },
       }),
     );
@@ -82,7 +82,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "search",
         actionKey: "find_record",
-        connection: "zapier-tables",
+        connection: zapierTables,
         inputs: {
           table_id: TABLE_ID,
           filter_count: "1",
@@ -105,7 +105,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "zapier-tables",
           actionType: "write",
           actionKey: "create_record",
-          connection: "zapier-tables",
+          connection: zapierTables,
           inputs: {
             table_id: TABLE_ID,
             [REQUEST_ID_FIELD]: requestId,
@@ -128,7 +128,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-slides",
         actionType: "write",
         actionKey: "create_presentation_from_template",
-        connection: "google-slides",
+        connection: googleSlides,
         inputs: {
           title: deckTitle,
           is_shared: SHARE_DECK_WITH_LINK,
@@ -148,7 +148,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "storage",
         actionType: "write",
         actionKey: "set_value_if",
-        connection: "storage",
+        connection: storage,
         inputs: { key: storageKey, value: String(deckId ?? requestId) },
       }),
     );

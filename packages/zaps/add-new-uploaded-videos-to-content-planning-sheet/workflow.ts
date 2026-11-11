@@ -2,22 +2,17 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  SPREADSHEET_ID,
+  WORKSHEET_ID,
+  TITLE_COLUMN,
+  UPLOADED_AT_COLUMN,
+  FILE_LINK_COLUMN,
+  MIME_PREFIX,
+} from "@/config";
+import googleSheets from "@/connections/google-sheets";
 
-// Google Drive folder ID of the staging folder (the last part of the folder's URL).
-const STAGING_FOLDER_ID = "YOUR_STAGING_FOLDER_ID";
-// Google Sheets spreadsheet ID (the long ID in the sheet's URL).
-const SPREADSHEET_ID = "YOUR_SPREADSHEET_ID";
-// Worksheet (tab) ID; the first tab is "0".
-const WORKSHEET_ID = "0";
-// Column for the sheet title; the file name is matched here and written here.
-const TITLE_COLUMN = "COL$A";
-// Column for the upload timestamp.
-const UPLOADED_AT_COLUMN = "COL$B";
-// Column for the link to the file.
-const FILE_LINK_COLUMN = "COL$C";
-// Only files whose MIME type starts with this prefix are logged.
-const MIME_PREFIX = "video/";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -46,7 +41,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "search",
         actionKey: "lookup_row",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,
@@ -65,7 +60,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "add_row",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,

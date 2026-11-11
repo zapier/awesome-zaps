@@ -2,12 +2,11 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { TRAINING_PROPERTY, STATUS_FLAG_PROPERTY } from "@/config";
+import hubspot from "@/connections/hubspot";
+
 const sdk = createZapierSdk();
 
-// HubSpot contact property holding the training status. The trigger watches it, and only its changes are processed.
-const TRAINING_PROPERTY = "YOUR_TRAINING_PROPERTY";
-// HubSpot checkbox contact property that receives the normalized flag ("true" or "false").
-const STATUS_FLAG_PROPERTY = "YOUR_STATUS_FLAG_PROPERTY";
 // Training values that mean completed, in lowercase. Any other non-empty value counts as not completed.
 const COMPLETED_VALUES = ["completed"];
 
@@ -43,7 +42,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "hubspot",
         actionType: "write",
         actionKey: "update_crm_contact",
-        connection: "hubspot",
+        connection: hubspot,
         inputs: {
           id: contactId,
           [STATUS_FLAG_PROPERTY]: completed ? "true" : "false",

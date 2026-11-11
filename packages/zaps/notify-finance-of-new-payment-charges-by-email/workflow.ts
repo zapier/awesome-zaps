@@ -2,10 +2,10 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { FINANCE_RECIPIENTS } from "@/config";
+
 const sdk = createZapierSdk();
 
-// Finance and billing recipients, comma separated (up to 5). Replace YOUR_FINANCE_EMAIL before use.
-const FINANCE_RECIPIENTS = "YOUR_FINANCE_EMAIL";
 // Set to false to log the charge without emailing anyone.
 const SEND_EMAIL = true;
 

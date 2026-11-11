@@ -2,6 +2,15 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  COMPLIANCE_FOLDER,
+  SLACK_CHANNEL,
+  SHARING_PREFERENCE,
+  REVIEWER_MENTION,
+} from "@/config";
+import googleDocs from "@/connections/google-docs";
+import slack from "@/connections/slack";
+
 const sdk = createZapierSdk();
 
 // Entity type → Google Docs template document ID (the Paths branch). The key is the entity_type the webhook sends.
@@ -11,16 +20,8 @@ const TEMPLATE_IDS: Record<string, string> = {
   // Template for limited partnership funds.
   lp: "YOUR_LP_TEMPLATE_DOC_ID",
 };
-// Google Drive folder ID for new packets ("root" = top level of My Drive).
-const COMPLIANCE_FOLDER = "YOUR_COMPLIANCE_FOLDER_ID";
-// Slack channel ID to post the notification to.
-const SLACK_CHANNEL = "YOUR_SLACK_CHANNEL_ID";
-// Sharing for the new packet: "reader" = anyone with the link can view.
-const SHARING_PREFERENCE = "reader";
 // Set to true to @-mention the reviewer group in the Slack message.
 const MENTION_REVIEWERS = false;
-// Slack user-group mention for the reviewers; used only when MENTION_REVIEWERS is true.
-const REVIEWER_MENTION = "<!subteam^YOUR_USERGROUP_ID>";
 
 const InputSchema = z
   .object({
@@ -62,7 +63,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "google-docs",
           actionType: "write",
           actionKey: "create_from_template",
-          connection: "google-docs",
+          connection: googleDocs,
           inputs: {
             file: templateId,
             title: `${input.fund_name} KYC packet`,
@@ -100,7 +101,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "slack",
           actionType: "write",
           actionKey: "channel_message",
-          connection: "slack",
+          connection: slack,
           inputs: {
             channel: SLACK_CHANNEL,
             text,

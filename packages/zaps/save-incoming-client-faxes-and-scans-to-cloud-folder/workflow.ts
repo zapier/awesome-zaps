@@ -2,14 +2,11 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import { PROCESSED_LABEL_ID, ARCHIVE_FOLDER_ID } from "@/config";
+import googleDrive from "@/connections/google-drive";
+import gmail from "@/connections/gmail";
 
-// Gmail label ID of the scanner label the trigger watches (for example "Label_1234567890").
-const SCANNER_LABEL_ID = "YOUR_SCANNER_LABEL_ID";
-// Gmail label ID added to each saved message so the mailbox stays uncluttered.
-const PROCESSED_LABEL_ID = "YOUR_PROCESSED_LABEL_ID";
-// Google Drive folder ID of the secure archive folder (the long ID in the folder's URL).
-const ARCHIVE_FOLDER_ID = "YOUR_ARCHIVE_FOLDER_ID";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -46,7 +43,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-drive",
         actionType: "write",
         actionKey: "file",
-        connection: "google-drive",
+        connection: googleDrive,
         inputs: {
           file: input.attachment,
           folder: ARCHIVE_FOLDER_ID,
@@ -60,7 +57,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "add_label",
-        connection: "gmail",
+        connection: gmail,
         inputs: {
           message_id: input.message_id,
           new_label_ids: [PROCESSED_LABEL_ID],

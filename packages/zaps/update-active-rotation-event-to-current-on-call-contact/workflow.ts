@@ -2,12 +2,11 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { ROUTING_CHANNEL } from "@/config";
+import slack from "@/connections/slack";
+
 const sdk = createZapierSdk();
 
-// Google Calendar the trigger watches. Set it as the trigger's calendarid when you publish; the code does not read it.
-const CALENDAR_ID = "YOUR_CALENDAR_ID";
-// Slack channel ID that receives the routing message (the spec's sub-workflow target).
-const ROUTING_CHANNEL = "YOUR_SLACK_CHANNEL_ID";
 // Members handed to routing when the event title gives no handle.
 const DEFAULT_MEMBERS = ["YOUR_DEFAULT_MEMBER_EMAIL"];
 // Set to true to prefix the routing message with @channel. Keep false for tests.
@@ -59,7 +58,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "channel_message",
-        connection: "slack",
+        connection: slack,
         inputs: {
           channel: ROUTING_CHANNEL,
           text,

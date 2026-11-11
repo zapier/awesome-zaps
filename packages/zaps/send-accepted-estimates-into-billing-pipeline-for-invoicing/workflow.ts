@@ -2,14 +2,13 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  DOWNSTREAM_WEBHOOK_URL,
+  ACCEPTED_STATUS,
+  LINE_DELIMITER,
+} from "@/config";
 
-// Downstream billing endpoint (your billing workflow's catch-hook URL) that receives each accepted estimate.
-const DOWNSTREAM_WEBHOOK_URL = "YOUR_DOWNSTREAM_WEBHOOK_URL";
-// QuickBooks estimate status that lets an estimate continue. Estimates in any other status are skipped.
-const ACCEPTED_STATUS = "Accepted";
-// Separator between line items in the joined description and quantity strings.
-const LINE_DELIMITER = "; ";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({

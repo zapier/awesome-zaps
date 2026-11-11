@@ -2,14 +2,11 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { SPREADSHEET_ID, WORKSHEET_ID } from "@/config";
+import googleSheets from "@/connections/google-sheets";
+
 const sdk = createZapierSdk();
 
-// Gmail search string for order confirmation emails (Gmail search syntax).
-const GMAIL_QUERY = 'subject:"order confirmation" in:inbox';
-// Google Sheets spreadsheet ID (the long ID in the sheet's URL).
-const SPREADSHEET_ID = "YOUR_SPREADSHEET_ID";
-// Worksheet (tab) ID; the first tab is "0".
-const WORKSHEET_ID = "0";
 // Column keys for the master worksheet (COL$A = column A). Map your headers to these letters.
 const COLUMNS = {
   orderId: "COL$A",
@@ -115,7 +112,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "search",
         actionKey: "lookup_row",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,
@@ -141,7 +138,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "add_row",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,

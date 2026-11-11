@@ -2,16 +2,15 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  REQUESTS_BOARD_ID,
+  DEAL_BOARD_ID,
+  DEAL_NAME_COLUMN,
+  RELATION_COLUMN_ID,
+} from "@/config";
+import monday from "@/connections/monday";
 
-// monday.com board ID of the creative requests board (the board the trigger watches).
-const REQUESTS_BOARD_ID = "YOUR_REQUESTS_BOARD_ID";
-// monday.com board ID of the deal tracker to search for a matching deal.
-const DEAL_BOARD_ID = "YOUR_DEAL_BOARD_ID";
-// Column on the deal board to match the search token against (name column key).
-const DEAL_NAME_COLUMN = "name";
-// Board-relation column on the requests board that links to the matched deal.
-const RELATION_COLUMN_ID = "YOUR_DEAL_RELATION_COLUMN_ID";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -41,7 +40,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "monday",
         actionType: "search",
         actionKey: "find_items",
-        connection: "monday",
+        connection: monday,
         inputs: {
           board_id: DEAL_BOARD_ID,
           column_id: DEAL_NAME_COLUMN,
@@ -67,7 +66,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "monday",
         actionType: "write",
         actionKey: "change_multiple_columns_value",
-        connection: "monday",
+        connection: monday,
         inputs: {
           item_id: Number(input.id),
           board_id: Number(REQUESTS_BOARD_ID),

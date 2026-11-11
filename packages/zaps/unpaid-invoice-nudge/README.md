@@ -33,4 +33,6 @@ If you have this repo, the files in this folder are everything the agent needs: 
 ## Files
 
 - `workflow.ts`: the Next Gen Zap code
+- `config.ts`: its settings
+- `connections/`: the accounts it uses (`gmail`, `quickbooks`, `sms`)
 - `SKILL.md`: how an agent builds it, what to ask you, and how to test it

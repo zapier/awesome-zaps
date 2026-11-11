@@ -2,12 +2,11 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { LOAN_OBJECT, EXTERNAL_LOAN_ID_FIELD } from "@/config";
+import salesforce from "@/connections/salesforce";
+
 const sdk = createZapierSdk();
 
-// Salesforce object (API name) that holds the loans.
-const LOAN_OBJECT = "YOUR_LOAN_OBJECT_API_NAME";
-// Field on the loan object that stores the external loan ID from the feed.
-const EXTERNAL_LOAN_ID_FIELD = "YOUR_EXTERNAL_LOAN_ID_FIELD";
 // CRM field keys for the values the feed updates. Set each to the matching field's key on LOAN_OBJECT.
 const CRM_FIELDS = {
   // Loan status picklist.
@@ -70,7 +69,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "salesforce",
         actionType: "search",
         actionKey: "find_record",
-        connection: "salesforce",
+        connection: salesforce,
         inputs: {
           object: LOAN_OBJECT,
           searchField: EXTERNAL_LOAN_ID_FIELD,
@@ -114,7 +113,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "salesforce",
         actionType: "write",
         actionKey: "update_record_utc",
-        connection: "salesforce",
+        connection: salesforce,
         inputs: {
           object: LOAN_OBJECT,
           record_id: loan.id,

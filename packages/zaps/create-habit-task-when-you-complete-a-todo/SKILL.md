@@ -27,7 +27,10 @@ If the create call returns no task ID, the run stops after step 2 and nothing is
 
 **How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
 
-**Source:** `workflow.ts` in this folder is the whole workflow. Deploy it as one source file. Change only the constants listed below; everything else stays as written.
+**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
+
+- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-habit-task-when-you-complete-a-todo` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-habit-task-when-you-complete-a-todo` from that project. Deploy asks for each open setting and account, and sets the trigger.
+- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
 
 1. **Trigger:** Todoist, New Completed Task (`todoist`, `any_completed`). Leave the project blank to watch all projects. The trigger needs the user's Todoist connection.
 2. **Connections:** none for the habit tracker. Webhooks by Zapier (`webhook`) needs no connection, so its `authentication_id` is `null`. Your tracker's token goes in the `HABIT_TRACKER_TOKEN` constant.

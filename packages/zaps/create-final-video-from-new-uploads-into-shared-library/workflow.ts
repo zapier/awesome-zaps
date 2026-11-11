@@ -2,36 +2,31 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  RENDER_REQUEST_URL,
+  RENDER_STATUS_URL,
+  RENDER_ID_FIELD,
+  STATUS_FIELD,
+  DOWNLOAD_URL_FIELD,
+  DEFAULT_AVATAR,
+  DEFAULT_VOICE,
+  DEFAULT_ASPECT_RATIO,
+  LIBRARY_FOLDER_ID,
+} from "@/config";
+import googleDrive from "@/connections/google-drive";
+
 const sdk = createZapierSdk();
 
-// Render service endpoint that accepts a JSON render request (POST).
-const RENDER_REQUEST_URL = "YOUR_RENDER_REQUEST_URL";
-// Render status endpoint (GET); "{id}" is replaced with the render ID the POST returned.
-const RENDER_STATUS_URL = "YOUR_RENDER_STATUS_URL/{id}";
-// Field in the POST response that holds the render ID (dot path for nested fields).
-const RENDER_ID_FIELD = "id";
-// Field in the status response that holds the render status.
-const STATUS_FIELD = "status";
-// Field in the status response that holds the finished MP4's download URL.
-const DOWNLOAD_URL_FIELD = "download_url";
 // Status values (lowercase) that mean the render finished.
 const DONE_STATUSES = ["done", "completed", "succeeded", "success", "ready"];
 // Status values (lowercase) that mean the render failed and polling should stop.
 const FAILED_STATUSES = ["failed", "error", "cancelled", "canceled"];
-// Avatar sent with every render request.
-const DEFAULT_AVATAR = "default";
-// Voice sent with every render request.
-const DEFAULT_VOICE = "default";
-// Aspect ratio sent with every render request.
-const DEFAULT_ASPECT_RATIO = "16:9";
 // Seconds to wait before the first status check.
 const INITIAL_DELAY_SECONDS = 30;
 // Seconds to wait between status checks.
 const POLL_INTERVAL_SECONDS = 30;
 // Status checks before giving up (with the delays above: about 5 minutes).
 const MAX_POLL_ATTEMPTS = 10;
-// Google Drive folder ID of the shared library that receives finished MP4s.
-const LIBRARY_FOLDER_ID = "YOUR_LIBRARY_FOLDER_ID";
 // MIME type prefixes that count as media uploads; other new files are skipped.
 const MEDIA_MIME_PREFIXES = ["video/", "audio/", "image/"];
 
@@ -94,7 +89,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-drive",
         actionType: "search",
         actionKey: "file_v2",
-        connection: "google-drive",
+        connection: googleDrive,
         inputs: {
           title: finalName,
           folder: LIBRARY_FOLDER_ID,
@@ -222,7 +217,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-drive",
         actionType: "write",
         actionKey: "file",
-        connection: "google-drive",
+        connection: googleDrive,
         inputs: {
           file: downloadUrl,
           folder: LIBRARY_FOLDER_ID,

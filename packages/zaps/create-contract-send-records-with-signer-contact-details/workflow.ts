@@ -2,10 +2,10 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import { TABLE_ID } from "@/config";
+import zapierTables from "@/connections/zapier-tables";
 
-// Zapier Tables table ID that holds one row per signer (the table's ID from its URL).
-const TABLE_ID = "YOUR_TABLE_ID";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -60,7 +60,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "zapier-tables",
             actionType: "search",
             actionKey: "find_record",
-            connection: "zapier-tables",
+            connection: zapierTables,
             inputs: {
               table_id: TABLE_ID,
               filter_count: "2",
@@ -84,7 +84,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "zapier-tables",
             actionType: "write",
             actionKey: "create_record",
-            connection: "zapier-tables",
+            connection: zapierTables,
             inputs: {
               table_id: TABLE_ID,
               new__data__f1: name,

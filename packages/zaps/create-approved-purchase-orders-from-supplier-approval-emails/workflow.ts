@@ -2,20 +2,22 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  PO_TABLE_ID,
+  PO_NUMBER_FIELD,
+  VENDOR_NAME_FIELD,
+  AMOUNT_FIELD,
+  DESCRIPTION_FIELD,
+  STATUS_FIELD,
+  QBO_ITEM_ID,
+  PROCUREMENT_EMAIL,
+} from "@/config";
+import microsoftOutlook from "@/connections/microsoft-outlook";
+import ai from "@/connections/ai";
+import zapierTables from "@/connections/zapier-tables";
+import quickbooks from "@/connections/quickbooks";
 
-// Zapier Tables table ID of the central PO register (the long ID in the table's URL).
-const PO_TABLE_ID = "YOUR_PO_TABLE_ID";
-// Table field keys: f1 = PO number, f2 = vendor name, f3 = amount, f4 = description, f5 = status.
-const PO_NUMBER_FIELD = "f1";
-const VENDOR_NAME_FIELD = "f2";
-const AMOUNT_FIELD = "f3";
-const DESCRIPTION_FIELD = "f4";
-const STATUS_FIELD = "f5";
-// QuickBooks Online product/service ID each purchase order line is booked against.
-const QBO_ITEM_ID = "YOUR_QBO_ITEM_ID";
-// Mailbox that gets a note when no PO row or vendor matches, and that receipts go to.
-const PROCUREMENT_EMAIL = "YOUR_PROCUREMENT_EMAIL";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -43,7 +45,7 @@ const notifyProcurement = (subject: string, body: string) =>
     appKey: "microsoft-outlook",
     actionType: "write",
     actionKey: "send_email",
-    connection: "microsoft-outlook",
+    connection: microsoftOutlook,
     inputs: {
       recipients: PROCUREMENT_EMAIL,
       subject,
@@ -57,7 +59,7 @@ const replyToEmail = (emailId: string, comment: string) =>
     appKey: "microsoft-outlook",
     actionType: "write",
     actionKey: "reply_to_email",
-    connection: "microsoft-outlook",
+    connection: microsoftOutlook,
     inputs: { email_id: emailId, comment },
   });
 
@@ -73,7 +75,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "ai",
         actionType: "write",
         actionKey: "get_completion",
-        connection: "ai",
+        connection: ai,
         inputs: {
           model_id: "premium/auto",
           authentication_id: "0",
@@ -128,7 +130,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "search",
         actionKey: "find_record",
-        connection: "zapier-tables",
+        connection: zapierTables,
         inputs: {
           table_id: PO_TABLE_ID,
           filter_count: "1",
@@ -157,7 +159,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "quickbooks",
         actionType: "search",
         actionKey: "vendor",
-        connection: "quickbooks",
+        connection: quickbooks,
         inputs: { name: vendorName },
       }),
     );
@@ -198,7 +200,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "quickbooks",
           actionType: "write",
           actionKey: "purchase_order",
-          connection: "quickbooks",
+          connection: quickbooks,
           inputs: {
             vendor: vendorId,
             date: orderDate,
@@ -219,7 +221,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "update_record",
-        connection: "zapier-tables",
+        connection: zapierTables,
         inputs: {
           table_id: PO_TABLE_ID,
           record_id: record.record_id,

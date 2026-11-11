@@ -16,3 +16,6 @@ Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected
 
 - `SKILL.md`: what the agent builds, asks and tests
 - `workflow.ts`: the Next Gen Zap code
+- `config.ts`: its settings
+- `connections/`: the accounts it uses (`excel`)
+- `triggers/`: what starts it

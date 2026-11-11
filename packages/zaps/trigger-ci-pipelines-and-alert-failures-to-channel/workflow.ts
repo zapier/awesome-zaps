@@ -2,6 +2,15 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  CI_PIPELINE_URL,
+  CI_STATUS_URL,
+  SLACK_CHANNEL,
+  MESSAGE_PREFIX,
+  MENTION_TEXT,
+} from "@/config";
+import slack from "@/connections/slack";
+
 const sdk = createZapierSdk();
 
 // Branches that start a CI run, matched by exact name.
@@ -12,20 +21,10 @@ const EXCLUDED_TOPICS: string[] = ["no-ci"];
 const ALLOWED_TOPICS: string[] = [];
 // Seconds to wait after starting the pipeline, so it can initialize before polling.
 const POLL_DELAY_SECONDS = 90;
-// Endpoint the workflow POSTs to start a pipeline. Must return JSON with the pipeline `id`.
-const CI_PIPELINE_URL = "YOUR_CI_PIPELINE_URL";
-// Status endpoint. The pipeline id is appended as a path segment; the JSON reply has a `status` field.
-const CI_STATUS_URL = "YOUR_CI_STATUS_URL";
 // Pipeline statuses that mean the run failed. Any other status posts nothing.
 const FAILED_STATUSES = ["failed", "error"];
-// Slack channel ID that receives failure alerts.
-const SLACK_CHANNEL = "YOUR_SLACK_CHANNEL_ID";
-// Prefix on every alert. Leave empty; the tested copy used "[install-test] ".
-const MESSAGE_PREFIX = "";
 // Set to true to @-mention a Slack user group on failure. Off by default.
 const MENTION_ON_FAILURE = false;
-// Mention inserted at the start of the alert when MENTION_ON_FAILURE is true.
-const MENTION_TEXT = "<!subteam^YOUR_GROUP_ID> ";
 
 const InputSchema = z
   .object({
@@ -123,7 +122,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "channel_message",
-        connection: "slack",
+        connection: slack,
         inputs: {
           channel: SLACK_CHANNEL,
           text,

@@ -2,16 +2,11 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import { WORKBOOK_ID, WORKSHEET_ID, LOOKUP_COLUMN, KPI_COLUMN } from "@/config";
+import chatgpt from "@/connections/chatgpt";
+import excel from "@/connections/excel";
 
-// OneDrive for Business workbook holding the executive KPI table (the long ID in the file's URL).
-const WORKBOOK_ID = "YOUR_WORKBOOK_ID";
-// Worksheet (tab) inside the workbook that holds the KPI rows.
-const WORKSHEET_ID = "YOUR_WORKSHEET_ID";
-// Column (header name) the PDF's file name, without the .pdf extension, is matched against.
-const LOOKUP_COLUMN = "YOUR_LOOKUP_COLUMN";
-// Column (header name) that receives the extracted percentage.
-const KPI_COLUMN = "YOUR_KPI_COLUMN";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -39,7 +34,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "chatgpt",
         actionType: "write",
         actionKey: "conversation_responses_api",
-        connection: "chatgpt",
+        connection: chatgpt,
         inputs: {
           model: "gpt-4o",
           user_message:
@@ -61,7 +56,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "excel",
         actionType: "search",
         actionKey: "find_row",
-        connection: "excel",
+        connection: excel,
         inputs: {
           workbook_id: WORKBOOK_ID,
           worksheet_id: WORKSHEET_ID,
@@ -81,7 +76,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "excel",
         actionType: "write",
         actionKey: "update_row",
-        connection: "excel",
+        connection: excel,
         inputs: {
           workbook_id: WORKBOOK_ID,
           worksheet_id: WORKSHEET_ID,

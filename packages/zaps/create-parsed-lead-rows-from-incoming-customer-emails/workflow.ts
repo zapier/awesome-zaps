@@ -2,24 +2,19 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  SPREADSHEET_ID,
+  WORKSHEET_ID,
+  DRIVE_ID,
+  LEAD_PATTERN,
+  DATE_COLUMN,
+  DESCRIPTION_COLUMN,
+  DETAILS_COLUMN,
+  SOURCE_COLUMN,
+} from "@/config";
+import googleSheets from "@/connections/google-sheets";
 
-// Google Sheets spreadsheet ID (the long ID in the sheet's URL).
-const SPREADSHEET_ID = "YOUR_SPREADSHEET_ID";
-// Worksheet (tab) ID; the first tab is "0".
-const WORKSHEET_ID = "0";
-// Google Drive location of the spreadsheet; "" is My Drive.
-const DRIVE_ID = "";
-// Case-insensitive pattern a message's subject or body preview must match to be logged.
-const LEAD_PATTERN = "lead|inquiry|quote request";
-// Column for the date the message was received (COL$A = column A).
-const DATE_COLUMN = "COL$A";
-// Column for the short description of the lead.
-const DESCRIPTION_COLUMN = "COL$B";
-// Column for the customer note and first token from the message.
-const DETAILS_COLUMN = "COL$C";
-// Column for the source identifier (the Outlook message ID), also used to match duplicates.
-const SOURCE_COLUMN = "COL$D";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -49,7 +44,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "search",
         actionKey: "lookup_row",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           drive: DRIVE_ID,
           spreadsheet: SPREADSHEET_ID,
@@ -80,7 +75,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "add_row",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           drive: DRIVE_ID,
           spreadsheet: SPREADSHEET_ID,

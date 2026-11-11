@@ -2,22 +2,19 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  AIRTABLE_BASE_ID,
+  AIRTABLE_TABLE,
+  GUID_FIELD,
+  TITLE_FIELD,
+  VIDEO_URL_FIELD,
+  DATE_FIELD,
+  VIMEO_PRIVACY,
+} from "@/config";
+import vimeo from "@/connections/vimeo";
+import airtable from "@/connections/airtable";
 
-// Airtable base ID (the "app..." ID in the base's URL).
-const AIRTABLE_BASE_ID = "YOUR_AIRTABLE_BASE_ID";
-// Airtable table that holds the video archive.
-const AIRTABLE_TABLE = "YOUR_TABLE_NAME";
-// Column that stores the Zoom recording GUID; existing rows are matched on it.
-const GUID_FIELD = "YOUR_GUID_FIELD";
-// Column for the recording title.
-const TITLE_FIELD = "YOUR_TITLE_FIELD";
-// Column for the Vimeo video link.
-const VIDEO_URL_FIELD = "YOUR_VIDEO_URL_FIELD";
-// Column for the meeting start date.
-const DATE_FIELD = "YOUR_DATE_FIELD";
-// Vimeo privacy for uploads: "unlisted" keeps videos off public listings.
-const VIMEO_PRIVACY = "unlisted";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -51,7 +48,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "vimeo",
               actionType: "write",
               actionKey: "upload_video",
-              connection: "vimeo",
+              connection: vimeo,
               inputs: {
                 upload__link: fileUrl,
                 name: title,
@@ -85,7 +82,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "airtable",
         actionType: "write",
         actionKey: "create_or_update_record",
-        connection: "airtable",
+        connection: airtable,
         inputs: {
           applicationId: AIRTABLE_BASE_ID,
           tableName: AIRTABLE_TABLE,

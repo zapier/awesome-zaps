@@ -2,21 +2,16 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  DEAL_ID_KEY,
+  OPT_OUT_KEY,
+  CONSENT_FIELD_KEY,
+  OPT_IN_VALUE,
+  OPT_OUT_VALUE,
+} from "@/config";
+import pipedrive from "@/connections/pipedrive";
+
 const sdk = createZapierSdk();
-
-// Keys in the incoming webhook payload that carry the deal ID and the opt-out flag.
-const DEAL_ID_KEY = "deal_id";
-const OPT_OUT_KEY = "opt_out";
-
-// The Pipedrive deal custom field that stores consent. Use the field's API key from Pipedrive's field settings.
-const CONSENT_FIELD_KEY = "YOUR_CONSENT_FIELD_KEY";
-
-// Values written to the consent field.
-const OPT_IN_VALUE = "YES";
-const OPT_OUT_VALUE = "NO";
-
-// The Pipedrive connection alias; bound to the account that owns the deals.
-const PIPEDRIVE_CONNECTION = "pipedrive";
 
 const InputSchema = z.record(z.string(), z.unknown());
 type Input = z.infer<typeof InputSchema>;
@@ -48,7 +43,7 @@ const workflow = defineDurable<Input, unknown>(
         appKey: "pipedrive",
         actionType: "search",
         actionKey: "get_deal",
-        connection: PIPEDRIVE_CONNECTION,
+        connection: pipedrive,
         inputs: { id: String(dealId) },
       }),
     );
@@ -63,7 +58,7 @@ const workflow = defineDurable<Input, unknown>(
         appKey: "pipedrive",
         actionType: "write",
         actionKey: "update_deal_v2",
-        connection: PIPEDRIVE_CONNECTION,
+        connection: pipedrive,
         inputs: { id: Number(deal.id), [CONSENT_FIELD_KEY]: consent },
       }),
     );

@@ -4,9 +4,15 @@
     // run by `pnpm zap:deploy` and `pnpm zap:status`, so nothing imports it
     "packages/zaps/scripts/zap.ts",
   ],
-  // A zap is one self-contained workflow.ts that an agent deploys as is, so zaps repeat small helpers by design.
+  // A zap is a self-contained folder that deploys as is (workflow.ts, config.ts, connections/, triggers/), so zaps
+  // repeat small helpers by design and import zap-pack and @/ paths the zap CLI resolves.
   // scripts/catalog.test.ts checks them instead.
-  "ignorePatterns": ["packages/zaps/*/workflow.ts"],
+  "ignorePatterns": [
+    "packages/zaps/*/workflow.ts",
+    "packages/zaps/*/config.ts",
+    "packages/zaps/*/connections/*.ts",
+    "packages/zaps/*/triggers/*.ts",
+  ],
   "production": {
     // removing test files from code quality checks
     "health": true,

@@ -2,26 +2,22 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  SPREADSHEET_ID,
+  WORKSHEET_ID,
+  TERRITORY_PROPERTY,
+  TERRITORY_HEADER,
+  CRM_ID_COLUMN,
+  EMAIL_COLUMN,
+  TERRITORY_COLUMN,
+  LIFECYCLE_COLUMN,
+  UPDATED_AT_COLUMN,
+} from "@/config";
+import hubspot from "@/connections/hubspot";
+import googleSheets from "@/connections/google-sheets";
+
 const sdk = createZapierSdk();
 
-// Google Sheets spreadsheet that holds one analytics profile row per contact (the long ID in the sheet's URL).
-const SPREADSHEET_ID = "YOUR_SPREADSHEET_ID";
-// Worksheet (tab) with the profile rows. The first tab is "0".
-const WORKSHEET_ID = "0";
-// HubSpot internal name of the territory property. Must match the trigger's property_name.
-const TERRITORY_PROPERTY = "YOUR_TERRITORY_PROPERTY";
-// Header of the territory column on the profiles sheet, used to compare with the new value.
-const TERRITORY_HEADER = "Territory";
-// Column holding the HubSpot contact ID, the first match key (COL$A = column A).
-const CRM_ID_COLUMN = "COL$A";
-// Column holding the contact email, the fallback match key.
-const EMAIL_COLUMN = "COL$B";
-// Column written with the new territory value.
-const TERRITORY_COLUMN = "COL$C";
-// Column written with the lifecycle stage.
-const LIFECYCLE_COLUMN = "COL$D";
-// Column written with the time the profile was updated.
-const UPDATED_AT_COLUMN = "COL$E";
 // Lifecycle stages that count as not active. Contacts in these stages are skipped.
 const INACTIVE_STAGES = ["unsubscribed", "other"];
 
@@ -44,7 +40,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "hubspot",
         actionType: "write",
         actionKey: "get_contact_by_id",
-        connection: "hubspot",
+        connection: hubspot,
         inputs: {
           id: contactId,
           properties_to_retrieve: [
@@ -70,7 +66,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "search",
         actionKey: "lookup_row",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,
@@ -88,7 +84,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "google-sheets",
           actionType: "search",
           actionKey: "lookup_row",
-          connection: "google-sheets",
+          connection: googleSheets,
           inputs: {
             spreadsheet: SPREADSHEET_ID,
             worksheet: WORKSHEET_ID,
@@ -122,7 +118,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "google-sheets",
           actionType: "write",
           actionKey: "update_row",
-          connection: "google-sheets",
+          connection: googleSheets,
           inputs: {
             spreadsheet: SPREADSHEET_ID,
             worksheet: WORKSHEET_ID,
@@ -145,7 +141,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "add_row",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,

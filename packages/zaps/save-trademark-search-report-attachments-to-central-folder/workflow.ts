@@ -2,12 +2,10 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import { DRIVE_FOLDER_ID } from "@/config";
+import googleDrive from "@/connections/google-drive";
 
-// Gmail search for the trigger, in the same syntax as the Gmail search box. Enter it in the trigger's "Search keywords" field.
-const SEARCH_QUERY = "subject:(trademark search report) has:attachment";
-// Google Drive folder ID to save into (the long ID at the end of the folder's URL).
-const DRIVE_FOLDER_ID = "YOUR_DRIVE_FOLDER_ID";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -64,7 +62,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "google-drive",
               actionType: "write",
               actionKey: "file",
-              connection: "google-drive",
+              connection: googleDrive,
               inputs: {
                 file: attachment.attachment,
                 folder: DRIVE_FOLDER_ID,

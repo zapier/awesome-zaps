@@ -2,22 +2,19 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  TABLE_ID,
+  TERM_COLUMN,
+  SYNONYMS_COLUMN,
+  THESAURUS_URL,
+  SYNONYM_SEPARATOR,
+} from "@/config";
+import googleDocs from "@/connections/google-docs";
+
 const sdk = createZapierSdk();
 
-// Google Drive folder that receives the word-list documents (the folder ID from its URL).
-const WATCHED_FOLDER_ID = "YOUR_FOLDER_ID";
-// Zapier Table that holds the synonym entries (the table ID).
-const TABLE_ID = "YOUR_TABLE_ID";
-// Table column that stores the term; existing entries are matched on it.
-const TERM_COLUMN = "YOUR_TERM_COLUMN_KEY";
-// Table column that stores the synonyms joined into one string.
-const SYNONYMS_COLUMN = "YOUR_SYNONYMS_COLUMN_KEY";
-// Thesaurus endpoint; each term is sent as the `word` query parameter.
-const THESAURUS_URL = "https://YOUR_THESAURUS_API_URL";
 // Most terms processed per document, so one large file cannot run away.
 const MAX_WORDS = 50;
-// Separator used to join synonyms into the table cell.
-const SYNONYM_SEPARATOR = ", ";
 
 const InputSchema = z
   .object({
@@ -47,7 +44,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-docs",
         actionType: "search",
         actionKey: "get_document_content",
-        connection: "google-docs",
+        connection: googleDocs,
         inputs: { document_id: input.id },
       }),
     );

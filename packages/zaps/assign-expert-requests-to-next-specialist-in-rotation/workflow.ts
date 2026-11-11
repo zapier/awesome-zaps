@@ -2,15 +2,10 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import { ROTATION_TABLE_ID, FALLBACK_EMAIL, PROCESSED_MARKER } from "@/config";
+import gmail from "@/connections/gmail";
 
-// Zapier Tables ID of the expert rotation table. Columns: f1 Name, f2 Email,
-// f3 Next (checkbox), f4 Assigned count (number), f5 Rotation order (number), f6 Gmail label ID.
-const ROTATION_TABLE_ID = "YOUR_ROTATION_TABLE_ID";
-// Address that receives the request when no record in the table is marked Next.
-const FALLBACK_EMAIL = "YOUR_FALLBACK_EMAIL";
-// Hidden marker written into each reply, so a request that was already routed is skipped.
-const PROCESSED_MARKER = "rotation-routed";
+const sdk = createZapierSdk();
 
 const FIELD = {
   email: "f2",
@@ -96,7 +91,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "gmail",
           actionType: "write",
           actionKey: "add_label",
-          connection: "gmail",
+          connection: gmail,
           inputs: { message_id: input.message_id, new_label_ids: [labelId] },
         }),
       );
@@ -109,7 +104,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "reply_to_message",
-        connection: "gmail",
+        connection: gmail,
         inputs: {
           thread_id: input.thread_id,
           to: [recipient],

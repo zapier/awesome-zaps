@@ -24,7 +24,10 @@ metadata:
 
 **How to build:** with Zapier MCP, load the `zapier:build-workflows` skill and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_.
 
-**Source:** `workflow.ts` in this folder is the whole workflow. Deploy it as one source file. Change only the constants at the top.
+**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
+
+- **With the zap CLI:** `npx zap-pack add awesome-zaps/save-new-build-artifacts-into-organized-release-folder` (it makes a zap project if you aren't in one), then `npx zap-pack deploy save-new-build-artifacts-into-organized-release-folder` from that project. Deploy asks for each open setting and account, and sets the trigger.
+- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
 
 1. **Trigger:** Google Drive, New File in Folder (`google-drive` / `file_in_folder_v2`). Set its Folder to `SOURCE_FOLDER_ID`, with Include Subfolders off and Include Deleted Files set to only non-deleted.
 2. **Connections** (each alias in the code is the app's slug):

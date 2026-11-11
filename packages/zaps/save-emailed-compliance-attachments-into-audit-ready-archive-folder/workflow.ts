@@ -2,12 +2,11 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { ARCHIVE_FOLDER_ID, FILENAME_PREFIX } from "@/config";
+import googleDrive from "@/connections/google-drive";
+
 const sdk = createZapierSdk();
 
-// Google Drive folder ID of the audit-ready archive folder (the long ID at the end of the folder's URL).
-const ARCHIVE_FOLDER_ID = "YOUR_ARCHIVE_FOLDER_ID";
-// Text added to the start of every saved file name. Leave empty for real use.
-const FILENAME_PREFIX = "";
 // Longest file name written, in characters.
 const MAX_FILENAME_LENGTH = 180;
 
@@ -59,7 +58,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-drive",
         actionType: "search",
         actionKey: "file_v2",
-        connection: "google-drive",
+        connection: googleDrive,
         inputs: {
           title: fileName,
           folder: ARCHIVE_FOLDER_ID,
@@ -76,7 +75,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-drive",
         actionType: "write",
         actionKey: "file",
-        connection: "google-drive",
+        connection: googleDrive,
         inputs: {
           file: input.attachment_url,
           folder: ARCHIVE_FOLDER_ID,

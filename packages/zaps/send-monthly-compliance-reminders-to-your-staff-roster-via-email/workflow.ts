@@ -2,26 +2,23 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  SPREADSHEET_ID,
+  WORKSHEET_ID,
+  ROSTER_RANGE,
+  EMAIL_COLUMN,
+  FILE_LINK_COLUMN,
+  TO_ADDRESS,
+  SUBJECT_PREFIX,
+  SUBJECT,
+} from "@/config";
+import googleSheets from "@/connections/google-sheets";
+import microsoftOutlook from "@/connections/microsoft-outlook";
+
 const sdk = createZapierSdk();
 
-// Google Sheets spreadsheet ID of the staff roster (the long ID in the sheet's URL).
-const SPREADSHEET_ID = "YOUR_SPREADSHEET_ID";
-// Worksheet (tab) ID; the first tab is "0".
-const WORKSHEET_ID = "0";
-// Roster columns: name, email, policy file link (A:C).
-const ROSTER_RANGE = "A:C";
 // Maximum roster rows read per run (Google Sheets allows up to 1,500).
 const MAX_ROSTER_ROWS = 1500;
-// Column key of the email column (COL$A = column A, COL$B = column B).
-const EMAIL_COLUMN = "COL$B";
-// Column key of the policy file-link column.
-const FILE_LINK_COLUMN = "COL$C";
-// Address in the To field. Roster addresses go in BCC so recipients can't see each other.
-const TO_ADDRESS = "YOUR_EMAIL_ADDRESS";
-// Prefix added to the subject line; leave empty for production.
-const SUBJECT_PREFIX = "";
-// Subject of the reminder email.
-const SUBJECT = "Monthly policy compliance reminder";
 // Body of the reminder email. Replace with your own wording.
 const BODY =
   "Please review the attached policies and confirm you have read them by the monthly deadline.";
@@ -36,7 +33,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "search",
         actionKey: "get_many_rows",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,
@@ -74,7 +71,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "microsoft-outlook",
         actionType: "write",
         actionKey: "send_email",
-        connection: "microsoft-outlook",
+        connection: microsoftOutlook,
         inputs: {
           recipients: [TO_ADDRESS],
           bccRecipients,

@@ -2,14 +2,9 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import { CREATE_TASK_URL, SCORE_TASK_URL, HABIT_TRACKER_TOKEN } from "@/config";
 
-// Habit tracker endpoint that creates a habit task (POST).
-const CREATE_TASK_URL = "YOUR_HABIT_TRACKER_CREATE_TASK_URL";
-// Habit tracker endpoint that scores a habit task. The new task's ID is appended as a path segment.
-const SCORE_TASK_URL = "YOUR_HABIT_TRACKER_SCORE_TASK_URL";
-// Habit tracker API token, sent as a Bearer token on both requests.
-const HABIT_TRACKER_TOKEN = "YOUR_HABIT_TRACKER_API_TOKEN";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({

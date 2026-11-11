@@ -2,12 +2,10 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import { LINKEDIN_AD_ACCOUNT, LINKEDIN_CONVERSION } from "@/config";
+import linkedinConversions from "@/connections/linkedin-conversions";
 
-// LinkedIn ad account ID that owns the conversion (the number in the Campaign Manager account URL).
-const LINKEDIN_AD_ACCOUNT = "YOUR_LINKEDIN_AD_ACCOUNT_ID";
-// LinkedIn Conversions API conversion that each form sign-up is reported to.
-const LINKEDIN_CONVERSION = "YOUR_LINKEDIN_CONVERSION_ID";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -36,7 +34,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "linkedin-conversions",
           actionType: "write",
           actionKey: "create_conversion_event",
-          connection: "linkedin-conversions",
+          connection: linkedinConversions,
           inputs: {
             account: LINKEDIN_AD_ACCOUNT,
             conversion: LINKEDIN_CONVERSION,

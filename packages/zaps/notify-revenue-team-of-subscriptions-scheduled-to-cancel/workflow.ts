@@ -2,12 +2,10 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import { REVENUE_TEAM_EMAIL, ACCOUNT_OWNER_EMAIL } from "@/config";
+import gmail from "@/connections/gmail";
 
-// Revenue team address that receives the cancellation alert (replace with your distribution list).
-const REVENUE_TEAM_EMAIL = "YOUR_REVENUE_TEAM_EMAIL";
-// Account owner address that receives the same alert (replace with your account owner's address).
-const ACCOUNT_OWNER_EMAIL = "YOUR_ACCOUNT_OWNER_EMAIL";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -60,7 +58,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: "gmail",
+        connection: gmail,
         inputs: {
           to: [REVENUE_TEAM_EMAIL, ACCOUNT_OWNER_EMAIL],
           subject,

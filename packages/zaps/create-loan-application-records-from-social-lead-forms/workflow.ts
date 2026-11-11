@@ -2,33 +2,30 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  AIRTABLE_BASE_ID,
+  AIRTABLE_TABLE,
+  FIELD_EXTERNAL_REF,
+  FIELD_APPLIED_AT,
+  FIELD_FULL_NAME,
+  FIELD_EMAIL,
+  FIELD_PHONE,
+  FIELD_BUSINESS_NAME,
+  FIELD_REVENUE,
+  FIELD_CAMPAIGN,
+  FIELD_AD_SET,
+  FIELD_AD,
+  FIELD_FORM,
+  FIELD_SOURCE,
+  SOURCE_LABEL,
+  LEAD_PHONE_KEY,
+  LEAD_BUSINESS_NAME_KEY,
+  LEAD_REVENUE_KEY,
+  TIME_ZONE,
+} from "@/config";
+import airtable from "@/connections/airtable";
 
-// Airtable base ID (starts with "app", from the base URL).
-const AIRTABLE_BASE_ID = "YOUR_AIRTABLE_BASE_ID";
-// Airtable table ID ("tbl…") or exact table name for loan applications.
-const AIRTABLE_TABLE = "YOUR_AIRTABLE_TABLE_ID";
-// Airtable field names in the intake table. Records are matched on FIELD_EMAIL.
-const FIELD_EXTERNAL_REF = "Submission ID";
-const FIELD_APPLIED_AT = "Application Timestamp";
-const FIELD_FULL_NAME = "Full Name";
-const FIELD_EMAIL = "Email";
-const FIELD_PHONE = "Phone";
-const FIELD_BUSINESS_NAME = "Business Name";
-const FIELD_REVENUE = "Revenue Estimate";
-const FIELD_CAMPAIGN = "Campaign";
-const FIELD_AD_SET = "Ad Set";
-const FIELD_AD = "Ad";
-const FIELD_FORM = "Lead Form";
-const FIELD_SOURCE = "Source";
-// Single source label written to every record, for campaign reporting.
-const SOURCE_LABEL = "Facebook Lead Ads";
-// Lead form question keys as Facebook Lead Ads delivers them (custom questions vary per form).
-const LEAD_PHONE_KEY = "PHONE_NUMBER";
-const LEAD_BUSINESS_NAME_KEY = "COMPANY_NAME";
-const LEAD_REVENUE_KEY = "ANNUAL_REVENUE";
-// Time zone for the readable application timestamp.
-const TIME_ZONE = "UTC";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -128,7 +125,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "airtable",
         actionType: "write",
         actionKey: "_zap_raw_request",
-        connection: "airtable",
+        connection: airtable,
         inputs: {
           method: "PATCH",
           url: `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(AIRTABLE_TABLE)}`,

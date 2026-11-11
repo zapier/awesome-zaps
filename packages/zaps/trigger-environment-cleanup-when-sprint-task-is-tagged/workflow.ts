@@ -2,10 +2,9 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import { REMOVAL_API_URL } from "@/config";
 
-// Removal API endpoint the teardown POST is sent to.
-const REMOVAL_API_URL = "YOUR_REMOVAL_API_URL";
+const sdk = createZapierSdk();
 
 function normalizeInput(rawInput: unknown): unknown {
   if (typeof rawInput === "string") {

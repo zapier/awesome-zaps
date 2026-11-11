@@ -2,20 +2,20 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  CARTONCLOUD_TENANT,
+  CARTONCLOUD_CUSTOMER,
+  IT_ALERT_EMAIL,
+} from "@/config";
+import cartoncloud from "@/connections/cartoncloud";
+import gmail from "@/connections/gmail";
+
 const sdk = createZapierSdk();
 
-// Xero organization whose invoices are watched (the trigger's Organization field).
-const XERO_ORGANIZATION = "YOUR_XERO_ORGANIZATION_ID";
 // Invoices with a total from 0 up to this amount count as zero or near-zero.
 const MAX_INVOICE_TOTAL = 1;
 // Invoices whose reference contains any of these words are skipped. Empty skips nothing.
 const SKIP_BRANCH_INDICATORS: string[] = [];
-// CartonCloud tenant the outbound orders are created in.
-const CARTONCLOUD_TENANT = "YOUR_CARTONCLOUD_TENANT";
-// CartonCloud customer the outbound orders are raised against.
-const CARTONCLOUD_CUSTOMER = "YOUR_CARTONCLOUD_CUSTOMER";
-// Gmail address that receives failure notices. Use an address you can read.
-const IT_ALERT_EMAIL = "YOUR_IT_ALERT_EMAIL";
 
 const InvoiceSchema = z
   .object({
@@ -109,7 +109,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "cartoncloud",
             actionType: "write",
             actionKey: "create_outbound_order",
-            connection: "cartoncloud",
+            connection: cartoncloud,
             inputs: {
               tenant: CARTONCLOUD_TENANT,
               customer: CARTONCLOUD_CUSTOMER,
@@ -139,7 +139,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "gmail",
           actionType: "write",
           actionKey: "message",
-          connection: "gmail",
+          connection: gmail,
           inputs: {
             to: IT_ALERT_EMAIL,
             subject: `[Dispatch orders] Order creation failed for invoice ${reference}`,

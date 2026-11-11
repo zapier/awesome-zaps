@@ -2,18 +2,20 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  CATEGORY_PROPERTY,
+  SEEDED_CONTENT_PROPERTY,
+  SPREADSHEET_ID,
+  WORKSHEET_ID,
+  CATEGORY_COLUMN,
+  NOTION_VERSION,
+  NOTION_API,
+} from "@/config";
+import notion from "@/connections/notion";
+import googleSheets from "@/connections/google-sheets";
+
 const sdk = createZapierSdk();
 
-// Notion property whose value picks the content rows (select, multi-select, status or text).
-const CATEGORY_PROPERTY = "Category";
-// Notion rich-text property the seeded test content is written into (replaced on each seed).
-const SEEDED_CONTENT_PROPERTY = "Seeded Test Content";
-// Google Sheets spreadsheet ID of the test-content library (the long ID in the sheet's URL).
-const SPREADSHEET_ID = "YOUR_SPREADSHEET_ID";
-// Worksheet (tab) ID; the first tab is "0".
-const WORKSHEET_ID = "0";
-// Column holding each row's category, matched against the page's category (COL$A = column A).
-const CATEGORY_COLUMN = "COL$A";
 // Columns copied into the page, with the label shown before each value.
 const CONTENT_COLUMNS: Record<string, string> = {
   COL$B: "Title",
@@ -22,10 +24,7 @@ const CONTENT_COLUMNS: Record<string, string> = {
 };
 // Most rows returned per lookup (the Sheets action allows up to 500).
 const ROW_LIMIT = 500;
-// Notion API version sent on direct page reads and writes.
-const NOTION_VERSION = "2022-06-28";
 
-const NOTION_API = "https://api.notion.com/v1";
 // Notion caps one rich-text item at 2,000 characters.
 const MAX_RICH_TEXT = 2000;
 
@@ -73,7 +72,7 @@ const workflow = defineDurable<unknown, unknown>(
 
     const page = await ctx.step("get-qa-page", async () => {
       const response = await sdk.fetch(`${NOTION_API}/pages/${pageId}`, {
-        connection: "notion",
+        connection: notion,
         method: "GET",
         headers: { "Notion-Version": NOTION_VERSION },
       });
@@ -115,7 +114,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "search",
         actionKey: "find_many_rows",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,
@@ -160,7 +159,7 @@ const workflow = defineDurable<unknown, unknown>(
 
     await ctx.step("write-seeded-content", async () => {
       const response = await sdk.fetch(`${NOTION_API}/pages/${pageId}`, {
-        connection: "notion",
+        connection: notion,
         method: "PATCH",
         headers: {
           "Notion-Version": NOTION_VERSION,

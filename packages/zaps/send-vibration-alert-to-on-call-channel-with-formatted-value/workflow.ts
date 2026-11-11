@@ -2,18 +2,17 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { ON_CALL_CHAT_ID, ON_CALL_MENTION } from "@/config";
+import telegram from "@/connections/telegram";
+
 const sdk = createZapierSdk();
 
-// Telegram chat ID of the on-call chat or group (for example "-1001234567890" or "@your_channel"). The bot must be a member of the chat.
-const ON_CALL_CHAT_ID = "YOUR_TELEGRAM_CHAT_ID";
 // Vibration reading above which an alert is sent.
 const VIBRATION_THRESHOLD = 100;
 // Decimal places for the formatted vibration value.
 const VALUE_PRECISION = 1;
 // Prefix alerts with an on-call mention. Keep false for tests.
 const MENTION_ON_CALL = false;
-// Telegram username to mention when MENTION_ON_CALL is true.
-const ON_CALL_MENTION = "@YOUR_ON_CALL_USERNAME";
 
 const InputSchema = z
   .object({
@@ -50,7 +49,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "telegram",
         actionType: "write",
         actionKey: "send_message",
-        connection: "telegram",
+        connection: telegram,
         inputs: {
           chat_id: ON_CALL_CHAT_ID,
           format: "plaintext",

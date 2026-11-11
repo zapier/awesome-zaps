@@ -2,12 +2,25 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import {
+  APPOINTMENT_STAFF_REF_FIELD,
+  APPOINTMENT_TYPE_FIELD,
+  STAFF_OBJECT,
+  STAFF_MATCH_FIELD,
+  TRANSACTION_OBJECT,
+  TX_CREATED_DATE_FIELD,
+  TX_STAFF_LOOKUP_FIELD,
+  TX_AMOUNT_FIELD,
+  TX_MEMO_FIELD,
+  TX_CLASSIFICATION_FIELD,
+  TX_DETAIL_FIELD,
+  TX_CLASSIFICATION_VALUE,
+  TX_DETAIL_VALUE,
+} from "@/config";
+import salesforce from "@/connections/salesforce";
+
 const sdk = createZapierSdk();
 
-// Appointment field (API name) holding the staff reference; falls back to the record's OwnerId.
-const APPOINTMENT_STAFF_REF_FIELD = "Staff_Reference__c";
-// Appointment field (API name) holding the appointment type used to pick a bonus tier.
-const APPOINTMENT_TYPE_FIELD = "Type__c";
 // Appointment types that earn the smaller bonus.
 const SMALL_TIER_TYPES = ["Standard"];
 // Appointment types that earn the larger bonus.
@@ -15,22 +28,6 @@ const LARGE_TIER_TYPES = ["Premium"];
 // Bonus amounts, in the org's currency.
 const SMALL_TIER_AMOUNT = 2.5;
 const LARGE_TIER_AMOUNT = 5.0;
-
-// Staff object (API name) and the field on it that matches the appointment's staff reference.
-const STAFF_OBJECT = "Staff__c";
-const STAFF_MATCH_FIELD = "Staff_Reference__c";
-
-// Staff Account Transaction object (API name) and its fields.
-const TRANSACTION_OBJECT = "Staff_Account_Transaction__c";
-const TX_CREATED_DATE_FIELD = "Transaction_Created_Date__c";
-const TX_STAFF_LOOKUP_FIELD = "Staff__c";
-const TX_AMOUNT_FIELD = "Amount__c";
-const TX_MEMO_FIELD = "Memo__c";
-const TX_CLASSIFICATION_FIELD = "Type__c";
-const TX_DETAIL_FIELD = "Detail__c";
-// Classification labels written on every bonus transaction.
-const TX_CLASSIFICATION_VALUE = "Credit";
-const TX_DETAIL_VALUE = "Appointment Bonus";
 
 const InputSchema = z
   .object({
@@ -107,7 +104,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "salesforce",
         actionType: "search",
         actionKey: "find_record_by_query",
-        connection: "salesforce",
+        connection: salesforce,
         inputs: {
           object: STAFF_OBJECT,
           whereClause: `${STAFF_MATCH_FIELD} = ${soqlString(staffReference)}`,
@@ -124,7 +121,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "salesforce",
           actionType: "write",
           actionKey: "create_record",
-          connection: "salesforce",
+          connection: salesforce,
           inputs: {
             object: STAFF_OBJECT,
             Name: staffReference,
@@ -146,7 +143,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "salesforce",
           actionType: "write",
           actionKey: "create_record",
-          connection: "salesforce",
+          connection: salesforce,
           inputs: {
             object: TRANSACTION_OBJECT,
             [TX_CREATED_DATE_FIELD]: createdDate,

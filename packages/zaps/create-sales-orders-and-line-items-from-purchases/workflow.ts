@@ -2,12 +2,10 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
+import { ORDERS_WEBHOOK_URL, ORDER_LINES_WEBHOOK_URL } from "@/config";
+
 const sdk = createZapierSdk();
 
-// Endpoint that receives each new sales order (your ERP/CRM Orders endpoint). Anyone with this URL can create orders.
-const ORDERS_WEBHOOK_URL = "YOUR_ERP_ORDERS_WEBHOOK_URL";
-// Endpoint that receives each sales-order line and the discount line (your ERP/CRM sales-order-lines endpoint).
-const ORDER_LINES_WEBHOOK_URL = "YOUR_ERP_ORDER_LINES_WEBHOOK_URL";
 // Customer label per Shopify sales channel (sourceName). Channels not listed get "Shopify (<sourceName>)".
 const CUSTOMER_LABELS: Record<string, string> = {
   web: "Online Store",

@@ -2,16 +2,15 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  TABLE_ID,
+  COMPANY_ID_FIELD,
+  ENGAGEMENT_COUNT_FIELD,
+  INCREMENT_AMOUNT,
+} from "@/config";
+import zapierTables from "@/connections/zapier-tables";
 
-// Zapier Tables table ID of the tracking table (the ID in the table's URL).
-const TABLE_ID = "YOUR_TABLE_ID";
-// Field key of the Company ID column. Matched on when looking for a company's row.
-const COMPANY_ID_FIELD = "data__f1";
-// Field key of the Engagement Count column (a number field).
-const ENGAGEMENT_COUNT_FIELD = "data__f2";
-// How much each engagement adds to a company's count. Default is 1 per event.
-const INCREMENT_AMOUNT = "1";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -55,7 +54,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "zapier-tables",
             actionType: "search",
             actionKey: "find_record",
-            connection: "zapier-tables",
+            connection: zapierTables,
             inputs: {
               table_id: TABLE_ID,
               filter_count: "1",
@@ -74,7 +73,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "zapier-tables",
               actionType: "write",
               actionKey: "increment_value",
-              connection: "zapier-tables",
+              connection: zapierTables,
               inputs: {
                 table_id: TABLE_ID,
                 record_id: recordId,
@@ -92,7 +91,7 @@ const workflow = defineDurable<unknown, unknown>(
                 appKey: "zapier-tables",
                 actionType: "write",
                 actionKey: "create_record",
-                connection: "zapier-tables",
+                connection: zapierTables,
                 inputs: {
                   table_id: TABLE_ID,
                   new__data__f1: companyId,

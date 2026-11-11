@@ -2,27 +2,24 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  SPREADSHEET_ID,
+  WORKSHEET_ID,
+  PAYROLL_EMAIL,
+  WORKER_NAME_REF,
+  DATE_REF,
+  HOURS_REF,
+  NOTES_REF,
+  SUBMISSION_ID_COLUMN,
+  NAME_COLUMN,
+  DATE_COLUMN,
+  HOURS_COLUMN,
+  DESCRIPTION_COLUMN,
+} from "@/config";
+import googleSheets from "@/connections/google-sheets";
+import gmail from "@/connections/gmail";
 
-// Typeform form ID of the extra-hours form (also set as the trigger's formId).
-const FORM_ID = "YOUR_TYPEFORM_FORM_ID";
-// Google Sheets spreadsheet ID (the long ID in the sheet's URL).
-const SPREADSHEET_ID = "YOUR_SPREADSHEET_ID";
-// Worksheet (tab) ID; the first tab is "0".
-const WORKSHEET_ID = "0";
-// Email address the payroll clerk notification is sent to.
-const PAYROLL_EMAIL = "YOUR_PAYROLL_EMAIL";
-// Typeform question refs for the form fields (replace with the refs in your form).
-const WORKER_NAME_REF = "YOUR_WORKER_NAME_QUESTION_REF";
-const DATE_REF = "YOUR_DATE_QUESTION_REF";
-const HOURS_REF = "YOUR_HOURS_QUESTION_REF";
-const NOTES_REF = "YOUR_NOTES_QUESTION_REF";
-// Sheet columns (COL$A = column A).
-const SUBMISSION_ID_COLUMN = "COL$A";
-const NAME_COLUMN = "COL$B";
-const DATE_COLUMN = "COL$C";
-const HOURS_COLUMN = "COL$D";
-const DESCRIPTION_COLUMN = "COL$E";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -56,7 +53,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "search",
         actionKey: "lookup_row",
-        connection: "google-sheets",
+        connection: googleSheets,
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,
@@ -74,7 +71,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "google-sheets",
             actionType: "write",
             actionKey: "update_row",
-            connection: "google-sheets",
+            connection: googleSheets,
             inputs: {
               spreadsheet: SPREADSHEET_ID,
               worksheet: WORKSHEET_ID,
@@ -88,7 +85,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "google-sheets",
             actionType: "write",
             actionKey: "add_row",
-            connection: "google-sheets",
+            connection: googleSheets,
             inputs: {
               spreadsheet: SPREADSHEET_ID,
               worksheet: WORKSHEET_ID,
@@ -112,7 +109,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: "gmail",
+        connection: gmail,
         inputs: {
           to: PAYROLL_EMAIL,
           subject,

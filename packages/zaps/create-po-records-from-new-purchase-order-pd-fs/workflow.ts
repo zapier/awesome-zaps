@@ -2,17 +2,19 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-const sdk = createZapierSdk();
+import {
+  PO_TABLE_ID,
+  DATE_FIELD,
+  ATTACHMENT_FIELD,
+  COMPANY_FIELD,
+  PO_NUMBER_FIELD,
+  NOT_FOUND,
+} from "@/config";
+import pdf4me from "@/connections/pdf4me";
+import chatgpt from "@/connections/chatgpt";
+import zapierTables from "@/connections/zapier-tables";
 
-// Zapier Tables table ID for the central PO tracking table.
-const PO_TABLE_ID = "YOUR_TABLE_ID";
-// Table field keys, one per value written to a record. Use the keys from your table.
-const DATE_FIELD = "YOUR_DATE_FIELD_KEY";
-const ATTACHMENT_FIELD = "YOUR_ATTACHMENT_FIELD_KEY";
-const COMPANY_FIELD = "YOUR_COMPANY_FIELD_KEY";
-const PO_NUMBER_FIELD = "YOUR_PO_NUMBER_FIELD_KEY";
-// Value the extraction prompt returns when a field is missing. Treated as absent.
-const NOT_FOUND = "Not Found";
+const sdk = createZapierSdk();
 
 const InputSchema = z
   .object({
@@ -58,7 +60,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "pdf4me",
         actionType: "write",
         actionKey: "ExtractText",
-        connection: "pdf4me",
+        connection: pdf4me,
         inputs: { fileUrl, fName: fileName, extractTextMode: "pagewise" },
       }),
     );
@@ -69,7 +71,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "chatgpt",
         actionType: "write",
         actionKey: "conversation_responses_api",
-        connection: "chatgpt",
+        connection: chatgpt,
         inputs: {
           model: "gpt-4o",
           instructions:
@@ -93,7 +95,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "search",
         actionKey: "find_record",
-        connection: "zapier-tables",
+        connection: zapierTables,
         inputs: { table_id: PO_TABLE_ID, [PO_NUMBER_FIELD]: poNumber },
       }),
     );
@@ -106,7 +108,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "create_record",
-        connection: "zapier-tables",
+        connection: zapierTables,
         inputs: {
           table_id: PO_TABLE_ID,
           [DATE_FIELD]: input.created_at ?? "",
