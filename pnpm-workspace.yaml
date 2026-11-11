@@ -2,3 +2,7 @@
 # platform package already ships, and nothing in this repo bundles, so it does not run.
 allowBuilds:
   esbuild: false
+# pnpm refuses packages published in the last day. zap-pack is Zapier's own CLI, published only by its release
+# pipeline from protected tags, so a new release is usable here as soon as it's out. Every other package waits.
+minimumReleaseAgeExclude:
+  - zap-pack
