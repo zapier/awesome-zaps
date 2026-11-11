@@ -4,18 +4,18 @@ A collection of Zaps written as code (Next Gen Zaps built on the Zapier SDK), wr
 
 ## Layout
 
-| Path                     | What lives here                                                                      |
-| ------------------------ | ------------------------------------------------------------------------------------ |
-| `packages/zaps/<zap>/`   | One zap per folder, in the [zap-pack](https://www.npmjs.com/package/zap-pack) layout |
-| `packages/zaps/scripts/` | Scripts for deploying a zap and checking its status                                  |
-| `docs/`                  | How to test and deploy a zap                                                         |
+| Path          | What lives here                                                                      |
+| ------------- | ------------------------------------------------------------------------------------ |
+| `zaps/<zap>/` | One zap per folder, in the [zap-pack](https://www.npmjs.com/package/zap-pack) layout |
+| `scripts/`    | Scripts for deploying a zap and checking its status, and the catalog test            |
+| `docs/`       | How to test and deploy a zap                                                         |
 
 ## A zap's folder
 
 Each zap is a folder of plain files that the [zap-pack](https://www.npmjs.com/package/zap-pack) CLI deploys as is:
 
 ```
-packages/zaps/<zap>/
+zaps/<zap>/
 ├── workflow.ts      the workflow; imports its settings and accounts
 ├── config.ts        its settings: ask("…") for values each person sets
 ├── connections/     one file per account it uses

@@ -2,16 +2,23 @@
   "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
   "entry": [
     // run by `pnpm zap:deploy` and `pnpm zap:status`, so nothing imports it
-    "packages/zaps/scripts/zap.ts",
+    "scripts/zap.ts",
   ],
   // A zap is a self-contained folder that deploys as is (workflow.ts, config.ts, connections/, triggers/), so zaps
   // repeat small helpers by design and import zap-pack and @/ paths the zap CLI resolves.
   // scripts/catalog.test.ts checks them instead.
   "ignorePatterns": [
-    "packages/zaps/*/workflow.ts",
-    "packages/zaps/*/config.ts",
-    "packages/zaps/*/connections/*.ts",
-    "packages/zaps/*/triggers/*.ts",
+    "zaps/*/workflow.ts",
+    "zaps/*/config.ts",
+    "zaps/*/connections/*.ts",
+    "zaps/*/triggers/*.ts",
+  ],
+  // Used only by the zaps, which the ignore patterns above leave out: zap-pack is the CLI that deploys them, and the
+  // Zapier packages are what each zap's workflow.ts imports and zap-pack publishes with it.
+  "ignoreDependencies": [
+    "zap-pack",
+    "@zapier/zapier-durable",
+    "@zapier/zapier-sdk",
   ],
   "production": {
     // removing test files from code quality checks

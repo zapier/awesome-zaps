@@ -1,2 +1,4 @@
-packages:
-  - "packages/*"
+# zap-pack pulls in esbuild through the Zapier SDK CLI. Its install script only fetches the binary that its
+# platform package already ships, and nothing in this repo bundles, so it does not run.
+allowBuilds:
+  esbuild: false

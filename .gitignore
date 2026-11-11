@@ -4,3 +4,6 @@ node_modules/
 .fallow/
 .env
 .pnpm-store/
+
+# zap-pack: each deployer's connection IDs and answers. Never commit them.
+.zap.json

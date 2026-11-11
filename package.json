@@ -3,18 +3,26 @@
   "private": true,
   "packageManager": "pnpm@12.15.0",
   "type": "module",
+  "zap": {
+    "project": "awesome-zaps"
+  },
   "scripts": {
-    "types": "pnpm -r run types",
-    "test": "pnpm -r run test",
+    "types": "tsc",
+    "test": "vitest run --dir scripts",
+    "zap:deploy": "node scripts/zap.ts deploy",
+    "zap:status": "node scripts/zap.ts status",
     "lint": "eslint --max-warnings 0 .",
     "lint:fix": "eslint --fix .",
     "fmt": "prettier --write .",
     "fmt:check": "prettier --check .",
     "fallow": "fallow dead-code --quiet --fail-on-issues && fallow dupes --quiet --fail-on-issues && fallow health --quiet --min-score 100",
     "check": "pnpm run types && pnpm run lint && pnpm run fmt:check && pnpm run test && pnpm run fallow",
-    "zap:deploy": "node packages/zaps/scripts/zap.ts deploy",
-    "zap:status": "node packages/zaps/scripts/zap.ts status",
     "prepare": "husky"
+  },
+  "dependencies": {
+    "@zapier/zapier-durable": "0.16.0",
+    "@zapier/zapier-sdk": "0.120.0",
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
@@ -26,6 +34,7 @@
     "prettier": "3.9.3",
     "typescript": "6.0.3",
     "typescript-eslint": "8.71.0",
-    "vitest": "4.1.11"
+    "vitest": "4.1.11",
+    "zap-pack": "0.0.6"
   }
 }
