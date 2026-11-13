@@ -2,7 +2,7 @@
 
 Every new Stripe charge sends your finance team a short email with the amount, status and a link to the charge, so issues get triaged the same day.
 
-**Apps:** Stripe (Legacy), Email by Zapier
+**Apps:** Stripe, Email by Zapier
 
 **Based on:** [Notify finance of new payment charges by email](https://zapier.com/automations/finance/payment-operations/payment-reconciliation/notify-finance-of-new-payment-charges-by-email) on zapier.com
 
@@ -19,5 +19,5 @@ The agent follows `SKILL.md`: it asks you for the finance and billing addresses 
 - `SKILL.md`: what the agent asks, builds and tests
 - `workflow.ts`: the Zap's code
 - `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
-- `connections/`: the account it uses (`stripe-legacy`)
+- `connections/`: the account it uses (`stripe`)
 - `triggers/`: what starts it
