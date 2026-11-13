@@ -8,9 +8,7 @@ import {
   TRELLO_LIST_ID,
   EVALUATION_FORM_URL,
   CHECKLIST_NAME,
-} from "@/config";
-import zapierTables from "@/connections/zapier-tables";
-import trello from "@/connections/trello";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -32,7 +30,7 @@ const EmployeeSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-performance-evaluation-cards-for-upcoming-staff-reviews",
   async (ctx) => {
     const records = await ctx.step("read-employee-records", async () => {
@@ -40,7 +38,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "ae_538493_zapier_tables_get_all_records_from_zapie",
-        connection: zapierTables,
+        connection: "zapier-tables",
         inputs: { tableId: EMPLOYEES_TABLE_ID },
       });
       return result.data;
@@ -96,7 +94,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "trello",
               actionType: "search",
               actionKey: "organization_card_v2",
-              connection: trello,
+              connection: "trello",
               inputs: {
                 board: TRELLO_BOARD_ID,
                 keyword: employee.name,
@@ -106,7 +104,11 @@ const workflow = defineDurable<unknown, unknown>(
         );
         if (
           (existing.data ?? []).some(
-            (card: { name?: string }) => card.name === employee.name,
+            (card) =>
+              typeof card === "object" &&
+              card !== null &&
+              "name" in card &&
+              card.name === employee.name,
           )
         ) {
           results.push({
@@ -128,7 +130,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "trello",
             actionType: "write",
             actionKey: "card_v2",
-            connection: trello,
+            connection: "trello",
             inputs: {
               board: TRELLO_BOARD_ID,
               list: TRELLO_LIST_ID,

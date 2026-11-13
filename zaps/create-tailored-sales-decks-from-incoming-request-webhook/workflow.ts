@@ -9,10 +9,7 @@ import {
   CLIENT_NAME_FIELD,
   STATUS_FIELD,
   NEW_RECORD_STATUS,
-} from "@/config";
-import storage from "@/connections/storage";
-import zapierTables from "@/connections/zapier-tables";
-import googleSlides from "@/connections/google-slides";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -52,7 +49,7 @@ function titleCase(text: string): string {
   return text.toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-tailored-sales-decks-from-incoming-request-webhook",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(normalizeInput(rawInput));
@@ -69,7 +66,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "storage",
         actionType: "search",
         actionKey: "get_value",
-        connection: storage,
+        connection: "storage",
         inputs: { key: storageKey },
       }),
     );
@@ -82,7 +79,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "search",
         actionKey: "find_record",
-        connection: zapierTables,
+        connection: "zapier-tables",
         inputs: {
           table_id: TABLE_ID,
           filter_count: "1",
@@ -105,7 +102,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "zapier-tables",
           actionType: "write",
           actionKey: "create_record",
-          connection: zapierTables,
+          connection: "zapier-tables",
           inputs: {
             table_id: TABLE_ID,
             [REQUEST_ID_FIELD]: requestId,
@@ -128,7 +125,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-slides",
         actionType: "write",
         actionKey: "create_presentation_from_template",
-        connection: googleSlides,
+        connection: "google-slides",
         inputs: {
           title: deckTitle,
           is_shared: SHARE_DECK_WITH_LINK,
@@ -148,7 +145,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "storage",
         actionType: "write",
         actionKey: "set_value_if",
-        connection: storage,
+        connection: "storage",
         inputs: { key: storageKey, value: String(deckId ?? requestId) },
       }),
     );

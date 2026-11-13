@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { CAMPAIGN_ID, DEFAULT_COUNTRY_CODE, SIGNUP_SOURCE } from "@/config";
-import leadconnector from "@/connections/leadconnector";
+import { CAMPAIGN_ID, DEFAULT_COUNTRY_CODE, SIGNUP_SOURCE } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -26,7 +25,7 @@ function toE164(raw: string | null | undefined) {
   return `+${digits}`;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "enroll-webhook-signups-into-sms-reminder-campaign-for-event",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -51,7 +50,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "leadconnector",
         actionType: "write",
         actionKey: "add_update_contact",
-        connection: leadconnector,
+        connection: "leadconnector",
         inputs: { ...contact, source: SIGNUP_SOURCE, lead: true },
       }),
     );
@@ -61,7 +60,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "leadconnector",
         actionType: "write",
         actionKey: "campaign",
-        connection: leadconnector,
+        connection: "leadconnector",
         inputs: {
           campaign_id: CAMPAIGN_ID,
           ...contact,

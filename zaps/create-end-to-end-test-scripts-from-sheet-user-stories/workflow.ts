@@ -12,9 +12,7 @@ import {
   OUTPUT_SUMMARY_COLUMN,
   OUTPUT_SCRIPT_COLUMN,
   CHATGPT_MODEL,
-} from "@/config";
-import chatgpt from "@/connections/chatgpt";
-import googleSheets from "@/connections/google-sheets";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -25,7 +23,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-end-to-end-test-scripts-from-sheet-user-stories",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -46,7 +44,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "chatgpt",
         actionType: "write",
         actionKey: "send_prompt",
-        connection: chatgpt,
+        connection: "chatgpt",
         inputs: {
           model: CHATGPT_MODEL,
           prompt: [
@@ -63,7 +61,9 @@ const workflow = defineDurable<unknown, unknown>(
       }),
     );
 
-    const testCaseText = String(testCaseResult.data[0]?.output ?? "");
+    const testCaseText = String(
+      (testCaseResult.data[0] as { output?: string } | undefined)?.output ?? "",
+    );
     const testIds = [...testCaseText.matchAll(/Test ID:\s*(\S+)/g)].map(
       (match) => match[1],
     );
@@ -82,7 +82,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "chatgpt",
         actionType: "write",
         actionKey: "send_prompt",
-        connection: chatgpt,
+        connection: "chatgpt",
         inputs: {
           model: CHATGPT_MODEL,
           prompt: [
@@ -98,7 +98,9 @@ const workflow = defineDurable<unknown, unknown>(
       [OUTPUT_ID_COLUMN]: storyId,
       [OUTPUT_TEST_IDS_COLUMN]: testIds.join(", "),
       [OUTPUT_SUMMARY_COLUMN]: testNames.join("; "),
-      [OUTPUT_SCRIPT_COLUMN]: String(scriptResult.data[0]?.output ?? ""),
+      [OUTPUT_SCRIPT_COLUMN]: String(
+        (scriptResult.data[0] as { output?: string } | undefined)?.output ?? "",
+      ),
     };
 
     const existing = await ctx.step("find-output-row", async () =>
@@ -106,7 +108,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "search",
         actionKey: "lookup_row",
-        connection: googleSheets,
+        connection: "google-sheets",
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: OUTPUT_WORKSHEET_ID,
@@ -123,7 +125,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "google-sheets",
           actionType: "write",
           actionKey: "update_row",
-          connection: googleSheets,
+          connection: "google-sheets",
           inputs: {
             spreadsheet: SPREADSHEET_ID,
             worksheet: OUTPUT_WORKSHEET_ID,
@@ -146,7 +148,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "add_row",
-        connection: googleSheets,
+        connection: "google-sheets",
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: OUTPUT_WORKSHEET_ID,

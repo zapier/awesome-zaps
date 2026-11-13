@@ -6,16 +6,18 @@ When an approver confirms a leave request, the leave goes on the team calendar, 
 
 **Based on:** [Create leave calendar events and send approval emails](https://zapier.com/automations/human-resources-hr/hr-operations/time-off-requests/create-leave-calendar-events-and-send-approval-emails) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/create-leave-calendar-events-and-send-approval-emails/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/create-leave-calendar-events-and-send-approval-emails
+
+The agent follows `SKILL.md`: it asks you for your leave requests table, leave tracker table and calendar, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
 - `connections/`: the accounts it uses (`gmail`, `google-calendar`, `zapier-tables`)
 - `triggers/`: what starts it

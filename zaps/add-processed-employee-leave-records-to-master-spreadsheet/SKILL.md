@@ -1,6 +1,6 @@
 ---
 name: add-processed-employee-leave-records-to-master-spreadsheet
-description: Use when an HR system or form posts processed employee leave records to a webhook and each one should be added as a new row in the HR master spreadsheet. Use it when payroll or HR coordinators keep an audit-ready list of leave in a Microsoft Excel workbook on OneDrive.
+description: Build a Zap on Zapier that adds each processed employee leave record posted to a webhook as a new row in the HR master spreadsheet. Use when an HR system or form posts processed leave records to a webhook and payroll or HR coordinators keep an audit-ready list of leave in a Microsoft Excel workbook on OneDrive.
 license: MIT
 metadata:
   author: zapier
@@ -13,43 +13,45 @@ metadata:
 
 # Add processed employee leave records to master spreadsheet
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/add-processed-employee-leave-records-to-master-spreadsheet. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a processed leave record arrives at a Webhooks by Zapier catch hook (an HR system or form posts to it).
+1. **Trigger:** a processed leave record arrives at a Webhooks by Zapier catch hook (`webhook`, `hook_v2`). An HR system or form posts to it.
 2. **Plain code** trims and collapses whitespace in the text fields and turns `YYYY-MM-DD` dates into `DD/MM/YYYY`. Other date formats pass through unchanged.
-3. **Microsoft Excel** appends one row to the end of the configured worksheet in the HR workbook. It never updates earlier rows, and it does not check for duplicates.
+3. **Microsoft Excel** appends one row to the end of the configured worksheet in the HR workbook.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/add-processed-employee-leave-records-to-master-spreadsheet` (it makes a zap project if you aren't in one), then `npx zap-pack deploy add-processed-employee-leave-records-to-master-spreadsheet` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Webhooks by Zapier, Catch Hook (`webhook`, `hook_v2`). It needs no connection, so its `authentication_id` is `null`.
-2. **Connections** (each alias in the code is the app's slug):
-   - `excel`: the user's Microsoft Excel connection, for the OneDrive account that owns the master workbook. The workbook must be on OneDrive for Business; Excel on Zapier does not support other storage.
-3. **Constants:**
-   - `WORKBOOK_ID`: the workbook's file ID.
-   - `WORKSHEET_ID`: the worksheet (tab) ID inside that workbook.
-   - `FOLDER_ID`: the OneDrive folder holding the workbook. `"root"` is the top of the drive.
-   - `STORAGE_SOURCE`: `"one_drive"`, or `"sharepoint"` for a SharePoint workbook.
-   - Column headers `EMPLOYEE_ID_COLUMN`, `EMPLOYEE_NAME_COLUMN`, `ABSENCE_TYPE_COLUMN`, `START_DATE_COLUMN`, `END_DATE_COLUMN`, `PROVIDER_COLUMN`, `NOTES_COLUMN`: each must match the worksheet's header row exactly.
-4. Test with the steps below, then publish, wait until the trigger is active, and give the user their webhook URL to point the HR system at.
+The Zap only appends rows. It never updates earlier rows and does not check for duplicates.
 
 ## Ask the user
 
-- Which workbook, worksheet and OneDrive folder hold the master sheet? Is it on OneDrive or SharePoint?
-- What are the header names of the master sheet's columns? The code writes to these names.
-- Does the sender post the fields `employee_id`, `employee_name`, `absence_type`, `start_date`, `end_date`, `provider` and `notes`? If it uses other names, change the input schema before installing.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting        | What goes there                                                               |
+| -------------- | ----------------------------------------------------------------------------- |
+| `WORKBOOK_ID`  | The Microsoft Excel workbook that is the master sheet, on the user's OneDrive |
+| `WORKSHEET_ID` | The worksheet (tab) inside that workbook that holds the master sheet's rows   |
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing, against a test copy of the master workbook (a worksheet whose headers match the constants):
+Also review the defaults with them:
+
+- `FOLDER_ID`: the OneDrive folder holding the workbook. `"root"` is the top of the drive.
+- `STORAGE_SOURCE`: `"one_drive"`, or `"sharepoint"` for a SharePoint workbook.
+- The seven column headers (`EMPLOYEE_ID_COLUMN` to `NOTES_COLUMN`): each must match the worksheet's header row exactly.
+
+Prerequisite question: does the sender post the fields `employee_id`, `employee_name`, `absence_type`, `start_date`, `end_date`, `provider` and `notes`? If it uses other names, change the input schema in `workflow.ts` before installing.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `excel` to the user's Microsoft Excel connection for the OneDrive account that owns the master workbook. Webhooks by Zapier needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/hook.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections (and sample the trigger, if it has one) before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test, with the workbook set to a test copy of the master sheet (a worksheet whose headers match the constants):
 
 ```json
 {
@@ -63,16 +65,12 @@ Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before 
 }
 ```
 
-Confirm that one new row was appended at the bottom of the worksheet, with `Employee ID` `E-1042`, `Employee Name` `Jane Example`, and the start and end dates as `03/11/2026` and `07/11/2026`. Then delete that row from the test copy.
-
-## Customize
-
-- **Skip duplicates:** look up the employee ID and date range first, and skip the append when a matching row already exists.
-- **Notify on long or high-severity absences:** add a Slack or email step after the append when the absence is long.
+Check that one new row was appended at the bottom of the worksheet, with `Employee ID` `E-1042`, `Employee Name` `Jane Example`, and the start and end dates as `03/11/2026` and `07/11/2026`. If run-status tools aren't available, check the result in Microsoft Excel directly. Then ask the user to delete that row from the test copy. Publish after the test passes, confirm the trigger is active, and give the user the webhook URL to point the HR system at.
 
 ## Notes
 
 - Excel's Add Row step takes its column values from the worksheet's header row, so a renamed header breaks the mapping until the constants are updated.
 - Dates are written as text in `DD/MM/YYYY`. The sheet may show them in its own format.
-- Anyone who can post to the catch hook can add rows to the master sheet. Keep the webhook URL private.
-- Never commit a real workbook ID or webhook URL.
+- To skip duplicates, look up the employee ID and date range first and skip the append when a matching row exists.
+- To notify on long or high-severity absences, add a Slack or email step after the append.
+- Anyone who can post to the catch hook can add rows to the master sheet. Keep the webhook URL private, and never commit a real workbook ID or webhook URL.

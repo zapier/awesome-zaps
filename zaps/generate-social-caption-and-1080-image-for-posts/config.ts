@@ -1,8 +1,8 @@
-import { ask } from "zap-pack";
+// This zap's settings. Each "REPLACE_…" value is set per person before deploying; its comment says how to get it.
+// The other values are defaults you can change.
 
-export const TABLE_ID = ask(
-  "Zapier Tables table ID to watch and write back to (the long ID in the table's URL).",
-);
+export const TABLE_ID = "REPLACE_TABLE_ID"; // Ask the user which table holds the content ideas, then look up its ID with their Zapier Tables connection. It is the long ID in the table's URL.
+
 // Field key for the caption, written by the workflow.
 export const CAPTION_FIELD = "new__data__f2";
 // Field key for the hashtags, written by the workflow.

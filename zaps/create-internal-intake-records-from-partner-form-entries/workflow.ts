@@ -6,14 +6,13 @@ import {
   WORKSPACE_ID,
   INTAKE_FORM_ID,
   SECONDARY_INTAKE_FORM_ID,
-} from "@/config";
-import jotformEnterprise from "@/connections/jotform-enterprise";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
-// Internal intake field key -> partner form answer key. Fill both sides from the form field keys shown by the Jotform create-submission action.
+// Internal intake field key -> partner form answer key. Ask the user which partner answer goes in each intake field, then look up both field keys with their Jotform Enterprise connection.
 const FIELD_MAP: Record<string, string> = {
-  YOUR_INTAKE_FIELD_KEY: "YOUR_PARTNER_FIELD_KEY",
+  REPLACE_INTAKE_FIELD_KEY: "REPLACE_PARTNER_FIELD_KEY",
 };
 
 const InputSchema = z
@@ -22,7 +21,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-internal-intake-records-from-partner-form-entries",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -41,7 +40,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "jotform-enterprise",
         actionType: "write",
         actionKey: "create_submission",
-        connection: jotformEnterprise,
+        connection: "jotform-enterprise",
         inputs: {
           workspaceId: WORKSPACE_ID,
           form: INTAKE_FORM_ID,
@@ -56,7 +55,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "jotform-enterprise",
             actionType: "write",
             actionKey: "create_submission",
-            connection: jotformEnterprise,
+            connection: "jotform-enterprise",
             inputs: {
               workspaceId: WORKSPACE_ID,
               form: SECONDARY_INTAKE_FORM_ID,

@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { EXTERNAL_ID_FIELD } from "@/config";
-import pipedrive from "@/connections/pipedrive";
+import { EXTERNAL_ID_FIELD } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -16,7 +15,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "add-external-campaign-identifier-to-crm-deal-record",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -37,7 +36,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "pipedrive",
         actionType: "search",
         actionKey: "get_deal",
-        connection: pipedrive,
+        connection: "pipedrive",
         inputs: { id: String(dealId) },
       }),
     );
@@ -55,7 +54,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "pipedrive",
         actionType: "write",
         actionKey: "update_deal_v2",
-        connection: pipedrive,
+        connection: "pipedrive",
         inputs: { id: dealId, [EXTERNAL_ID_FIELD]: externalId },
       }),
     );

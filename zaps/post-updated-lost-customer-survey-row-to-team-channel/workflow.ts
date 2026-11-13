@@ -17,9 +17,7 @@ import {
   COMPLETED_STATUS,
   NOTIFIED_VALUE,
   BOT_NAME,
-} from "@/config";
-import slack from "@/connections/slack";
-import googleSheets from "@/connections/google-sheets";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -32,7 +30,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "post-updated-lost-customer-survey-row-to-team-channel",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -74,7 +72,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "channel_message",
-        connection: slack,
+        connection: "slack",
         inputs: {
           channel: SLACK_CHANNEL_ID,
           text,
@@ -92,7 +90,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "update_row",
-        connection: googleSheets,
+        connection: "google-sheets",
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,
@@ -105,8 +103,8 @@ const workflow = defineDurable<unknown, unknown>(
     return {
       rowId,
       customer,
-      messageTs: message.data[0]?.ts ?? null,
-      markedRow: marked.data[0]?.row ?? null,
+      messageTs: (message.data[0] as { ts?: string } | undefined)?.ts ?? null,
+      markedRow: (marked.data[0] as { row?: number } | undefined)?.row ?? null,
     };
   },
 );

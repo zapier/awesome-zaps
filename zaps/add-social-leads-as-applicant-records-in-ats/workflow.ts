@@ -2,7 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { ATS_WEBHOOK_URL, INTAKE_STAGE, SOURCE_TAG } from "@/config";
+import { ATS_WEBHOOK_URL, INTAKE_STAGE, SOURCE_TAG } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -28,7 +28,7 @@ function cleanPhone(raw: string) {
   return raw.trim().startsWith("+") ? `+${digits}` : digits;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "add-social-leads-as-applicant-records-in-ats",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(

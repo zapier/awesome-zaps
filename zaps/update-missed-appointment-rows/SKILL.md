@@ -1,6 +1,6 @@
 ---
 name: update-missed-appointment-rows
-description: Build a Zapier Next Gen Zap that marks an attendee as a no-show in a Google Sheets tracker when an absence notice arrives by webhook, with a timestamp and a note on where the notice came from. Use when a school, clinic or service business tracks attendance or appointments in a sheet and wants missed ones logged without manual edits.
+description: Build a Zap on Zapier that marks an attendee as a no-show in a Google Sheets tracker when an absence notice arrives by webhook, with a timestamp and a note on where the notice came from. Use when a school, clinic or service business tracks attendance or appointments in a sheet and wants missed ones logged without manual edits.
 license: MIT
 metadata:
   author: zapier
@@ -13,42 +13,44 @@ metadata:
 
 # Update missed appointment rows
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/update-missed-appointment-rows. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** an absence notice arrives at a Webhooks by Zapier catch hook (a check-in system, form or script posts to it).
+1. **Trigger:** an absence notice arrives at a Webhooks by Zapier catch hook (`webhook`, `hook_v2`). A check-in system, form or script posts to it.
 2. **Google Sheets** looks up the row whose attendee ID matches `attendee_id` in the payload. If there is no match, the run stops and writes nothing.
 3. **Google Sheets** updates that row: the status column becomes `No-show`, the last-updated column gets the time it was marked, and the comments column gets a note built from the payload's `source`, `reason` and `submitted_at`.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/update-missed-appointment-rows` (it makes a zap project if you aren't in one), then `npx zap-pack deploy update-missed-appointment-rows` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Webhooks by Zapier, Catch Hook (`webhook`, `hook_v2`). It needs no connection, so its `authentication_id` is `null`.
-2. **Connections** (each alias in the code is the app's slug):
-   - `google-sheets`: the user's Google Sheets connection, for the account that owns the tracking sheet.
-3. **Constants:**
-   - `SPREADSHEET_ID`: the long ID in the sheet's URL.
-   - `WORKSHEET_ID`: the tab. The first tab is `"0"`.
-   - `ATTENDEE_ID_COLUMN`, `STATUS_COLUMN`, `LAST_UPDATED_COLUMN`, `COMMENTS_COLUMN`: column keys such as `COL$A`, not header names. Map the user's headers to their column letters.
-   - `NO_SHOW_VALUE`: the status to write. Defaults to `"No-show"`.
-4. Test with the steps below, then publish, wait until the trigger is active, and give the user their webhook URL to point their check-in system at.
+The Zap changes at most one row and never deletes rows.
 
 ## Ask the user
 
-- Which sheet and tab is the tracker, and which columns hold the attendee ID, status, last-updated time and comments?
-- What does their absence notice send as the attendee's ID? The payload must carry it as `attendee_id`. If their system uses another field name, tell them before installing; the code rejects payloads without `attendee_id`.
-- Should the status read something other than `No-show`?
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting          | What goes there                                                                                                                      |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `SPREADSHEET_ID` | The attendance tracker: ask which sheet it is, then look up its ID (the long ID in its URL) with the user's Google Sheets connection |
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing, with an attendee ID that exists in the user's sheet:
+Also review the defaults with them:
+
+- `WORKSHEET_ID`: the tab holding the tracker. `"0"` is the first tab.
+- `ATTENDEE_ID_COLUMN`, `STATUS_COLUMN`, `LAST_UPDATED_COLUMN`, `COMMENTS_COLUMN`: column keys such as `COL$A`, not header names. Map the user's headers to their column letters.
+- `NO_SHOW_VALUE`: the status to write. `"No-show"` unless they want another status.
+
+Before turning it on, confirm the absence notice sends the attendee's ID as `attendee_id`. The code rejects payloads without it, so if their system uses another field name, settle that before installing.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `google-sheets` to the user's Google Sheets connection for the account that owns the tracking sheet. Webhooks by Zapier needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/hook.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connection (and sample the trigger, if it has one) before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run this sample as a draft test (`run_workflow_draft` in Zapier MCP), with the attendee ID of a test row the user set up for this, not a real attendee:
 
 ```json
 {
@@ -59,15 +61,12 @@ Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before 
 }
 ```
 
-Confirm that only that attendee's row changed: status set, a time in last-updated, and the note in comments. Then tell the user to change the row back if it was real data.
-
-## Customize
-
-- **Notify a coordinator** on the first no-show: add a Slack or email step after the update.
-- **Follow-up task:** create a task when the row has contact details.
+Confirm that only that row changed: status set, a time in last-updated, and the note in comments. If run-status tools aren't available, check the result in Google Sheets directly. The user restores or deletes the test row, not the agent.
 
 ## Notes
 
+- Once the Zap is published and its trigger is active, give the user the webhook URL to point their check-in system at. Anyone with that URL can mark attendees absent, so never commit it.
 - Google Sheets may show the timestamp in the sheet's own format and time zone.
 - If two rows share an attendee ID, only the first is updated.
-- Never commit a real spreadsheet ID or webhook URL. Anyone with the webhook URL can mark attendees absent.
+- To notify a coordinator on the first no-show, add a Slack or email step after the update. To create a follow-up task when the row has contact details, add a step that creates one.
+- Never commit a real spreadsheet ID.

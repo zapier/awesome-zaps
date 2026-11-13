@@ -8,8 +8,7 @@ import {
   SUPPORT_REACTION,
   BOT_NAME,
   BOT_ICON,
-} from "@/config";
-import slack from "@/connections/slack";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -41,7 +40,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "post-reaction-tagged-support-requests-to-ops-triage-channel",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -63,7 +62,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "slack",
               actionType: "search",
               actionKey: "user_by_id",
-              connection: slack,
+              connection: "slack",
               inputs: { id: requesterId, raw: "false" },
             });
             const user = lookup.data[0] as { real_name?: string } | undefined;
@@ -89,7 +88,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "channel_message",
-        connection: slack,
+        connection: "slack",
         inputs: {
           channel: TRIAGE_CHANNEL,
           text,

@@ -21,8 +21,7 @@ import {
   TICKET_STATUS_FIELD,
   INITIAL_STATUS,
   DEFAULT_PRIORITY,
-} from "@/config";
-import airtable from "@/connections/airtable";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -37,7 +36,7 @@ const InputSchema = z
 
 const text = (value: unknown) => (value == null ? "" : String(value).trim());
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-it-ticket-for-updated-website-asset-record",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -54,7 +53,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "airtable",
         actionType: "search",
         actionKey: "findRecord",
-        connection: airtable,
+        connection: "airtable",
         inputs: {
           applicationId: BASE_ID,
           tableName: TICKETS_TABLE,
@@ -86,7 +85,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "airtable",
         actionType: "write",
         actionKey: "createRecord",
-        connection: airtable,
+        connection: "airtable",
         inputs: {
           applicationId: BASE_ID,
           tableName: TICKETS_TABLE,
@@ -100,7 +99,13 @@ const workflow = defineDurable<unknown, unknown>(
       }),
     );
 
-    const ticketId = ticket.data?.[0]?.id;
+    const createdRow: unknown = ticket.data?.[0];
+    const ticketId =
+      typeof createdRow === "object" &&
+      createdRow !== null &&
+      "id" in createdRow
+        ? createdRow.id
+        : undefined;
 
     // This update fires the trigger again. The find-existing-ticket check stops a second ticket.
     if (LINK_TICKET_ON_ASSET && input.id && ticketId) {
@@ -109,7 +114,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "airtable",
           actionType: "write",
           actionKey: "updateRecord",
-          connection: airtable,
+          connection: "airtable",
           inputs: {
             applicationId: BASE_ID,
             tableName: ASSET_TABLE,

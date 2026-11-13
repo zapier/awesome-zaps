@@ -6,13 +6,11 @@ import {
   TEMPLATE_FILE_ID,
   DOC_NAME_PREFIX,
   BOARD_ITEM_ID,
-} from "@/config";
-import onedrive from "@/connections/onedrive";
-import mondayConnection from "@/connections/monday";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-weekly-board-update-and-share-preparation-documents",
   async (ctx) => {
     const dates = await ctx.step("compute-week-dates", async () => {
@@ -37,12 +35,14 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "onedrive",
         actionType: "search",
         actionKey: "file",
-        connection: onedrive,
+        connection: "onedrive",
         inputs: { query: dates.docName },
       }),
     );
 
-    let docId = existing.data.find((file) => file.name === dates.docName)?.id;
+    let docId = (existing.data as { id?: string; name?: string }[]).find(
+      (file) => file.name === dates.docName,
+    )?.id;
     let created = false;
 
     if (!docId) {
@@ -51,7 +51,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "onedrive",
           actionType: "write",
           actionKey: "copyFileOrFolder",
-          connection: onedrive,
+          connection: "onedrive",
           inputs: {
             directory: TEMPLATE_FILE_ID,
             folder: DESTINATION_FOLDER_ID,
@@ -60,7 +60,7 @@ const workflow = defineDurable<unknown, unknown>(
           },
         }),
       );
-      docId = copy.data[0]?.id;
+      docId = (copy.data[0] as { id?: string } | undefined)?.id;
       created = true;
     }
 
@@ -77,7 +77,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "onedrive",
         actionType: "write",
         actionKey: "shareLink",
-        connection: onedrive,
+        connection: "onedrive",
         inputs: {
           directory: docId,
           type: "edit",
@@ -85,7 +85,7 @@ const workflow = defineDurable<unknown, unknown>(
         },
       }),
     );
-    const link = share.data[0]?.url;
+    const link = (share.data[0] as { url?: string } | undefined)?.url;
 
     const body = [
       `Board update for the week of ${dates.weekStart}: ${link}`,
@@ -97,7 +97,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "monday",
         actionType: "write",
         actionKey: "create_update",
-        connection: mondayConnection,
+        connection: "monday",
         inputs: {
           item_id: Number(BOARD_ITEM_ID),
           body,

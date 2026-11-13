@@ -1,6 +1,6 @@
 ---
 name: create-new-e-store-user-and-assign-access-roles
-description: Build a Zapier Next Gen Zap that, when a new user intake item appears on a monday.com board, creates the customer record in your e-store platform, assigns the role chosen on the intake form, and emails the new user a temporary password and a role-specific quick start link. Use when a store or customer platform gets its users from intake forms and you want account creation, role assignment and the welcome email to happen without manual steps.
+description: Build a Zap on Zapier that, when a new user intake item appears on a monday.com board, creates the customer record in your e-store platform, assigns the role chosen on the intake form, and emails the new user a temporary password and a role-specific quick start link. Use when a store or customer platform gets its users from intake forms and you want account creation, role assignment and the welcome email to happen without manual steps.
 license: MIT
 metadata:
   author: zapier
@@ -13,70 +13,61 @@ metadata:
 
 # Create new e-store user and assign access roles
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/create-new-e-store-user-and-assign-access-roles. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a new item is created on the intake board in monday.com (`item_created_in_board`). It reads the name, email, role selections and region.
+1. **Trigger:** a new item is created on the intake board in monday.com (`monday`, `item_created_in_board`). It reads the name, email, role selections and region.
 2. **Role choice:** the first intake role that has an entry in the role table is used. If none matches, the run stops and creates nothing.
-3. **Create customer record:** Webhooks by Zapier POSTs the new user to your customer platform's `/customers` endpoint, active, with a generated temporary password and a require-reset flag. The returned customer ID is kept.
+3. **Create customer record:** Webhooks by Zapier POSTs the new user to the customer platform's `/customers` endpoint, active, with a generated temporary password and a require-reset flag. The returned customer ID is kept.
 4. **Assign role:** a second POST to `/customers/<id>/roles` attaches the chosen role.
 5. **Onboarding email:** Microsoft Outlook sends an HTML email to the new user's address with the temporary password and the quick start link for that role.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-new-e-store-user-and-assign-access-roles` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-new-e-store-user-and-assign-access-roles` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** monday.com, New Item in Board (`monday` / `item_created_in_board`). Set its `board_id` param to the ID of your intake board. The trigger needs the monday.com connection, so its `authentication_id` is that connection's ID.
-2. **Connections** (each alias in the code is the app's slug):
-   - `microsoft-outlook`: the Outlook account that sends the welcome email.
-   - `monday`: the monday.com account that owns the intake board (trigger only).
-   - Webhooks by Zapier (`webhook`) needs no connection.
-3. **Constants:**
-   - `CUSTOMER_API_URL`: the base URL of your customer platform API.
-   - `ROLE_IDS`: intake role label → role ID in your platform. The labels here are examples (`Store Admin`, `Store Staff`).
-   - `QUICK_START_URLS` and `DEFAULT_QUICK_START_URL`: the onboarding guide per role.
-   - `ONBOARDING_SUBJECT`: the email subject.
-   - `REQUIRE_PASSWORD_RESET`: whether the new user must change the temporary password at first sign-in.
-4. Test with the steps below, then publish, wait until the trigger is active, and give the user the trigger to test against.
-
 ## Ask the user
 
-- Which monday.com board is the intake board, and which column holds each of name, email, role selections and region?
-- What is the base URL of the customer platform API, and what does its create-customer and assign-role endpoint take and return? The code expects a create response with an `id` field and a role POST that takes `role_id`.
-- What are the role labels on the intake form, and the matching role IDs in the platform?
-- Is there an authentication header or API key for the customer platform? The template sends none.
-- Should an existing customer with the same email be reused rather than duplicated? The template always creates.
-- Which quick start link goes with each role?
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                           | Where                                           | What goes there                                                             |
+| --------------------------------- | ----------------------------------------------- | --------------------------------------------------------------------------- |
+| `REPLACE_INTAKE_BOARD_ID`         | `triggers/item-created-in-board.ts`, `board_id` | The monday.com board that gets the intake items, looked up from its name    |
+| `REPLACE_CUSTOMER_API_URL`        | `config.ts`                                     | The base URL of the customer platform API, without a trailing slash         |
+| `REPLACE_STORE_ADMIN_ROLE_ID`     | `workflow.ts`, `ROLE_IDS`                       | The customer platform's ID for the role the form's Store Admin choice gives |
+| `REPLACE_STORE_STAFF_ROLE_ID`     | `workflow.ts`, `ROLE_IDS`                       | The customer platform's ID for the role the form's Store Staff choice gives |
+| `REPLACE_DEFAULT_QUICK_START_URL` | `config.ts`                                     | The onboarding guide for any role without its own link                      |
+| `REPLACE_ADMIN_QUICK_START_URL`   | `workflow.ts`, `QUICK_START_URLS`               | The onboarding guide for Store Admin                                        |
+| `REPLACE_STAFF_QUICK_START_URL`   | `workflow.ts`, `QUICK_START_URLS`               | The onboarding guide for Store Staff                                        |
+
+Also review the defaults with them: the role labels `Store Admin` and `Store Staff` in `workflow.ts` must match the intake form's labels exactly, `ONBOARDING_SUBJECT` in `config.ts` is the email subject, and `REQUIRE_PASSWORD_RESET` in `workflow.ts` decides whether the new user must change the temporary password at first sign-in.
+
+Before building, ask two questions: does the customer platform need an authentication header or API key (the template sends none, so add one first if it does), and does its create response return the new customer's `id` while its role endpoint takes `role_id`? The code expects both.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `microsoft-outlook` (the Outlook account that sends the welcome email) and `monday` (the account that owns the intake board, for the trigger only) to the user's connections. Webhooks by Zapier needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/item-created-in-board.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect the monday.com trigger's fields (the name, email, role selections and region columns) and the Outlook send-email fields with the user's connections, sample the trigger, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
 
 Before a test, use a test or integration account for every app, and point the customer platform URL at a sandbox. Then run the draft with a sample intake item like this:
 
 ```json
 {
   "name": "[install-test] Sample Shopper",
-  "email": "YOUR_CONNECTED_OUTLOOK_ADDRESS",
+  "email": "test.shopper@example.com",
   "roles": ["Store Staff"],
   "region": "US"
 }
 ```
 
-Check that the customer exists in the sandbox with the role attached, that the Outlook email arrived at the connected address with the temporary password and the right quick start link, and that the run returned `customerId`, `roleLabel` and `emailed`. Then delete the sandbox customer.
-
-## Customize
-
-- **Role-specific onboarding templates:** the template uses one body with a per-role quick start link. Separate HTML bodies per role are a further step.
-- **Notify a program coordinator or team channel on each new user,** or on a run with no matching role, for manual review.
+Put an address you control in place of the sample address, so the welcome email arrives. Check that the customer exists in the sandbox with the role attached, that the Outlook email arrived at that address with the temporary password and the right quick start link, and that the run returned `customerId`, `roleLabel` and `emailed`. If run-status tools aren't available, check the customer platform directly. Then publish, confirm the trigger is active, and ask the user to delete the sandbox customer and the test email; the agent doesn't delete test data.
 
 ## Notes
 
 - Step results are journaled, so the temporary password is stored in the run history for the create-customer step. Use a platform that returns no password, or let it reset the password itself, if that matters for your setup.
-- Customer records are not matched by email before creating, so re-running the same intake item creates a second customer.
-- The customer platform's create response is assumed to carry an `id`. Confirm the field name on the first test.
+- Customer records are not matched by email before creating, so re-running the same intake item creates a second customer. Reuse an existing customer by email if that matters.
+- To extend it: separate onboarding HTML per role, or notify a program coordinator or team channel on each new user, or on a run with no matching role, for manual review.
 - Never commit a real customer platform URL, role ID or email address. Anyone who can post to the platform can create store accounts.

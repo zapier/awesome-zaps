@@ -1,15 +1,14 @@
 import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 
-import { NOTION_PAGE_ID, FX_API_URL } from "@/config";
-import notion from "@/connections/notion";
+import { NOTION_PAGE_ID, FX_API_URL } from "./config.ts";
 
 const sdk = createZapierSdk();
 
 // Currencies to write to that page, as ISO codes.
 const TARGET_CURRENCIES = ["CAD", "ILS"];
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "update-daily-currency-rates-across-your-finance-records",
   async (ctx) => {
     const fx = await ctx.step("fetch-fx-rates", async () =>
@@ -21,8 +20,9 @@ const workflow = defineDurable<unknown, unknown>(
       }),
     );
 
-    const payload = fx.data[0]?.json as
-      { rates?: Record<string, number> } | undefined;
+    const payload = (
+      fx.data[0] as { json?: { rates?: Record<string, number> } } | undefined
+    )?.json;
     const rates = payload?.rates ?? {};
     const missing = TARGET_CURRENCIES.filter(
       (code) => rates[code] === undefined,
@@ -42,7 +42,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "notion",
         actionType: "write",
         actionKey: "update_database_item",
-        connection: notion,
+        connection: "notion",
         inputs: {
           page: NOTION_PAGE_ID,
           content: lines.join("\n"),

@@ -1,6 +1,6 @@
 ---
 name: assign-on-call-contact-from-next-calendar-event-to-roster
-description: Build a Zapier Next Gen Zap that, shortly before a rotation event starts on Google Calendar, writes the on-call contact for that shift into the event description. Use when an engineering team keeps on-call rotations as calendar events and wants the person responsible shown on the event before the shift.
+description: Build a Zap on Zapier that, shortly before a rotation event starts on Google Calendar, writes the on-call contact for that shift into the event description. Use when an engineering team keeps on-call rotations as calendar events and wants the person responsible shown on the event before the shift.
 license: MIT
 metadata:
   author: zapier
@@ -13,44 +13,43 @@ metadata:
 
 # Assign on-call contact from next calendar event to roster
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/assign-on-call-contact-from-next-calendar-event-to-roster. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** Google Calendar, Event Start. It fires 15 minutes before any event on the chosen calendar starts.
-2. **Resolve contact (plain code, no app call):** the event title is checked against a roster of rotation names. The first name found sets the contact. If none matches, the default contact is used.
-3. **Google Calendar** updates that event's description. Any earlier `On call:` line is removed, then `On call: <contact>` is appended. Attendees are not changed and no invitation is sent.
+1. **Trigger:** `google-calendar`, Event Start (`event_start`). It fires 15 minutes before any event on the chosen calendar starts.
+2. **Resolve contact:** the event title is checked against a roster of rotation names. The first name found sets the contact. If none matches, the default contact is used.
+3. **`google-calendar`** updates that event's description. Any earlier `On call:` line is removed, then `On call: <contact>` is appended.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/assign-on-call-contact-from-next-calendar-event-to-roster` (it makes a zap project if you aren't in one), then `npx zap-pack deploy assign-on-call-contact-from-next-calendar-event-to-roster` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Google Calendar, Event Start (`google-calendar`, `event_start`). Set `calendarid` to the rotation calendar's ID, `time_unit` to `minutes` and `time_length` to `15`. Leave search term empty.
-2. **Connections** (each alias in the code is the app's slug):
-   - `google-calendar`: the user's Google Calendar connection, for the account that owns the rotation calendar and can edit its events.
-3. **Constants:**
-   - `CALENDAR_ID`: the Google Calendar ID of the rotation calendar. Use the same value as the trigger's `calendarid`.
-   - `ROSTER`: rotation names as they appear in event titles, each mapped to the on-call contact's email. Add one line per rotation. Matching is a case-insensitive substring check.
-   - `DEFAULT_CONTACT`: the email written when no rotation name matches.
-   - `CONTACT_LABEL`: the prefix for the line in the description. Default `"On call:"`; keep it unless the team already uses another label.
-4. Test with the steps below, then publish, wait until the trigger is active, and tell the user it fires only for events on that calendar.
+Attendees are not changed and no invitation is sent.
 
 ## Ask the user
 
-- Which Google Calendar holds the rotation events, and which connection owns it?
-- Which rotation names appear in event titles, and who is the on-call contact for each? Write them into `ROSTER`.
-- Who should be the default contact when no rotation name matches?
-- Should the contact go into the event description (this template) or into an attendee slot? An attendee slot invites that person, so it needs a yes.
-- Should the workflow stay enabled once it is tested? It runs on every event on that calendar 15 minutes before it starts, so only enable it on a calendar where that is wanted.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                   | Where                                                               | What goes there                                                                                                         |
+| ------------------------- | ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `REPLACE_CALENDAR_ID`     | `triggers/event-start.ts`, `calendarid`; `config.ts`, `CALENDAR_ID` | The Google Calendar that holds the rotation events. The trigger watches it and the update writes to its events.         |
+| `REPLACE_DEFAULT_CONTACT` | `config.ts`, `DEFAULT_CONTACT`                                      | The email written when no rotation name in the event title matches `ROSTER`.                                            |
+| `REPLACE_ROTATION_NAME`   | `workflow.ts`, `ROSTER` (key)                                       | A rotation's name as it appears in event titles. Matching is a case-insensitive substring check. One line per rotation. |
+| `REPLACE_CONTACT_EMAIL`   | `workflow.ts`, `ROSTER` (value)                                     | That rotation's on-call contact, as an email address.                                                                   |
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing. Use an event on the rotation calendar you can safely edit. Create one titled `[install-test] <rotation name> on-call` if none exists:
+Also review the defaults with them: `CONTACT_LABEL` (`"On call:"`, the prefix for the line in the description; keep it unless the team already uses another label).
+
+Before turning it on, confirm the user is happy for the workflow to run on every event on that calendar 15 minutes before it starts, so it should only be enabled on a calendar where that is wanted.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `google-calendar` to the user's Google Calendar connection for the account that owns the rotation calendar and can edit its events. The trigger and the action use the same one. No other app needs a connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/event-start.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them, including `calendarid`, `time_unit` (`minutes`) and `time_length` (`15`). The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connection and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test (`run_workflow_draft` in Zapier MCP) against an event on the rotation calendar that the user can safely edit. Use an event like this one, titled for a rotation the user has in `ROSTER`:
 
 ```json
 {
@@ -61,18 +60,15 @@ Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before 
 }
 ```
 
-Confirm three things. The event's description ends with one `On call: <contact>` line, and that line is the expected contact. A second run on the same event leaves exactly one `On call:` line, not two. The event's attendees are unchanged. Then delete the test event, or tell the user to.
-
-## Customize
-
-- **Confirmation post:** add a Slack message to the team channel after the contact is written.
-- **Alternate fallback roster:** route high-priority events to a second roster, using a second `ROSTER`-style map.
+Confirm three things. The event's description ends with one `On call: <contact>` line, and that line is the expected contact. A second run on the same event leaves exactly one `On call:` line, not two. The event's attendees are unchanged. If run-status tools aren't available, check the event in Google Calendar directly. Ask the user to delete the test event; the agent doesn't delete test data. Then publish and confirm the trigger is active.
 
 ## Notes
 
-- The spec asked to publish the contact to a team roster or usergroup. No roster app was specified, so the template writes the contact into the event description, where coordinators see it. Swap in a roster app's action in step 3 if the team has one.
-- The spec's "sub-zap" lookup is done inline. A separate sub-workflow was not built because it had no target.
-- Editing an event's description replaces the description, so the template keeps the existing text and only swaps the `On call:` line.
-- The workflow fires only for the calendar in the trigger. Use a calendar where editing event descriptions is safe.
+- The spec asked to publish the contact to a team roster or usergroup. No roster app was specified, so the Zap writes the contact into the event description, where coordinators see it. Swap in a roster app's action if the team has one.
+- The contact goes into the description, not an attendee slot. An attendee slot would invite that person, which needs their agreement.
+- Editing an event's description replaces it, so the Zap keeps the existing text and only swaps the `On call:` line.
+- The Zap fires only for the calendar in the trigger. Use a calendar where editing event descriptions is safe.
+- The Zap's sub-lookup is done inline: no separate sub-workflow was needed.
+- To post a confirmation after the contact is written, add a Slack message to the team channel after the update.
+- To route high-priority events to a second roster, add a second map in `workflow.ts` and choose it by event title.
 - Never commit a real calendar ID or contact email in a shared copy. Replace them with placeholders, as in `workflow.ts`.
-- In testing, the fallback contact and the rotation-match contact were the same address, so the test shows the replace behaviour but not that a different default is chosen.

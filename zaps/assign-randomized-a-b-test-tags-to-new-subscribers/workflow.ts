@@ -2,18 +2,14 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import kit from "@/connections/kit";
+import {
+  TAG_A_ID,
+  TAG_B_ID,
+  RANDOM_RANGE_MAX,
+  RANDOM_MIDPOINT,
+} from "./config.ts";
 
 const sdk = createZapierSdk();
-
-// Kit tag ID for the A-group. Pick it from the tag list in Kit (the number in the tag's URL).
-const TAG_A_ID = 0; // YOUR_TAG_A_ID
-// Kit tag ID for the B-group.
-const TAG_B_ID = 0; // YOUR_TAG_B_ID
-// Highest value in the random draw; the draw is an integer from 1 to this number.
-const RANDOM_RANGE_MAX = 10000000;
-// Draws at or below this value go to group A; above it go to group B (about 50/50 at 5,000,000).
-const RANDOM_MIDPOINT = 5000000;
 
 const InputSchema = z
   .object({
@@ -22,7 +18,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "assign-randomized-a-b-test-tags-to-new-subscribers",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -48,7 +44,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "kit",
           actionType: "write",
           actionKey: "tagCreate",
-          connection: kit,
+          connection: "kit",
           inputs: {
             id: tagId,
             email,

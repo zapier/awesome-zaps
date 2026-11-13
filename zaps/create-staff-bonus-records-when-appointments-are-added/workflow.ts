@@ -16,8 +16,7 @@ import {
   TX_DETAIL_FIELD,
   TX_CLASSIFICATION_VALUE,
   TX_DETAIL_VALUE,
-} from "@/config";
-import salesforce from "@/connections/salesforce";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -61,7 +60,7 @@ function recordId(record: unknown): string | null {
   return asText(r?.Id ?? r?.id);
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-staff-bonus-records-when-appointments-are-added",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(normalizeInput(rawInput)) as Record<
@@ -104,7 +103,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "salesforce",
         actionType: "search",
         actionKey: "find_record_by_query",
-        connection: salesforce,
+        connection: "salesforce",
         inputs: {
           object: STAFF_OBJECT,
           whereClause: `${STAFF_MATCH_FIELD} = ${soqlString(staffReference)}`,
@@ -121,7 +120,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "salesforce",
           actionType: "write",
           actionKey: "create_record",
-          connection: salesforce,
+          connection: "salesforce",
           inputs: {
             object: STAFF_OBJECT,
             Name: staffReference,
@@ -143,7 +142,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "salesforce",
           actionType: "write",
           actionKey: "create_record",
-          connection: salesforce,
+          connection: "salesforce",
           inputs: {
             object: TRANSACTION_OBJECT,
             [TX_CREATED_DATE_FIELD]: createdDate,

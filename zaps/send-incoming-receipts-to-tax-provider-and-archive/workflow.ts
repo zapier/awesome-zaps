@@ -8,9 +8,7 @@ import {
   SENDER_ADDRESS,
   SUBJECT_TEMPLATE,
   BODY_TEXT,
-} from "@/config";
-import googleDrive from "@/connections/google-drive";
-import gmail from "@/connections/gmail";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -24,7 +22,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "send-incoming-receipts-to-tax-provider-and-archive",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -41,7 +39,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-drive",
         actionType: "search",
         actionKey: "file_v2",
-        connection: googleDrive,
+        connection: "google-drive",
         inputs: {
           title: fileName,
           folder: PROCESSED_FOLDER_ID,
@@ -58,7 +56,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-drive",
         actionType: "write",
         actionKey: "ae_461284_google_drive_download_file_custom_action",
-        connection: googleDrive,
+        connection: "google-drive",
         inputs: { fileId },
       }),
     );
@@ -69,7 +67,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: gmail,
+        connection: "gmail",
         inputs: {
           to: [TAX_UPLOAD_ADDRESS],
           from: SENDER_ADDRESS,
@@ -87,7 +85,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-drive",
         actionType: "write",
         actionKey: "move_file",
-        connection: googleDrive,
+        connection: "google-drive",
         inputs: {
           file: fileId,
           folder: PROCESSED_FOLDER_ID,

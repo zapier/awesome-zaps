@@ -1,6 +1,6 @@
 ---
 name: post-meeting-notes-and-action-items-to-team
-description: Build a Zapier Next Gen Zap that, when a new meeting notes file lands in a project folder in Google Drive, reads the transcript, records the meeting in a Zapier Table, and posts the action items to a team Slack channel. Use when a team keeps meeting notes in Google Drive and wants the action items shared automatically without copying them by hand.
+description: Build a Zap on Zapier that, when a new meeting notes file lands in a project folder in Google Drive, reads the transcript, records the meeting in a Zapier Table, and posts the action items to a team Slack channel. Use when a team keeps meeting notes in Google Drive and wants the action items shared automatically without copying them by hand.
 license: MIT
 metadata:
   author: zapier
@@ -13,52 +13,50 @@ metadata:
 
 # Post meeting notes and action items to team
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/post-meeting-notes-and-action-items-to-team. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a new file appears in your project folder in Google Drive (New File in Folder).
-2. **Formatter (in code):** the file's created date becomes a readable date, such as "October 20, 2026".
+1. **Trigger:** a new file appears in your project folder in Google Drive (`google-drive`, `file_in_folder_v2`).
+2. **Code:** the file's created date becomes a readable date, such as "October 20, 2026".
 3. **Webhooks by Zapier** GETs the file's plain-text export and reads the transcript.
-4. **Action items (in code):** the transcript is split after the "Suggested next steps" line, and each line starting with `- ` becomes one action item.
+4. **Code:** the transcript is split after the "Suggested next steps" line, and each line starting with `- ` becomes one action item.
 5. **Zapier Tables** creates a row in your meeting table: title, date, file link, and the action items.
-6. **Slack** posts the title, date, link and action items as bullets to your team channel, with no @-mentions.
+6. **Slack** posts the title, date, link and action items as bullets to your team channel.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/post-meeting-notes-and-action-items-to-team` (it makes a zap project if you aren't in one), then `npx zap-pack deploy post-meeting-notes-and-action-items-to-team` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Google Drive, New File in Folder (`google-drive`, `file_in_folder_v2`). Point it at your project folder, and leave "Include Subfolders" off.
-2. **Connections** (each alias in the code is the app's slug):
-   - `google-drive`: the Google account that owns the project folder (trigger only; the code does not call Drive).
-   - `zapier-tables`: your Zapier Tables account.
-   - `slack`: the Slack account in your workspace that can post to the channel.
-   - Webhooks by Zapier needs no connection.
-3. **Constants:**
-   - `SLACK_CHANNEL_ID`: the channel's ID (starts with `C`), not its name.
-   - `MEETINGS_TABLE_ID`: the Zapier Table's ID. Create it first with the columns Meeting title, Meeting date, Meeting link (text) and Action items (long text).
-   - `TRANSCRIPT_URL_TEMPLATE`: the Google Docs plain-text export URL. Leave it unless your notes are not Google Docs.
-   - `ALLOW_MENTIONS`: `false` keeps Slack from notifying anyone. Set it to `true` only if you want mentions to notify people.
-   - `ACTION_ITEMS_MARKER`: the heading that comes before the action items in your notes.
-   - `MAX_ACTION_ITEMS`: the most items posted in one message.
-4. Test with the sample below, then publish, confirm the trigger is active, and give the user the trigger's setup (the folder).
+The workflow never @-mentions anyone unless `ALLOW_MENTIONS` is set to `true`.
 
 ## Ask the user
 
-- Which Drive folder holds the meeting notes?
-- Which Slack channel should receive the summary? Use its ID.
-- Which Zapier Table holds meetings, and does it have the four columns?
+Each `REPLACE_…` value is set per person. Resolve channel names and table names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
+
+| Setting             | What goes there                                                               |
+| ------------------- | ----------------------------------------------------------------------------- |
+| `SLACK_CHANNEL_ID`  | The Slack channel that gets the summary, by ID (starts with `C`), not name    |
+| `MEETINGS_TABLE_ID` | The Zapier Table with one row per meeting, with the four columns listed below |
+
+The table needs these columns: Meeting title, Meeting date, Meeting link (text) and Action items (long text).
+
+Also review the defaults with them: `ACTION_ITEMS_MARKER` (`"Suggested next steps"`, the heading before the action items in the notes), `ALLOW_MENTIONS` (`false`, so Slack doesn't notify anyone), `MAX_ACTION_ITEMS` (`20`) and `TRANSCRIPT_URL_TEMPLATE` (the Google Docs plain-text export; leave it unless the notes are not Google Docs).
+
+Before installing, confirm:
+
+- Which Drive folder holds the meeting notes? The trigger watches it, with "Include Subfolders" off.
 - Do the notes use the heading "Suggested next steps" with `- ` bullets? If not, tell us the heading and bullet style before installing.
-- Are the notes shared so that the export link works (for example, "anyone with the link can view")? A private file will not export through a plain GET.
+- Are the notes shared so the export link works (for example, "anyone with the link can view")? A private file will not export through a plain GET.
 
-## Test
+## Build it
 
-Run this sample as a draft test run (`run_workflow_draft`) before publishing. It stands in for the Drive trigger, so the input carries the file's details and a plain-text URL for the transcript (`text_url`). The URL below is a public test endpoint that returns the transcript text:
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `google-drive` (the Google account that owns the project folder; the trigger only), `zapier-tables` (the user's Zapier Tables account) and `slack` (the Slack account that can post to the channel) to the user's connections. Webhooks by Zapier needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/file-in-folder.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them, and set the trigger's folder to the one the user named. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run this sample as a draft test run before publishing. It stands in for the Drive trigger, so the input carries the file's details and a plain-text URL for the transcript (`text_url`). The URL below is a public test endpoint that returns the transcript text:
 
 ```json
 {
@@ -76,16 +74,11 @@ Check that:
 - The Zapier Table has one new row for "[install-test] Weekly launch sync", with October 20, 2026, the file link, and three action items.
 - The Slack message in the test channel shows the title, date, link, and three bullets, with no mentions.
 
-Then delete the test row and the test message.
-
-## Customize
-
-- **Shorten the link:** add URL Shortener by Zapier to produce a compact link before posting.
-- **Private follow-up:** send a direct message to the meeting owner instead of channel posts.
+If run-status tools aren't available, check the result in Zapier Tables and the Slack channel directly. Ask the user to delete the test row and the test message; the agent doesn't delete them. Then publish and confirm the trigger is active.
 
 ## Notes
 
 - Zapier Tables has no find-or-create step in this zap, so the workflow always creates a row. Running the same notes twice adds two rows.
 - Every `- ` line after the marker becomes an action item, up to `MAX_ACTION_ITEMS`. Notes without the marker post "No action items found."
-- Check them against a real trigger run before publishing.
-- Never commit a real folder ID, channel ID, or table ID into a shared copy of this template.
+- To shorten the link, add URL Shortener by Zapier before the Slack step. To send a direct message to the meeting owner instead of channel posts, change the Slack step.
+- Check the Zap against a real trigger run before publishing. Keep real folder, channel and table IDs out of any shared copy.

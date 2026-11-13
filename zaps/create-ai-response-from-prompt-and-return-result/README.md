@@ -6,16 +6,18 @@ Send a prompt to ChatGPT from another Zap, wait for it to finish, and get the an
 
 **Based on:** [Create AI response from prompt and return result](https://zapier.com/automations/personal-productivity/ai-assisted-productivity/ai-writing-assistance/create-ai-response-from-prompt-and-return-result) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/create-ai-response-from-prompt-and-return-result/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/create-ai-response-from-prompt-and-return-result
+
+The agent follows `SKILL.md`: it asks you which ChatGPT (OpenAI) connection to use and whether to change the default model or the wait between checks, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings, including the default model
 - `connections/`: the accounts it uses (`chatgpt`, `sub-zap-by-zapier`)
 - `triggers/`: what starts it

@@ -2,13 +2,10 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { GOOGLE_ADS_ACCOUNT_ID } from "@/config";
-import googleAds from "@/connections/google-ads";
+import { CUSTOMER_LIST_ID, GOOGLE_ADS_ACCOUNT_ID } from "./config.ts";
 
 const sdk = createZapierSdk();
 
-// Google Ads customer list the contacts are added to (a number, from Google Ads).
-const CUSTOMER_LIST_ID = 0;
 // Case statuses that qualify a row. Rows with any other status are skipped.
 const CASE_STATUSES = ["Qualified"];
 
@@ -27,7 +24,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "add-qualified-contact-records-to-remarketing-audience-list",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -52,7 +49,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-ads",
         actionType: "write",
         actionKey: "add_email_to_customer_list_v3",
-        connection: googleAds,
+        connection: "google-ads",
         inputs: {
           mainAccountId: GOOGLE_ADS_ACCOUNT_ID,
           customer_list_id: CUSTOMER_LIST_ID,

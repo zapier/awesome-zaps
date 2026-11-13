@@ -7,8 +7,7 @@ import {
   MASTER_WORKSHEET_ID,
   REVIEW_DISPOSITION,
   MODEL_ID,
-} from "@/config";
-import googleSheets from "@/connections/google-sheets";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -33,7 +32,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-clean-disposition-rows-in-master-sheet-fast",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -66,7 +65,8 @@ const workflow = defineDurable<unknown, unknown>(
       }),
     );
 
-    const answer = String(completion.data[0]?.disposition ?? "").trim();
+    const result = (completion.data[0] ?? {}) as Record<string, unknown>;
+    const answer = String(result.disposition ?? "").trim();
     const match = ALLOWED_DISPOSITIONS.find(
       (label) => label.toLowerCase() === answer.toLowerCase(),
     );
@@ -82,7 +82,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "add_row",
-        connection: googleSheets,
+        connection: "google-sheets",
         inputs: {
           spreadsheet: MASTER_SPREADSHEET_ID,
           worksheet: MASTER_WORKSHEET_ID,

@@ -1,6 +1,6 @@
 ---
 name: update-on-call-contact-group-when-rotation-event-starts
-description: Build a Zapier Next Gen Zap that, when an on-call rotation event starts on a Google Calendar, normalizes the rotation name from the event title and posts it, with the handoff time, attendees and a default contact set, to a reusable routing workflow that updates the on-call contact group. Use when an engineering or support team schedules on-call rotations as calendar events and wants the paging or contact group to follow the active rotation automatically.
+description: Build a Zap on Zapier that, when an on-call rotation event starts on a Google Calendar, normalizes the rotation name from the event title and posts it, with the handoff time, attendees and a default contact set, to a reusable routing workflow that updates the on-call contact group. Use when an engineering or support team schedules on-call rotations as calendar events and wants the paging or contact group to follow the active rotation automatically.
 license: MIT
 metadata:
   author: zapier
@@ -13,45 +13,40 @@ metadata:
 
 # Update on-call contact group when rotation event starts
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/update-on-call-contact-group-when-rotation-event-starts. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** Google Calendar, Event Start. It fires a set time (15 minutes by default) before an event on the on-call calendar starts. The trigger record already carries the event details (title, start, attendees), so there is no separate "get event" step.
+1. **Trigger:** Google Calendar event start (`google-calendar`, `event_start`). It fires a set time (15 minutes by default) before an event on the on-call calendar starts. The trigger record already carries the event details (title, start, attendees), so there is no separate "get event" step.
 2. **Normalize** (plain code): the event title is lowercased, and `[tags]`, `(notes)`, "Week N" and filler words (on-call, rotation, shift, handoff) are stripped, then it is kebab-cased. `"[install-test] Platform Primary On-Call (Week 44)"` becomes `platform-primary`. If the result is in `KNOWN_ROTATIONS`, it is the rotation; otherwise `FALLBACK_ROTATION` is sent with `rotation_matched: false`.
 3. **Webhooks by Zapier** (Custom Request, POST JSON) calls the routing workflow's catch hook with `rotation_id`, `rotation_matched`, `raw_summary`, `effective_at` (event start), `group_members` and `fallback_contacts` (both `DEFAULT_CONTACTS`), `attendees` (when present), `event_id` and `event_link`.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/update-on-call-contact-group-when-rotation-event-starts` (it makes a zap project if you aren't in one), then `npx zap-pack deploy update-on-call-contact-group-when-rotation-event-starts` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Google Calendar, Event Start (`google-calendar`, `event_start`; tested on `google-calendar`). `authentication_id` is the user's Google Calendar connection ID. Params: `calendarid` (the on-call calendar's ID, from `get_trigger_field_choices`), `time_length` (default `15`) and `time_unit` (`"minutes"`). Leave `search_term` empty unless the user wants a keyword filter (see Customize).
-2. **Connections** (each alias in the code is the app's slug):
-   - `google-calendar`: used only by the trigger, for the account that can see the on-call calendar.
-   - `webhook`: no connection needed; no alias.
-3. **Constants:**
-   - `ROUTING_WEBHOOK_URL`: the catch-hook URL of the routing workflow (a Zap or Next Gen Zap with a Webhooks catch hook) that updates the contact group.
-   - `KNOWN_ROTATIONS`: the canonical rotation IDs, in normalized form (lowercase kebab-case, e.g. `"platform-primary"`).
-   - `FALLBACK_ROTATION`: the ID sent when nothing matches. Defaults to `"default"`.
-   - `DEFAULT_CONTACTS`: the default contact set (email addresses or IDs the routing workflow understands).
-4. Test with the steps below, then publish, wait until the trigger is active, and confirm the enabled state the user wants.
-
 ## Ask the user
 
-- Which calendar holds the on-call rotation events?
-- What is the routing workflow's webhook URL? If they don't have one yet, they need to build it first (it receives this payload and changes group membership).
-- What are the rotation names, as they appear in event titles? Normalize each one and show them the resulting `KNOWN_ROTATIONS`.
-- Who is in the default contact set?
-- Is 15 minutes before the start acceptable, or should it be closer to the start (the trigger can't fire at exactly the start time)?
+Each `REPLACE_…` value is set per person. Resolve calendar names to IDs with the user's own Google Calendar connection; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                         | Where                                   | What goes there                                                           |
+| ------------------------------- | --------------------------------------- | ------------------------------------------------------------------------- |
+| `REPLACE_ON_CALL_CALENDAR_ID`   | `triggers/event-start.ts`, `calendarid` | The calendar that holds the on-call rotation events                       |
+| `REPLACE_ROUTING_WEBHOOK_URL`   | `config.ts`, `ROUTING_WEBHOOK_URL`      | The catch-hook URL of the routing workflow that updates the contact group |
+| `REPLACE_DEFAULT_CONTACT_EMAIL` | `config.ts`, `DEFAULT_CONTACTS`         | Each email address in the default contact set, one entry per person       |
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing. It is the trigger record's shape. Point `ROUTING_WEBHOOK_URL` at an echo endpoint or a test catch hook first, so the test changes no real group:
+The routing workflow must exist before the Zap is tested. It needs a Webhooks catch-hook trigger, because it receives this payload and changes group membership.
+
+Also review the defaults with them: `KNOWN_ROTATIONS` in `workflow.ts` (the rotation IDs, in lowercase kebab-case, from the names as they appear in event titles), `FALLBACK_ROTATION` in `config.ts` (`"default"`), and the 15-minute trigger time in `triggers/event-start.ts`. Is 15 minutes before the start acceptable, or should it be closer to the start? The trigger can't fire at exactly the start time.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `google-calendar` (the account that can see the on-call calendar) to the user's connection for the trigger. `workflow.ts` uses no connection alias, and Webhooks by Zapier needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/event-start.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Point `ROUTING_WEBHOOK_URL` at an echo endpoint or a test catch hook first, so the test changes no real group. Then run this sample as a draft test:
 
 ```json
 {
@@ -73,17 +68,12 @@ Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before 
 }
 ```
 
-Check that the run output shows `rotation: "platform-primary"`, `matched: true`, and `effectiveAt` equal to the event start, and that the receiving endpoint got the same payload. For the fallback path, change the summary to something unknown and expect `rotation: "default"`, `matched: false`.
-
-## Customize
-
-- **Keyword filter:** only run for events containing a rotation tag or keyword. Set the trigger's `search_term`, or add an early return when the summary lacks the tag.
-- **Attendee-based mapping:** for ad-hoc swaps or overrides, use the event's attendees as `group_members` instead of the defaults when the event is marked as a swap.
+Check that the run output shows `rotation: "platform-primary"`, `matched: true`, and `effectiveAt` equal to the event start, and that the receiving endpoint got the same payload. For the fallback path, change the summary to something unknown and expect `rotation: "default"`, `matched: false`. If run-status tools aren't available, check the result at the test endpoint directly. Then publish, confirm the trigger is active, and confirm the enabled state the user wants. The user deletes any test data, not the agent.
 
 ## Notes
 
-- The original Zap called a Sub-Zap. Next Gen Zaps call the reusable routing workflow through its catch-hook URL instead, so that workflow needs a Webhooks catch-hook trigger.
-- Event Start fires before the event (15 minutes by default), not at the exact start. `effective_at` is still the real start time, so the routing workflow can schedule the change or apply it right away.
-- The trigger record's `attendees` is often absent. The code falls back to the comma-separated `attendee_emails` field and sends an empty list when neither is set.
-- All-day events have `start.date` instead of `start.dateTime`. The code uses whichever is present.
+- Keyword filter: to run only for events with a rotation tag or keyword, set the trigger's `search_term`, or add an early return when the summary lacks the tag.
+- Attendee-based mapping: for ad-hoc swaps, use the event's attendees as `group_members` instead of the defaults when the event is marked as a swap.
+- Event start fires before the event, not at the exact start. `effective_at` is still the real start time, so the routing workflow can schedule the change or apply it right away.
+- The trigger record's `attendees` is often absent. The code falls back to the comma-separated `attendee_emails` field and sends an empty list when neither is set. All-day events have `start.date` instead of `start.dateTime`; the code uses whichever is present.
 - Never commit a real webhook URL. Anyone with it can change your on-call group.

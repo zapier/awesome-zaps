@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { RELEASE_FOLDER_ID } from "@/config";
-import googleDrive from "@/connections/google-drive";
+import { RELEASE_FOLDER_ID } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -15,7 +14,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "save-new-build-artifacts-into-organized-release-folder",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -33,7 +32,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-drive",
         actionType: "write",
         actionKey: "copy_file",
-        connection: googleDrive,
+        connection: "google-drive",
         inputs: {
           file: input.id,
           folder: RELEASE_FOLDER_ID,
@@ -43,10 +42,11 @@ const workflow = defineDurable<unknown, unknown>(
       }),
     );
 
+    const copied = copy.data?.[0] as { id?: string } | undefined;
     return {
       sourceId: input.id,
       releaseName,
-      copyId: copy.data?.[0]?.id ?? null,
+      copyId: copied?.id ?? null,
     };
   },
 );

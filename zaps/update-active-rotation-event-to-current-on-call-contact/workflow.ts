@@ -2,13 +2,11 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { ROUTING_CHANNEL } from "@/config";
-import slack from "@/connections/slack";
+import { ROUTING_CHANNEL } from "./config.ts";
 
 const sdk = createZapierSdk();
 
-// Members handed to routing when the event title gives no handle.
-const DEFAULT_MEMBERS = ["YOUR_DEFAULT_MEMBER_EMAIL"];
+const DEFAULT_MEMBERS = ["REPLACE_DEFAULT_MEMBER_EMAIL"]; // Ask the user which people get routed to when an event title gives no handle, as email addresses.
 // Set to true to prefix the routing message with @channel. Keep false for tests.
 const MENTION_CHANNEL = false;
 
@@ -26,7 +24,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "update-active-rotation-event-to-current-on-call-contact",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -58,7 +56,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "channel_message",
-        connection: slack,
+        connection: "slack",
         inputs: {
           channel: ROUTING_CHANNEL,
           text,

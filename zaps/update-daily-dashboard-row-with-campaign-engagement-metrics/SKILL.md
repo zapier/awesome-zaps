@@ -1,6 +1,6 @@
 ---
 name: update-daily-dashboard-row-with-campaign-engagement-metrics
-description: Build a Zapier Next Gen Zap that runs every evening, pulls the day's campaign engagement buckets (impressions, clicks, opens, conversions) from an analytics endpoint, cleans them into plain numbers and writes them into that day's existing row in a Google Sheets dashboard. Use when a marketing or project team keeps a one-row-per-day tracker sheet and wants it filled from their analytics API without copying numbers by hand.
+description: Build a Zap on Zapier that runs every evening, pulls the day's campaign engagement buckets (impressions, clicks, opens, conversions) from an analytics endpoint, cleans them into plain numbers and writes them into that day's existing row in a Google Sheets dashboard. Use when a marketing or project team keeps a one-row-per-day tracker sheet and wants it filled from their analytics API without copying numbers by hand.
 license: MIT
 metadata:
   author: zapier
@@ -13,66 +13,63 @@ metadata:
 
 # Update daily dashboard row with campaign engagement metrics
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/update-daily-dashboard-row-with-campaign-engagement-metrics. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** Schedule by Zapier, every day at 7:00 PM in `TIMEZONE`.
+1. **Trigger:** `schedule` runs every day at 7:00 PM in the Zap's time zone.
 2. **Date range (code):** works out the run's local date (`YYYY-MM-DD`) and that day's start and end as UTC timestamps.
-3. **Webhooks by Zapier** sends a GET to `ANALYTICS_URL` with `start` and `end` (plus any `ANALYTICS_EXTRA_PARAMS`) as query parameters and reads the bucket object at `ANALYTICS_METRICS_PATH` in the JSON response.
-4. **Normalize (code):** each bucket named in `METRIC_COLUMNS` becomes a plain integer or decimal (`"1,234"` → `1234`, `"37.50"` → `37.5`). Non-numeric or missing buckets are skipped and listed in the run's `missing` output; if none are numeric the run fails.
-5. **Google Sheets** looks up the row whose date column equals the run's date. If there is none, the run fails (the spec updates existing rows only).
-6. **Google Sheets** updates that row's metric columns. Columns not in `METRIC_COLUMNS` are left alone.
+3. **`webhook`** sends a GET to the analytics endpoint with `start` and `end` (plus any extra params) and reads the bucket object at the metrics path in the JSON response.
+4. **Normalize (code):** each bucket named in the metric map becomes a plain integer or decimal (`"1,234"` → `1234`, `"37.50"` → `37.5`). Non-numeric or missing buckets are skipped and listed in the run's `missing` output; if none are numeric the run fails.
+5. **`google-sheets`** looks up the row whose date column equals the run's date.
+6. **`google-sheets`** updates that row's metric columns. Columns not in the metric map are left alone.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/update-daily-dashboard-row-with-campaign-engagement-metrics` (it makes a zap project if you aren't in one), then `npx zap-pack deploy update-daily-dashboard-row-with-campaign-engagement-metrics` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Schedule by Zapier, Every Day (`schedule`, `everyDay`) with params `{ "hod": "7:00 PM", "weekends": "yes", "timezone_override": "<TIMEZONE>" }`. It needs no connection, so its `authentication_id` is `null`.
-2. **Connections** (each alias in the code is the app's slug):
-   - `google-sheets`: the user's Google Sheets connection, for the account that owns the dashboard sheet.
-   - Webhooks by Zapier needs no connection.
-3. **Constants:**
-   - `TIMEZONE`: IANA zone that defines "the day"; use the same value as the trigger's `timezone_override`.
-   - `ANALYTICS_URL`: the analytics endpoint. It must answer a GET with JSON.
-   - `ANALYTICS_EXTRA_PARAMS`: fixed query params such as a campaign ID or API key. Leave `{}` if none.
-   - `ANALYTICS_METRICS_PATH`: dot path to the bucket object in the response, e.g. `"data.totals"`; `""` if the buckets are top-level keys.
-   - `SPREADSHEET_ID`, `WORKSHEET_ID`: the dashboard sheet and tab (first tab is `"0"`).
-   - `DATE_COLUMN`: the column holding the row date, as a column key such as `COL$A`.
-   - `METRIC_COLUMNS`: bucket name in the response → column key (`COL$B`, …). Map the user's headers to column letters.
-4. Test with the steps below, then publish, wait until the trigger is active, and confirm it is enabled.
+The Zap never creates a row. A day with no matching row fails on purpose, so the gap shows in run history.
 
 ## Ask the user
 
-- What is the analytics endpoint URL, what extra query params does it need, and where in its JSON response do the buckets sit? If it needs a header-based API key, the GET action's `headers` input has to be added; tell them before installing.
-- Which sheet and tab is the dashboard, which column holds the date, and which column gets each bucket?
-- How are dates written in that column? The code looks up `YYYY-MM-DD`. If the sheet shows dates another way, change the format in `dayWindow` before installing.
-- Which time zone defines "the day", and is 7 PM the right time?
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                  | What goes there                                                                        |
+| ------------------------ | -------------------------------------------------------------------------------------- |
+| `REPLACE_ANALYTICS_URL`  | The analytics endpoint that returns the day's buckets. It must answer a GET with JSON. |
+| `REPLACE_SPREADSHEET_ID` | The dashboard spreadsheet, found with the user's Google Sheets connection              |
 
-Make sure the sheet has a row for today's date (in `TIMEZONE`), then run a draft test run (`run_workflow_draft` in Zapier MCP) with an empty input:
+Also review the defaults with them: `TIMEZONE` (`America/New_York`, the zone that defines "the day"; the trigger's `timezone_override` must match it), `ANALYTICS_EXTRA_PARAMS` (`{}`; fixed query params such as a campaign ID or API key), `ANALYTICS_METRICS_PATH` (`""`; a dot path such as `data.totals` when the buckets are nested), `WORKSHEET_ID` (`"0"`, the first tab), `DATE_COLUMN` (`COL$A`), and `METRIC_COLUMNS` in `workflow.ts`, which maps each bucket name to a column (`impressions` → `COL$B`, `clicks` → `COL$C`, `opens` → `COL$D`, `conversions` → `COL$E`). Map the user's headers to their column letters.
+
+Before turning it on, confirm:
+
+- If the endpoint needs a header-based API key, the GET step's `headers` input has to be added. Tell the user before installing.
+- The code looks up dates as `YYYY-MM-DD`. If the sheet shows dates another way, change the format in `dayWindow` before installing.
+- Which time zone defines "the day", and whether 7 PM is the right time.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `google-sheets` to the user's Google Sheets connection, for the account that owns the dashboard sheet. Schedule by Zapier and Webhooks by Zapier need no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/every-day.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Make sure the sheet has a row for today's date (in `TIMEZONE`). Run a draft test (`run_workflow_draft`) with this input:
 
 ```json
 {}
 ```
 
-To test without a real endpoint, the build used `ANALYTICS_URL = "https://httpbin.org/anything"`, `ANALYTICS_METRICS_PATH = "args"` and `ANALYTICS_EXTRA_PARAMS = { "impressions": "12500", "clicks": "1,234", "opens": "860.0", "conversions": "37.50" }`; httpbin echoes the query back, so those become the buckets. Check that only today's row changed and holds `12500`, `1234`, `860`, `37.5`, and that the run's `missing` list is empty. Then set the constants back to the real endpoint.
+Point the endpoint at an echo service for this run: `ANALYTICS_URL` = `https://httpbin.org/anything`, `ANALYTICS_METRICS_PATH` = `args`, and `ANALYTICS_EXTRA_PARAMS` = `{ "impressions": "12500", "clicks": "1,234", "opens": "860.0", "conversions": "37.50" }`. httpbin echoes the query back, so those become the buckets.
 
-## Customize
+Check that only today's row changed and holds `12500`, `1234`, `860` and `37.5`, and that the run's `missing` list is empty. Then set the constants back to the real endpoint, publish, and confirm the trigger is active.
 
-- **Create the row when it's missing:** instead of failing when no row matches today's date, add a Google Sheets `add_row` step with the date and the metrics.
-- **Post a team summary on big changes:** compare the new totals with the row's previous values and post a short summary to a team channel when the change passes a configured threshold.
+If run-status tools aren't available, check the result in Google Sheets directly. The user deletes the test values from today's row, not the agent.
 
 ## Notes
 
-- Runs on a day with no matching row fail on purpose, so a missing row is visible in run history rather than silently skipped.
-- The date window is computed inside a step because the durable runtime does not allow `new Date()` outside one.
-- The GET step journals the endpoint's whole response. Keep the endpoint's response small.
+- To create today's row when it is missing, add a `google-sheets` `add_row` step with the date and the metrics.
+- To post a team summary on big changes, compare the new totals with the row's previous values and post to a team channel past a threshold.
+- The GET step journals the endpoint's whole response, so keep that response small.
 - If two rows share a date, only the first is updated.
 - Never commit a real spreadsheet ID, endpoint URL or API key.

@@ -2,21 +2,21 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { NOTIFY_NEW_USER } from "@/config";
-import go1 from "@/connections/go1";
+import { NOTIFY_NEW_USER } from "./config.ts";
 
 const sdk = createZapierSdk();
 
 // BambooHR location names that count as local hires. Every other location routes to the international groups.
-const LOCAL_LOCATIONS = ["YOUR_LOCAL_LOCATION"];
+const LOCAL_LOCATIONS = ["REPLACE_LOCAL_LOCATION"]; // Ask the user which BambooHR locations count as local, spelled exactly as BambooHR spells them. Add one string per location.
 // Go1 group IDs per BambooHR division, split into local and international hires. A division not listed here is skipped.
 const GROUPS_BY_DIVISION: Record<
   string,
   { local: string[]; international: string[] }
 > = {
-  YOUR_DIVISION: {
-    local: ["YOUR_LOCAL_GROUP_ID"],
-    international: ["YOUR_INTERNATIONAL_GROUP_ID"],
+  REPLACE_DIVISION_NAME: {
+    // Ask the user which BambooHR division gets onboarding groups, spelled exactly as BambooHR spells it. Repeat this entry for each division.
+    local: ["REPLACE_LOCAL_GROUP_ID"], // Ask the user which Go1 group local hires in this division join, then look up its ID with their Go1 connection.
+    international: ["REPLACE_INTERNATIONAL_GROUP_ID"], // Ask the user which Go1 group international hires in this division join, then look up its ID with their Go1 connection.
   },
 };
 
@@ -31,7 +31,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-learning-account-and-assign-onboarding-groups-for-hires",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -57,24 +57,24 @@ const workflow = defineDurable<unknown, unknown>(
     const path = LOCAL_LOCATIONS.includes(location) ? "local" : "international";
     const groupIds = divisionGroups[path];
 
-    const existing = await ctx.step(`find-go1-user-${employeeId}`, async () =>
+    const existing = await ctx.step("find-go1-user", async () =>
       sdk.runAction({
         appKey: "go1",
         actionType: "search",
         actionKey: "find_user",
-        connection: go1,
+        connection: "go1",
         inputs: { email },
       }),
     );
 
     const created = existing.data?.[0]
       ? null
-      : await ctx.step(`create-go1-user-${employeeId}`, async () =>
+      : await ctx.step("create-go1-user", async () =>
           sdk.runAction({
             appKey: "go1",
             actionType: "write",
             actionKey: "create_user",
-            connection: go1,
+            connection: "go1",
             inputs: {
               email,
               first_name: input.firstName ?? "",
@@ -84,16 +84,14 @@ const workflow = defineDurable<unknown, unknown>(
           }),
         );
 
-    const assignment = await ctx.step(
-      `assign-go1-groups-${employeeId}`,
-      async () =>
-        sdk.runAction({
-          appKey: "go1",
-          actionType: "write",
-          actionKey: "assign_group",
-          connection: go1,
-          inputs: { email, id: groupIds },
-        }),
+    const assignment = await ctx.step("assign-go1-groups", async () =>
+      sdk.runAction({
+        appKey: "go1",
+        actionType: "write",
+        actionKey: "assign_group",
+        connection: "go1",
+        inputs: { email, id: groupIds },
+      }),
     );
 
     return {

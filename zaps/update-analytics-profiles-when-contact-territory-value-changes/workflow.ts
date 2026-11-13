@@ -12,9 +12,7 @@ import {
   TERRITORY_COLUMN,
   LIFECYCLE_COLUMN,
   UPDATED_AT_COLUMN,
-} from "@/config";
-import hubspot from "@/connections/hubspot";
-import googleSheets from "@/connections/google-sheets";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -27,7 +25,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "update-analytics-profiles-when-contact-territory-value-changes",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -40,7 +38,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "hubspot",
         actionType: "write",
         actionKey: "get_contact_by_id",
-        connection: hubspot,
+        connection: "hubspot",
         inputs: {
           id: contactId,
           properties_to_retrieve: [
@@ -66,7 +64,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "search",
         actionKey: "lookup_row",
-        connection: googleSheets,
+        connection: "google-sheets",
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,
@@ -84,7 +82,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "google-sheets",
           actionType: "search",
           actionKey: "lookup_row",
-          connection: googleSheets,
+          connection: "google-sheets",
           inputs: {
             spreadsheet: SPREADSHEET_ID,
             worksheet: WORKSHEET_ID,
@@ -118,7 +116,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "google-sheets",
           actionType: "write",
           actionKey: "update_row",
-          connection: googleSheets,
+          connection: "google-sheets",
           inputs: {
             spreadsheet: SPREADSHEET_ID,
             worksheet: WORKSHEET_ID,
@@ -141,7 +139,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "add_row",
-        connection: googleSheets,
+        connection: "google-sheets",
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,

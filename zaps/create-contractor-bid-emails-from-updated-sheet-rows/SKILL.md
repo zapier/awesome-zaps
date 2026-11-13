@@ -1,6 +1,6 @@
 ---
 name: create-contractor-bid-emails-from-updated-sheet-rows
-description: Build a Zapier Next Gen Zap that, when a bid request row in a project sheet is updated, creates a draft email to the contractor with the project details and marks the row as drafted so it is not drafted twice. Use when a construction or renovation business tracks bid requests in a Google Sheet and wants contractor bid emails drafted for review, not sent automatically.
+description: Build a Zap on Zapier that, when a bid request row in a project sheet is updated, creates a draft email to the contractor with the project details and marks the row as drafted so it is not drafted twice. Use when a construction or renovation business tracks bid requests in a Google Sheet and wants contractor bid emails drafted for review, not sent automatically.
 license: MIT
 metadata:
   author: zapier
@@ -13,45 +13,45 @@ metadata:
 
 # Create contractor bid emails from updated sheet rows
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/create-contractor-bid-emails-from-updated-sheet-rows. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** an existing row in the tracker worksheet is updated (Google Sheets, Updated Spreadsheet Row). New rows do not trigger it.
+1. **Trigger:** an existing row in the tracker worksheet is updated (`google-sheets`, `updated_row_only`, Updated Spreadsheet Row). New rows do not trigger it.
 2. **Filter:** the run stops if the row has no contractor email, or if its Drafted column already says `Yes`. The second check is what stops the row's own update from drafting it again.
-3. **Gmail** creates a draft (not sent) to the contractor's email. The subject is the project reference and location. The body has the project reference, location, details, description and a billing notice.
+3. **Gmail** creates a draft to the contractor's email. The subject is the project reference and location. The body has the project reference, location, details, description and a billing notice.
 4. **Google Sheets** updates the same row: Drafted becomes `Yes` and Drafted At gets the time.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-contractor-bid-emails-from-updated-sheet-rows` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-contractor-bid-emails-from-updated-sheet-rows` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Google Sheets, `updated_row_only` (Updated Spreadsheet Row). Set `spreadsheet` to the tracker's spreadsheet ID and `worksheet` to `"0"` (the first tab). Those two values live in the trigger config, not the file, so set them to match `SPREADSHEET_ID` and `WORKSHEET_ID`.
-2. **Connections** (each alias in the code is the app's slug):
-   - `google-sheets`: the Google Sheets connection for the account that owns the tracker.
-   - `gmail`: the Gmail connection that will hold the drafts.
-3. **Constants:**
-   - `SPREADSHEET_ID`: the long ID in the sheet's URL.
-   - `WORKSHEET_ID`: the tab. The first tab is `"0"`.
-   - `CONTRACTOR_EMAIL_COLUMN`, `PROJECT_REFERENCE_COLUMN`, `LOCATION_COLUMN`, `PROJECT_DETAILS_COLUMN`, `DESCRIPTION_COLUMN`, `DRAFTED_COLUMN`, `DRAFTED_AT_COLUMN`: column keys such as `COL$A`, not header names. Map the user's headers to their column letters. The test sheet used A to G in that order.
-   - `DRAFTED_VALUE`: what the drafted column holds once a draft exists. Defaults to `"Yes"`.
-   - `BILLING_NOTICE`: the text added to the end of every draft.
-4. Test with the steps below, then publish, wait until the trigger is active, and tell the user where to see the drafts.
+The Zap only creates drafts. It never sends an email; a coordinator reviews each draft in Gmail before sending.
 
 ## Ask the user
 
-- Which sheet and tab hold bid requests, and which columns hold the contractor email, project reference, location, project details, description, drafted flag and drafted-at time? Add the drafted columns if they are missing.
-- What billing notice should appear in every draft?
-- Should the drafts come from the connected Gmail account? Gmail only lets you send from that account or its aliases, so a separate sender address needs an alias set up in Gmail.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                  | What goes there                                                                                        |
+| ------------------------ | ------------------------------------------------------------------------------------------------------ |
+| `REPLACE_SPREADSHEET_ID` | The Google Sheet that holds the bid requests. Look up its ID from the user's Google Sheets connection. |
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing. It is the payload the Updated Spreadsheet Row trigger returned for a test row, and the contractor address is the connected Gmail account so nothing leaves the account:
+Also review the defaults with them, in `config.ts`:
+
+- `WORKSHEET_ID` (`"0"` is the first tab) and the column keys (`COL$A` and so on) that map to the user's columns for the contractor email, project reference, location, project details, description, Drafted and Drafted At. Add the Drafted and Drafted At columns to the sheet if they are missing.
+- `DRAFTED_VALUE` (`"Yes"`), the value the Drafted column holds once a draft exists.
+- `BILLING_NOTICE` in `workflow.ts`: the text added to the end of every draft. Ask the user for their wording.
+
+Also confirm: should the drafts come from the connected Gmail account? Gmail only sends from that account or its aliases, so a separate sender address needs an alias set up in Gmail first.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `google-sheets` (the account that owns the tracker) and `gmail` (the account that will hold the drafts) to the user's connections. No other apps need a connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/updated-row-only.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger's `spreadsheet` and `worksheet` are not in the trigger file, so set them to `SPREADSHEET_ID` and `WORKSHEET_ID`. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections, and sample the trigger, before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run this sample as a draft test (`run_workflow_draft` in Zapier MCP) before publishing. The contractor address is the connected Gmail account, so nothing leaves the account:
 
 ```json
 {
@@ -66,22 +66,11 @@ Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before 
 }
 ```
 
-Confirm that:
-
-- the run completed with no failed step;
-- the Gmail drafts folder has one new draft, addressed to the contractor, with the subject `<project reference> - <location>` and the details and billing notice in the body. It must not be sent;
-- row 2 now has Drafted `Yes` and a time in Drafted At.
-
-Then delete the test draft and clear the test row, or tell the user to, if they are real data.
-
-## Customize
-
-- **Send instead of draft:** swap Gmail Create Draft for Send Email to send requests immediately instead of queuing.
-- **Add a CC:** add a coordinator's address to the draft, or include a priority tag for high-value projects.
+Check that the run completed with no failed step, that Gmail's drafts folder has one new draft addressed to the contractor with the subject `<project reference> - <location>` and the details and billing notice in the body, and that it was not sent, and that row 2 has Drafted `Yes` and a time in Drafted At. If run-status tools aren't available, check the result in Gmail and the sheet directly. Then ask the user to delete the test draft and clear the test row, not the agent. Publish once the test passes, confirm the trigger is active, and tell the user where to find the drafts.
 
 ## Notes
 
-- The trigger fires on any update to a row, so the drafted-column check in the filter is what prevents repeat drafts. Do not remove it.
+- The trigger fires on any update to a row, so the Drafted check in the filter is what prevents repeat drafts. Do not remove it.
 - If two rows have the same contractor, each gets its own draft.
-- Drafts are created, never sent. Coordinators review them in Gmail before sending.
+- To send instead of draft, swap Gmail's Create Draft for Send Email. To add a CC, such as a coordinator's address, add it to the draft step.
 - Never commit a real spreadsheet ID or contractor address.

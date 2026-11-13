@@ -7,8 +7,7 @@ import {
   DEAL_BOARD_ID,
   DEAL_NAME_COLUMN,
   RELATION_COLUMN_ID,
-} from "@/config";
-import monday from "@/connections/monday";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -19,7 +18,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "link-new-creative-requests-to-related-deal-records",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -40,7 +39,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "monday",
         actionType: "search",
         actionKey: "find_items",
-        connection: monday,
+        connection: "monday",
         inputs: {
           board_id: DEAL_BOARD_ID,
           column_id: DEAL_NAME_COLUMN,
@@ -66,7 +65,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "monday",
         actionType: "write",
         actionKey: "change_multiple_columns_value",
-        connection: monday,
+        connection: "monday",
         inputs: {
           item_id: Number(input.id),
           board_id: Number(REQUESTS_BOARD_ID),

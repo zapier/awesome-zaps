@@ -9,19 +9,17 @@ import {
   TITLE_FIELD,
   NOTES_FIELD,
   NOTES_TEXT,
-} from "@/config";
-import hubspot from "@/connections/hubspot";
-import zapierTables from "@/connections/zapier-tables";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-knowledge-base-file-records-for-support-reference",
   async (ctx) => {
     const listing = await ctx.step("list-kb-files", async () => {
       const response = await sdk.fetch(
         `https://api.hubapi.com/files/v3/files/search?parentFolderIds=${KB_PARENT_FOLDER_ID}&limit=100`,
-        { connection: hubspot, method: "GET" },
+        { connection: "hubspot", method: "GET" },
       );
       if (!response.ok) {
         throw new Error(`HubSpot returned ${response.status}`);
@@ -44,14 +42,14 @@ const workflow = defineDurable<unknown, unknown>(
     }
 
     const results = await Promise.all(
-      files.map(async (file, index) => {
+      files.map(async (file) => {
         const found = await ctx
-          .step(`find-table-record-${index}`, async () =>
+          .step(`find-table-record-${file.id}`, async () =>
             sdk.runAction({
               appKey: "zapier-tables",
               actionType: "search",
               actionKey: "find_record",
-              connection: zapierTables,
+              connection: "zapier-tables",
               inputs: {
                 table_id: TABLE_ID,
                 filter_count: "1",
@@ -73,12 +71,12 @@ const workflow = defineDurable<unknown, unknown>(
         }
 
         const created = await ctx
-          .step(`create-table-record-${index}`, async () =>
+          .step(`create-table-record-${file.id}`, async () =>
             sdk.runAction({
               appKey: "zapier-tables",
               actionType: "write",
               actionKey: "create_record",
-              connection: zapierTables,
+              connection: "zapier-tables",
               inputs: {
                 table_id: TABLE_ID,
                 [URL_FIELD]: file.url,

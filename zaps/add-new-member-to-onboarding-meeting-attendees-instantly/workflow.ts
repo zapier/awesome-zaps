@@ -7,8 +7,7 @@ import {
   ONBOARDING_WINDOW_START,
   ONBOARDING_WINDOW_END,
   CALENDAR_ID,
-} from "@/config";
-import microsoftOutlook from "@/connections/microsoft-outlook";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -28,7 +27,7 @@ function normalizeInput(rawInput: unknown): unknown {
   return rawInput;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "add-new-member-to-onboarding-meeting-attendees-instantly",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(normalizeInput(rawInput));
@@ -42,7 +41,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "microsoft-outlook",
         actionType: "search",
         actionKey: "find_calendar_event",
-        connection: microsoftOutlook,
+        connection: "microsoft-outlook",
         inputs: {
           searchTerm: ONBOARDING_EVENT_TITLE,
           startTime: ONBOARDING_WINDOW_START,
@@ -71,7 +70,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "microsoft-outlook",
         actionType: "write",
         actionKey: "add_attendees",
-        connection: microsoftOutlook,
+        connection: "microsoft-outlook",
         inputs: {
           eventId: event.id,
           shouldMergeAttendees: true,

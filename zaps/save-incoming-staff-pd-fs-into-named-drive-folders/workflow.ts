@@ -19,7 +19,7 @@ function folderTitleFromSubject(subject: string): string {
     .join(" ");
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "save-incoming-staff-pd-fs-into-named-drive-folders",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(

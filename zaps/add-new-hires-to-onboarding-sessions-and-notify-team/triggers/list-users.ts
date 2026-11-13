@@ -1,10 +1,6 @@
-import type { Trigger } from "zap-pack";
-
-import googleWorkspaceAdmin from "@/connections/google-workspace-admin";
-
 export default {
   app: "google-workspace-admin",
   event: "list_users",
-  connection: googleWorkspaceAdmin,
+  connection: "google-workspace-admin",
   params: {},
-} satisfies Trigger;
+};

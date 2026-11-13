@@ -10,9 +10,7 @@ import {
   VIDEO_URL_FIELD,
   DATE_FIELD,
   VIMEO_PRIVACY,
-} from "@/config";
-import vimeo from "@/connections/vimeo";
-import airtable from "@/connections/airtable";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -25,7 +23,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "publish-new-meeting-recordings-to-team-video-archive",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -48,7 +46,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "vimeo",
               actionType: "write",
               actionKey: "upload_video",
-              connection: vimeo,
+              connection: "vimeo",
               inputs: {
                 upload__link: fileUrl,
                 name: title,
@@ -82,7 +80,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "airtable",
         actionType: "write",
         actionKey: "create_or_update_record",
-        connection: airtable,
+        connection: "airtable",
         inputs: {
           applicationId: AIRTABLE_BASE_ID,
           tableName: AIRTABLE_TABLE,

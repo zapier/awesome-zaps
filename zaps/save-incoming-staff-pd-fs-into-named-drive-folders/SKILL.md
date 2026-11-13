@@ -1,6 +1,6 @@
 ---
 name: save-incoming-staff-pd-fs-into-named-drive-folders
-description: Build a Zapier Next Gen Zap that saves each incoming staff PDF from Gmail into a Google Drive folder named after the email subject, creating the folder when it doesn't exist. Use when staff send PDFs (forms, timesheets, reviews) by email and the business wants them filed by person or topic without manual uploads.
+description: Build a Zap on Zapier that saves each incoming staff PDF from Gmail into a Google Drive folder named after the email subject, creating the folder when it doesn't exist. Use when staff send PDFs (forms, timesheets, reviews) by email and the business wants them filed by person or topic without manual uploads.
 license: MIT
 metadata:
   author: zapier
@@ -13,45 +13,53 @@ metadata:
 
 # Save incoming staff PDFs into named Drive folders
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/save-incoming-staff-pd-fs-into-named-drive-folders. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a new Gmail email that matches `has:attachment filename:pdf` (Gmail, New Email Matching Search).
-2. **Folder title:** the email subject, with `Re:` and `Fwd:` prefixes removed, spaces collapsed and each word capitalized.
-3. **Filter:** an empty subject stops the run with no action.
-4. **Google Drive** (planned, not built): find a folder with that exact title in the configured location, create it if missing, then upload the PDF with its original filename into it.
-
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** `workflow.ts` in this folder is the draft source. It is not the finished workflow; the Drive steps are still a TODO.
-
-1. **Trigger:** Gmail, New Email Matching Search (`gmail` / `search`). The connection is the Gmail account that receives the staff PDFs.
-2. **Connections** (each alias in the code is the app's slug):
-   - `gmail`: the Gmail account that receives the staff PDFs.
-   - `google-drive`: the Google Drive account that owns the staff folders. Needed for the unbuilt steps.
-3. **Constants:**
-   - `GMAIL_QUERY`: the Gmail search. Defaults to `has:attachment filename:pdf`.
-   - `GMAIL_CONNECTION`: the Gmail connection alias.
-   - Still to add with the Drive steps: the parent folder ID in Drive where the staff folders live (`YOUR_PARENT_FOLDER_ID`).
+1. **Trigger:** a new Gmail email that matches `has:attachment filename:pdf` (`gmail`, `search`, New Email Matching Search). The trigger brings the email's subject.
+2. **Folder title:** the subject, with `Re:` and `Fwd:` prefixes removed, spaces collapsed and each word capitalized. An empty subject stops the run with nothing done.
+3. **Google Drive** (not built yet in `workflow.ts`): find a folder with that exact title in the chosen Drive location, create it if missing, then upload the PDF under its original filename into it.
 
 ## Ask the user
 
+This zap has no `REPLACE_…` values to fill in. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
+
+Review these defaults with them:
+
+- `GMAIL_QUERY` in `config.ts`: `has:attachment filename:pdf`. It matches every PDF from any sender, so narrow it if only some staff should be filed.
+- `GMAIL_CONNECTION` in `config.ts`: `gmail`, the alias for the Gmail account.
+
+Ask these before building:
+
 - Which Gmail account receives the staff PDFs?
-- Which Google Drive folder should hold the staff folders (its ID from the folder URL)?
-- Which senders or subject patterns should be accepted? The spec leaves these to configuration; the draft accepts any PDF with a non-empty subject.
+- Which Google Drive folder holds the staff folders? Look it up by name with the user's Drive connection.
+- Which senders or subject patterns should be accepted? The draft accepts any PDF with a non-empty subject.
 
-## Test
+## Build it
 
-The Google Drive steps are not built and no work-account Drive connection exists, so there is no end-to-end test. A future test should use a sample email with a PDF attachment and the subject `Re: Jane Doe timesheet`, which should yield the folder title `Jane Doe Timesheet`, and then check that the folder exists in Drive and holds the PDF under its original filename.
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
 
-## Customize
+1. **Accounts:** bind `gmail` to the user's Gmail connection for the account that receives the staff PDFs. The Google Drive steps will need a Google Drive connection for the account that owns the staff folders once they are built.
+2. **Source:** publish `workflow.ts` and `config.ts`. `triggers/search.ts` and `connections/` are settings, not code: set the trigger's search to `GMAIL_QUERY` and its connection to `gmail`. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
 
-- **Append a date token** to the folder name for month-based organization.
-- **Team notification** after each upload to alert records staff or support ops.
+## Test it
+
+Run it once as a draft test with a sample email: one with a PDF attachment and the subject `Re: Jane Doe timesheet`.
+
+```json
+{
+  "subject": "Re: Jane Doe timesheet"
+}
+```
+
+Check that the run returns the folder title `Jane Doe Timesheet`. Once the Google Drive steps are built, also check that the folder exists in Drive and holds the PDF under its original filename. If run-status tools aren't available, check the result in Google Drive directly. Then publish, confirm the trigger is active, and ask the user to delete the test folder. The agent doesn't delete test data.
 
 ## Notes
 
+- To limit which staff are filed, narrow `GMAIL_QUERY` by sender or subject.
+- To file into month-based folders, append a date token to the folder name.
+- To alert records staff or support ops after each upload, add a team notification step.
 - Never commit a real spreadsheet, folder or account ID. The constants here are placeholders.

@@ -12,8 +12,7 @@ import {
   MANAGER_NAME_COLUMN,
   MANAGER_EMAIL_COLUMN,
   HIRING_MANAGER_ROLE,
-} from "@/config";
-import googleSheets from "@/connections/google-sheets";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -74,13 +73,13 @@ const InputSchema = z.union([
   z.object({ data: HirePayload }).loose(),
 ]);
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "add-new-hire-rows-to-onboarding-spreadsheet",
   async (ctx, rawInput) => {
     const parsed = InputSchema.parse(
       typeof rawInput === "string" ? JSON.parse(rawInput) : rawInput,
     );
-    const hire = "data" in parsed ? parsed.data : parsed;
+    const hire = "data" in parsed ? HirePayload.parse(parsed.data) : parsed;
     const { application } = hire;
 
     const team = application.hiringTeam ?? [];
@@ -92,26 +91,24 @@ const workflow = defineDurable<unknown, unknown>(
 
     const startDate = hire.offer?.latestVersion?.startDate ?? "";
 
-    const created = await ctx.step(
-      `add-onboarding-row-${application.id}`,
-      async () =>
-        sdk.runAction({
-          appKey: "google-sheets",
-          actionType: "write",
-          actionKey: "add_row",
-          connection: googleSheets,
-          inputs: {
-            spreadsheet: SPREADSHEET_ID,
-            worksheet: WORKSHEET_ID,
-            [START_DATE_COLUMN]: startDate,
-            [TITLE_COLUMN]: application.job?.title ?? "",
-            [NAME_COLUMN]: application.candidate?.name ?? "",
-            [CONTACT_EMAIL_COLUMN]:
-              application.candidate?.primaryEmailAddress?.value ?? "",
-            [MANAGER_NAME_COLUMN]: managerName,
-            [MANAGER_EMAIL_COLUMN]: manager?.email ?? "",
-          },
-        }),
+    const created = await ctx.step("add-onboarding-row", async () =>
+      sdk.runAction({
+        appKey: "google-sheets",
+        actionType: "write",
+        actionKey: "add_row",
+        connection: "google-sheets",
+        inputs: {
+          spreadsheet: SPREADSHEET_ID,
+          worksheet: WORKSHEET_ID,
+          [START_DATE_COLUMN]: startDate,
+          [TITLE_COLUMN]: application.job?.title ?? "",
+          [NAME_COLUMN]: application.candidate?.name ?? "",
+          [CONTACT_EMAIL_COLUMN]:
+            application.candidate?.primaryEmailAddress?.value ?? "",
+          [MANAGER_NAME_COLUMN]: managerName,
+          [MANAGER_EMAIL_COLUMN]: manager?.email ?? "",
+        },
+      }),
     );
 
     return {

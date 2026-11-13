@@ -1,10 +1,6 @@
-import type { Trigger } from "zap-pack";
-
-import asana from "@/connections/asana";
-
 export default {
   app: "asana",
   event: "task_moved_to_section",
-  connection: asana,
+  connection: "asana",
   params: {},
-} satisfies Trigger;
+};

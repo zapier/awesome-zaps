@@ -1,6 +1,6 @@
 ---
 name: send-new-motor-claim-notification-to-claims-team
-description: Build a Zapier Next Gen Zap that emails the claims team a formatted notification whenever a new motor claim is added to a Zapier Table, with dates, expiry alerts and any attachments. Use when a motor insurance or claims business logs claims in a Zapier Table and wants each new one sent to the claims inbox for triage.
+description: Build a Zap on Zapier that emails the claims team a formatted notification whenever a new motor claim is added to a Zapier Table, with dates, expiry alerts and any attachments. Use when a motor insurance or claims business logs claims in a Zapier Table and wants each new one sent to the claims inbox for triage.
 license: MIT
 metadata:
   author: zapier
@@ -13,42 +13,39 @@ metadata:
 
 # Send new motor claim notification to claims team
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/send-new-motor-claim-notification-to-claims-team. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a new record is added to your claims table in Zapier Tables.
+1. **Trigger:** a new record is added to your claims table in Zapier Tables (`zapier-tables`, `new_record`).
 2. The workflow checks the vehicle and driving licence expiry dates against the accident date. An expiry on a day before the accident's day raises an alert.
 3. **Microsoft Outlook** sends one HTML email to the claims inbox. The subject is `Motor claim: <name>`. The body is a table with the claimant, contact, accident time (DD/MM/YYYY hh:mm A), formatted expiry dates, the alerts and the attachments. Any attachment URLs are attached.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/send-new-motor-claim-notification-to-claims-team` (it makes a zap project if you aren't in one), then `npx zap-pack deploy send-new-motor-claim-notification-to-claims-team` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Zapier Tables, New Record (`zapier-tables`, `new_record`). It needs no connection, so `authentication_id` is `null`. Its `table_id` is the claims table.
-2. **Connections** (each alias in the code is the app's slug):
-   - `microsoft-outlook`: the Outlook account that sends the email. Pick the connection whose title marks it as a test or integration account, else the work account.
-3. **Settings** (in `config.ts`; an `ask(…)` is asked when each person deploys):
-   - `CLAIMS_TABLE_ID`: the claims table's ID.
-   - `CLAIMS_INBOX`: the address that receives each notification. For tests, use the connected Outlook account's own address.
-   - `TIME_ZONE`: the IANA time zone for printed dates. Defaults to `UTC`.
-   - `NAME_FIELD`, `CONTACT_FIELD`, `VEHICLE_EXPIRY_FIELD`, `DRIVING_EXPIRY_FIELD`, `ACCIDENT_DATETIME_FIELD`, `ATTACHMENTS_FIELD`: the claims table's field keys. Map your column names to these keys.
-4. Test with the sample below, then publish, confirm the trigger is active, and point the team at the claims table.
+The Zap only sends the email. It never edits the claim record.
 
 ## Ask the user
 
-- Which Zapier Table holds the claims, and what are its field names for the claimant's name, contact, the two expiry dates, the accident date and time, and attachments?
-- Which address should receive the notifications? It must be a connected Outlook account for tests.
-- Which time zone should dates be printed in? The default is `UTC`.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting           | What goes there                                                                                                                |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `CLAIMS_TABLE_ID` | The Zapier Table that holds the motor claims. This is the trigger's table; look it up with the user's Zapier Tables connection |
+| `CLAIMS_INBOX`    | The address that receives each notification. For tests, use the connected Outlook account's own address                        |
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing. Use a `[install-test]` claim record in a test table, and send to the connected Outlook account's own address:
+Also review the defaults with them: `TIME_ZONE` (an IANA time zone for printed dates, `UTC` by default) and the field keys `NAME_FIELD`, `CONTACT_FIELD`, `VEHICLE_EXPIRY_FIELD`, `DRIVING_EXPIRY_FIELD`, `ACCIDENT_DATETIME_FIELD` and `ATTACHMENTS_FIELD`. If the table's columns are named differently, set each key to its column.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `microsoft-outlook` to the Outlook account that sends the email. Pick the connection whose title marks it as a test or integration account, else the work account. Zapier Tables needs no connection, so the trigger's `authentication_id` is `null`.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/new-record.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them, and set the trigger's table to `CLAIMS_TABLE_ID`. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test run before publishing. Use a `[install-test]` claim record in a test table, and send to the connected Outlook account's own address:
 
 ```json
 {
@@ -61,15 +58,11 @@ Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before 
 }
 ```
 
-Confirm that one email arrived with the subject `Motor claim: [install-test] Jane Example`. The vehicle expiry should show as an alert, since 30/06/2026 is before the accident day, and the driving expiry should not. The accident should show as 20/10/2026 02:30 PM. Then delete the test record.
-
-## Customize
-
-- **Issue tracker ticket** for records with an expiry alert: add an action step after the email.
-- **SMS or push alert** to the on-call adjuster for high-priority claims: add a step after the email.
+Confirm that one email arrived with the subject `Motor claim: [install-test] Jane Example`. The vehicle expiry should show as an alert, since 30/06/2026 is before the accident day, and the driving expiry should not. The accident should show as 20/10/2026 02:30 PM. If run-status tools aren't available, check the result in Outlook directly. Then publish, confirm the trigger is active, and ask the user to delete the test record. The user deletes test data, not the agent.
 
 ## Notes
 
-- The spec asked for every submission field to be passed forward; this zap shows the seven fields in the email table only.
+- The email shows seven fields only, not every field on the record.
 - Outlook downloads attachments only from public URLs, so a table attachment that isn't a URL is skipped.
+- To extend it, add a step after the email: an issue tracker ticket for records with an expiry alert, or an SMS or push alert to the on-call adjuster for high-priority claims.
 - Never commit a real claims-table ID, inbox address or connection detail.

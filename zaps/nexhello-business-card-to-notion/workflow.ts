@@ -1,14 +1,9 @@
 import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 
-import { CONTACT_ID_FILTER } from "@/config";
-import notion from "@/connections/notion";
+import { CONTACT_ID_FILTER, NOTION_DATA_SOURCE_ID } from "./config.ts";
 
 const sdk = createZapierSdk();
-
-// Where contacts go in Notion. Ask the user, then use the data source ID from the Notion action's
-// data source choices (not the database ID in the Notion page URL; they differ).
-const NOTION_DATA_SOURCE_ID = "SET_ME"; // the "NexHello Contacts" data source
 
 // Notion field keys are "properties|||<Property name>|||<property type>".
 // These match the NexHello Contacts template. If a column in the user's database has a
@@ -107,12 +102,12 @@ function readContact(payload: Obj) {
   };
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "nexhello-business-card-to-notion",
   async (ctx, rawInput) => {
-    if (NOTION_DATA_SOURCE_ID === "SET_ME")
+    if (NOTION_DATA_SOURCE_ID.startsWith("REPLACE_"))
       throw new Error(
-        "Set NOTION_DATA_SOURCE_ID at the top of workflow.ts before deploying",
+        "Set NOTION_DATA_SOURCE_ID in config.ts before deploying",
       );
     const payload = unwrap(normalizeInput(rawInput));
     const eventType = text(payload.type ?? payload.event ?? payload.event_type);
@@ -131,7 +126,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "notion",
         actionType: "search",
         actionKey: "find_data_source_item",
-        connection: notion,
+        connection: "notion",
         inputs: {
           datasource: NOTION_DATA_SOURCE_ID,
           search_fields: ["NexHello Contact ID"],
@@ -150,7 +145,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "notion",
           actionType: "write",
           actionKey: "create_database_item",
-          connection: notion,
+          connection: "notion",
           inputs: {
             datasource: NOTION_DATA_SOURCE_ID,
             template_mode: "none",
@@ -189,7 +184,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "notion",
         actionType: "write",
         actionKey: "update_database_item",
-        connection: notion,
+        connection: "notion",
         inputs,
       }),
     );

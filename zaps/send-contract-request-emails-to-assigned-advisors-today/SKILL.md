@@ -1,6 +1,6 @@
 ---
 name: send-contract-request-emails-to-assigned-advisors-today
-description: Build a Zapier Next Gen Zap that emails the assigned advisor when a contract request row is added or updated in a Google Sheets tracker, with the requester copied and the request details in the body. Use when a legal or contracts team logs contract requests in a sheet and wants the reviewing advisor notified without polling.
+description: Build a Zap on Zapier that emails the assigned advisor when a contract request row is added or updated in a Google Sheets tracker, with the requester copied and the request details in the body. Use when a legal or contracts team logs contract requests in a sheet and wants the reviewing advisor notified without polling.
 license: MIT
 metadata:
   author: zapier
@@ -13,58 +13,62 @@ metadata:
 
 # Send contract request emails to assigned advisors today
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/send-contract-request-emails-to-assigned-advisors-today. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a row is added or updated in the configured worksheet (Google Sheets, New or Updated Spreadsheet Row).
+1. **Trigger:** a row is added or updated in the tracker sheet (`google-sheets`, `updated_row_notify_hook`, New or Updated Spreadsheet Row).
 2. **Check:** if the row has no advisor email, the run stops and sends nothing.
-3. **Microsoft Outlook** sends one HTML email to the advisor. The requester or collaborator emails go in CC, the subject is built from organization, title and date, and the body carries the planner and request details.
+3. **Microsoft Outlook** sends one HTML email to the advisor. The requester's email goes in CC, the subject is built from organization, title and date, and the body carries the planner and request details.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/send-contract-request-emails-to-assigned-advisors-today` (it makes a zap project if you aren't in one), then `npx zap-pack deploy send-contract-request-emails-to-assigned-advisors-today` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Google Sheets, New or Updated Spreadsheet Row (`google-sheets`, `updated_row_notify_hook`). Use the user's Google Sheets connection as the trigger's authentication.
-2. **Connections** (each alias in the code is the app's slug):
-   - `microsoft-outlook`: the user's Outlook connection, the account the email is sent from.
-3. **Constants:**
-   - `SPREADSHEET_ID`: the long ID in the tracker's URL.
-   - `WORKSHEET_ID`: the tab. The first tab is `"0"`.
-   - `ADVISOR_EMAIL_FIELD`, `COLLABORATOR_EMAIL_FIELDS`, `ORGANIZATION_FIELD`, `TITLE_FIELD`, `DATE_FIELD`, `PLANNER_FIELD`, `REQUEST_DETAILS_FIELD`: the row keys for each value. Set them to the user's column headers, in the form the trigger returns them.
-   - `SENDER_ADDRESS`: leave `""` to send from the connected Outlook account, or set a shared mailbox.
-4. Test with the steps below, then publish, wait until the trigger is active, and tell the user where the trigger listens.
+The Zap only sends email. It never changes the sheet, and it never sends to anyone other than the advisor and the requester.
 
 ## Ask the user
 
-- Which sheet and tab hold the contract requests?
-- Which columns hold the advisor's email, the requester or collaborator emails, organization, title, date, planner and request details?
-- Should the email come from a shared mailbox instead of the user's own Outlook address?
-- Should rows be deduplicated? This zap does not do it (see Notes).
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting          | What goes there                                                                                                   |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `SPREADSHEET_ID` | The tracker sheet the contract requests land in. Look it up with the user's Google Sheets connection, by its name |
 
-To test, use a sheet the user owns, with an `[install-test]` tab or row. Add a row with the advisor set to the Outlook account's own address, then:
+Also review the defaults with them:
 
-- Confirm one email arrives at that address, with the subject built from organization, title and date.
-- Confirm the body shows the planner and request details from the row.
-- Confirm no other email was sent.
+- `WORKSHEET_ID`: the tab that holds the requests. `"0"` is the first tab.
+- `ADVISOR_EMAIL_FIELD`, `ORGANIZATION_FIELD`, `TITLE_FIELD`, `DATE_FIELD`, `PLANNER_FIELD` and `REQUEST_DETAILS_FIELD` in `config.ts`, and `COLLABORATOR_EMAIL_FIELDS` in `workflow.ts` (the requester's email): each must match the user's column header for that value.
+- `SENDER_ADDRESS`: leave `""` to send from the user's own Outlook account, or set a shared mailbox.
 
-Then remove the test row, or tell the user to.
+## Build it
 
-## Customize
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
 
-- **Filter by request type or status:** add a Filter step so only some rows send. In the code, return early when the row does not match.
-- **Team channel instead of email:** replace the Outlook step with a Slack or Teams post to a triage channel, for collective review.
+1. **Accounts:** bind `google-sheets` (the account that owns the tracker) and `microsoft-outlook` (the account the email is sent from) to the user's connections.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/updated-row-notify-hook.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them, with the trigger watching the spreadsheet and worksheet in `SPREADSHEET_ID` and `WORKSHEET_ID`. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test, with a sample row in a tab the user controls. Use the advisor's address set to the user's own Outlook address, so the test email lands with them:
+
+```json
+{
+  "advisor_email": "your-outlook-address@example.com",
+  "requester_email": "",
+  "organization": "[install-test] Example Co",
+  "title": "[install-test] NDA review",
+  "date": "2026-11-13",
+  "planner": "Test planner",
+  "request_details": "[install-test] Please review the attached NDA."
+}
+```
+
+Check that one email arrives at that address, with the subject built from organization, title and date, and that the body shows the planner and request details. Check that no other email was sent. If run-status tools aren't available, check the result in Outlook directly. Then publish and confirm the trigger is active. Ask the user to delete the test row and the test email; the agent does not delete test data.
 
 ## Notes
 
-- The "dedupe" step in the spec is not built. The Google Sheets trigger has a `dedupe_column` option that limits triggers to changes in one column, which is the closest match. Repeat sends on the same row are possible.
+- The Zap does not dedupe. The Google Sheets trigger's `dedupe_column` option limits runs to changes in one column, the closest match, but repeat sends on the same row are possible.
 - Google Sheets may show dates in the sheet's own format and time zone.
-- The spec's email step uses Outlook. Gmail would work the same way with a different app key, but this zap does not substitute it.
-- Never commit a real spreadsheet ID or email address in the constants.
+- The Zap sends from Outlook only. Gmail would need a different app step.
+- To send only some rows, add a Filter step that stops the run when the row doesn't match.
+- To post to a team channel instead of emailing, replace the Outlook step with a Slack or Teams post.
+- Never commit a real spreadsheet ID or email address in `config.ts`.

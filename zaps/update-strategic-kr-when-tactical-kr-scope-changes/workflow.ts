@@ -8,8 +8,7 @@ import {
   STATUS_PROPERTY,
   IN_PROGRESS_STATUS,
   SCOPE_CHANGE_PROPERTY,
-} from "@/config";
-import notion from "@/connections/notion";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -26,7 +25,7 @@ function readText(value: unknown): string {
   return "";
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "update-strategic-kr-when-tactical-kr-scope-changes",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -48,7 +47,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "notion",
         actionType: "search",
         actionKey: "find_data_source_item",
-        connection: notion,
+        connection: "notion",
         inputs: {
           datasource: STRATEGIC_DATA_SOURCE_ID,
           search_fields: [SOURCE_REFERENCE_PROPERTY],
@@ -72,7 +71,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "notion",
         actionType: "write",
         actionKey: "update_database_item",
-        connection: notion,
+        connection: "notion",
         inputs: {
           page: strategic.id,
           datasource: STRATEGIC_DATA_SOURCE_ID,

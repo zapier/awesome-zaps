@@ -1,7 +1,7 @@
-import { ask } from "zap-pack";
+// This zap's settings. Each "REPLACE_…" value is set per person before deploying; its comment says how to get it.
+// The other values are defaults you can change.
 
-export const REPLY_TO_EMAIL = ask(
-  'Team mailbox replies should go to (Reply-To:). Leave "" to reply to the sender.',
-);
+export const REPLY_TO_EMAIL = "REPLACE_REPLY_TO_EMAIL"; // Ask the user which team mailbox replies should go to (Reply-To:). Leave "" to reply to the sender.
+
 // Prefix added to every subject, e.g. "Meeting notes: ".
 export const SUBJECT_PREFIX = "[install-test] Meeting notes: ";

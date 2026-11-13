@@ -1,6 +1,6 @@
 ---
 name: create-learning-account-and-assign-onboarding-groups-for-hires
-description: Build a Zapier Next Gen Zap that, when a new employee is added in BambooHR, finds or creates their Go1 learning account by work email and assigns them to the Go1 onboarding training groups for their division and location. Use when an HR, People or L&D team runs onboarding training in Go1 and wants every new BambooHR hire enrolled in the right training groups without manual setup.
+description: Build a Zap on Zapier that, when a new employee is added in BambooHR, finds or creates their Go1 learning account by work email and assigns them to the Go1 onboarding training groups for their division and location. Use when an HR, People or L&D team runs onboarding training in Go1 and wants every new BambooHR hire enrolled in the right training groups without manual setup.
 license: MIT
 metadata:
   author: zapier
@@ -13,6 +13,8 @@ metadata:
 
 # Create learning account and assign onboarding groups for hires
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/create-learning-account-and-assign-onboarding-groups-for-hires. Read the files there if this skill was installed on its own.
+
 ## What it does
 
 1. **Trigger:** a new employee is created in BambooHR.
@@ -21,37 +23,35 @@ metadata:
 4. **Go1** looks up a user by the work email. If none exists, **Go1** creates one with the hire's first and last name and sends Go1's welcome email.
 5. **Go1** assigns the user to the training groups for that division and path.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-learning-account-and-assign-onboarding-groups-for-hires` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-learning-account-and-assign-onboarding-groups-for-hires` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** BambooHR, New Employee (`bamboohr`, `new_employee`). It takes no trigger fields; its `authentication_id` is the user's BambooHR connection.
-2. **Connections** (each alias in the code is the app's slug):
-   - `bamboohr`: the user's BambooHR connection, used by the trigger.
-   - `go1`: the user's Go1 connection, for the portal where onboarding groups live.
-3. **Constants:**
-   - `LOCAL_LOCATIONS`: BambooHR location names, exactly as BambooHR spells them, that count as local hires.
-   - `GROUPS_BY_DIVISION`: one entry per BambooHR division name, each with a `local` and an `international` list of Go1 group IDs. Resolve group names to IDs with the choices on the Go1 Assign Group action's `id` field.
-   - `NOTIFY_NEW_USER`: `"True"` sends Go1's welcome email to new users; `"False"` skips it.
-4. Test with the steps below, then publish and wait until the trigger is active.
+The Zap only reads from BambooHR and never changes a BambooHR record.
 
 ## Ask the user
 
-- Which BambooHR locations count as local, and what are the international ones called?
-- Which BambooHR divisions should get onboarding groups, and which Go1 groups does each division's local and international hires join?
-- Should new Go1 users get the welcome email?
-- Is the work email in BambooHR the same address hires sign in to Go1 with? Matching relies on it.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                          | What goes there                                                                                                                          |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `REPLACE_LOCAL_LOCATION`         | A BambooHR location that counts as a local hire, spelled exactly as BambooHR spells it. Add one string to `LOCAL_LOCATIONS` per location |
+| `REPLACE_DIVISION_NAME`          | A BambooHR division that gets onboarding groups, spelled exactly as BambooHR spells it. Repeat the `GROUPS_BY_DIVISION` entry for each   |
+| `REPLACE_LOCAL_GROUP_ID`         | The Go1 group that division's local hires join, picked by name and looked up with the user's Go1 connection                              |
+| `REPLACE_INTERNATIONAL_GROUP_ID` | The Go1 group that division's international hires join, looked up the same way                                                           |
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing, with a division and location from the user's mapping and an email for a test learner the user agrees to create in Go1:
+Review the default with them: `NOTIFY_NEW_USER` in `config.ts` (`"True"` sends Go1's welcome email to new users; `"False"` skips it).
+
+Before turning it on, confirm the work email in BambooHR is the same address hires sign in to Go1 with. Matching relies on it.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `bamboohr` (the trigger's account, for the user's BambooHR) and `go1` (the user's Go1 account, for the portal where onboarding groups live) to the user's connections. Both are used.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/new-employee.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test with a test learner's details. Replace the two sample values with a location and division from the mapping:
 
 ```json
 {
@@ -59,17 +59,12 @@ Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before 
   "workEmail": "new.hire@example.com",
   "firstName": "Jordan",
   "lastName": "Rivera",
-  "location": "YOUR_LOCAL_LOCATION",
-  "division": "YOUR_DIVISION"
+  "location": "Sample Office",
+  "division": "Sample Division"
 }
 ```
 
-Confirm that Go1 has one user for that email, that they belong to the division's local groups, and that a second run with the same input adds no duplicate user. Then send a sample with an unmapped division and confirm the run skips with `division-not-mapped`. Remove the test learner from Go1 afterwards.
-
-## Customize
-
-- **Enroll in starter courses:** add a Go1 Create Enrollment step after the group assignment to enroll new users in mandatory courses.
-- **Leadership path:** route senior hires (by job title or level) to managerial training groups as well.
+Check that Go1 has one user for that email and that they belong to the division's local groups. Run the same input again and check that no duplicate user is added. Then send a sample with an unmapped division and check that the run skips with `division-not-mapped`. If run-status tools aren't available, check Go1 directly. Ask the user to remove the test learner from Go1 afterwards; the agent doesn't delete test data. Then publish and confirm the trigger is active.
 
 ## Notes
 
@@ -77,3 +72,4 @@ Confirm that Go1 has one user for that email, that they belong to the division's
 - Hires who already have a Go1 account are still assigned to their onboarding groups.
 - BambooHR fires this trigger when the employee record is created, which can be well before the start date. Use BambooHR's New Employee Started trigger instead if accounts should appear on day one.
 - Division and location must match the mapping exactly, including capitalization.
+- To customize: add a Go1 Create Enrollment step after the group assignment to enroll new users in mandatory courses, or route senior hires to managerial groups as well.

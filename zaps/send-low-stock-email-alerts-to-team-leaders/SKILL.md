@@ -1,6 +1,6 @@
 ---
 name: send-low-stock-email-alerts-to-team-leaders
-description: Build a Zapier Next Gen Zap that emails a branch's team leaders when a row in a stock spreadsheet shows stock below that branch's minimum. Use when a retail or store operation tracks branch stock in a Google Sheet and wants team leaders alerted as soon as a count drops under its threshold.
+description: Build a Zap on Zapier that emails a branch's team leaders when a row in a stock spreadsheet shows stock below that branch's minimum. Use when a retail or store operation tracks branch stock in a Google Sheet and wants team leaders alerted as soon as a count drops under its threshold.
 license: MIT
 metadata:
   author: zapier
@@ -13,41 +13,40 @@ metadata:
 
 # Send low stock email alerts to team leaders
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/send-low-stock-email-alerts-to-team-leaders. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a row is added or changed in the inventory spreadsheet's worksheet (Google Sheets, New or Updated Spreadsheet Row).
+1. **Trigger:** a row is added or changed in the inventory spreadsheet's worksheet (`google-sheets`, `updated_row_notify_hook`, "New or Updated Spreadsheet Row").
 2. **Code** reads the row's product, branch and stock columns. If the branch has no entry in `BRANCH_LEADERS`, or the stock is blank or not below that branch's threshold, the run stops and sends nothing.
 3. **Gmail** sends one email to the branch's team leader addresses. The subject names the branch and product; the body gives the stock count and the minimum.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/send-low-stock-email-alerts-to-team-leaders` (it makes a zap project if you aren't in one), then `npx zap-pack deploy send-low-stock-email-alerts-to-team-leaders` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Google Sheets, `google-sheets` / `updated_row_notify_hook` ("New or Updated Spreadsheet Row"). Params: `spreadsheet` = `YOUR_SPREADSHEET_ID`, `worksheet` = `"0"` (the first tab). Leave `dedupe_column` unset so every row change is seen.
-2. **Connections** (each alias in the code is the app's slug):
-   - `google-sheets`: the Google Sheets connection for the account that owns the inventory sheet.
-   - `gmail`: the Gmail connection that should send the alerts.
-3. **Settings** (in `config.ts`; an `ask(…)` is asked when each person deploys):
-   - `PRODUCT_COLUMN`, `BRANCH_COLUMN`, `STOCK_COLUMN`: column keys such as `COL$A`, not header names. Map the user's headers to their column letters.
-   - `BRANCH_LEADERS`: one entry per branch, keyed by the identifier in the branch column, with the leaders' email addresses (`emails`) and the minimum stock count (`threshold`). The example entry uses placeholders.
-4. Test with the steps below, then publish, wait until the trigger is active, and give the user the spreadsheet link to confirm the trigger is pointed at the right tab.
+The Zap only sends email. It never edits the spreadsheet.
 
 ## Ask the user
 
-- Which spreadsheet and tab hold the stock counts? Which columns hold the product title, branch identifier and stock count?
-- What is each branch's identifier, its team leaders' email addresses, and its minimum stock count?
-- Should the alert go to one shared list for every branch, or does each branch have its own list?
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                     | Where                                                | What goes there                                                                   |
+| --------------------------- | ---------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `REPLACE_SPREADSHEET_ID`    | `triggers/updated-row-notify-hook.ts`, `spreadsheet` | The inventory spreadsheet that holds the stock counts                             |
+| `REPLACE_BRANCH_ID`         | `workflow.ts`, `BRANCH_LEADERS` key                  | One entry per branch: that branch's identifier as it appears in the branch column |
+| `REPLACE_TEAM_LEADER_EMAIL` | `workflow.ts`, `BRANCH_LEADERS` `emails`             | The team leaders' email addresses for that branch                                 |
 
-Run these samples as draft test runs (`run_workflow_draft` in Zapier MCP) before publishing, with a test row already in the sheet:
+Also review the defaults with them: the column letters in `config.ts` (`PRODUCT_COLUMN`, `BRANCH_COLUMN`, `STOCK_COLUMN`, set to `COL$A` to `COL$C`; map the user's headers to their letters), the `threshold` of `5` in each branch entry, and `worksheet` `"0"` in the trigger (the first tab).
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `google-sheets` (the account that owns the inventory sheet) and `gmail` (the account that sends the alerts) to the user's connections. The trigger and the workflow use `google-sheets`.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/updated-row-notify-hook.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections (and sample the trigger, if it has one) before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it as draft test runs with the two sample rows below. Use a branch that is in `BRANCH_LEADERS` and send its team leaders' emails to the user's own address for the test, so no real team is emailed.
 
 Below threshold (should send one email):
 
@@ -75,12 +74,7 @@ At or above threshold (should send nothing; the run output reads `skipped: true,
 }
 ```
 
-Confirm the first run sends one email to the team leader list with the product, branch and count in it, and that the second run reaches its skip branch with no email. Then tell the user to delete the test rows and any test emails if they were real data.
-
-## Customize
-
-- **Add a Slack or team chat notification** in parallel for on-call store managers.
-- **Log alerts** to a tracking worksheet or task list for audit and follow-up.
+Confirm the first run sends one email with the product, branch and count in it, and that the second run reaches its skip branch with no email. If run-status tools aren't available, check the result in Gmail directly. Then publish, confirm the trigger is active, and tell the user to delete the test rows and any test emails. The user deletes test data, not the agent.
 
 ## Notes
 
@@ -88,4 +82,5 @@ Confirm the first run sends one email to the team leader list with the product, 
 - A branch identifier not in `BRANCH_LEADERS` is skipped without an alert. Add the branch to the list to start alerting on it.
 - A blank or non-numeric stock count is skipped, not treated as zero.
 - Thresholds live in the code, not in the sheet. Change them by editing `BRANCH_LEADERS` and republishing.
-- Never commit a real spreadsheet ID or leader email address. Anyone who can read the sheet can see the thresholds and who gets alerted.
+- To also post to a team chat or log alerts to a tracking sheet, add a step after the email.
+- Keep real spreadsheet IDs and leader email addresses out of any shared copy of the code.

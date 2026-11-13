@@ -1,6 +1,6 @@
 ---
 name: create-or-update-public-post-from-project-webhook
-description: Build a Zapier Next Gen Zap that publishes or updates a public release-notes post when a project event arrives by webhook, records the post in a tracking table, and tells the team in Discord. Use when a product team announces project changes through a public changelog or release-notes page and wants that page kept in sync without manual posting.
+description: Build a Zap on Zapier that publishes or updates a public release-notes post when a project event arrives by webhook, records the post in a tracking table, and tells the team in Discord. Use when a product team announces project changes through a public changelog or release-notes page and wants that page kept in sync without manual posting.
 license: MIT
 metadata:
   author: zapier
@@ -13,51 +13,45 @@ metadata:
 
 # Create or update public post from project webhook
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/create-or-update-public-post-from-project-webhook. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a project event arrives at a Webhooks by Zapier catch hook (a project tool or script posts to it) with `project_reference`, `title`, `description` and `status`.
+1. **Trigger:** a project event arrives at a Webhooks by Zapier catch hook (`webhook`, `hook_v2`) with `project_reference`, `title`, `description` and `status`. A project tool or script posts to the hook.
 2. **Zapier Tables** looks up the row whose project reference matches. If there is no reference, the run stops.
-3. **Code** calls the CMS posts API. If the row already holds a post ID, it updates that post; otherwise it creates a new one in the default category. It keeps the post ID.
+3. **The CMS posts API** is called. If the row already holds a post ID, that post is updated; otherwise a new one is created in the default category. The post ID is kept.
 4. **Zapier Tables** creates the row (no match) or updates it (match), storing the project reference, the post ID and the status.
-5. **Discord** posts one short line with the title, project reference and status to the team channel. Mentions are off.
+5. **Discord** posts one short line with the title, project reference and status to the team channel.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-or-update-public-post-from-project-webhook` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-or-update-public-post-from-project-webhook` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Webhooks by Zapier, Catch Hook (`webhook`, `hook_v2`). It needs no connection, so its `authentication_id` is `null`.
-2. **Connections** (each alias in the code is the app's slug, except the CMS):
-   - `zapier-tables`: the user's Zapier Tables connection, for the tracking table.
-   - `discord`: the user's Discord connection, for the team channel.
-   - `cms_api`: a connection to the CMS that hosts the public posts. It is not a Zapier app, so connect it in the CMS's own app or through a Zapier app that wraps it; the code calls it with `sdk.fetch`.
-3. **Constants:**
-   - `TRACKING_TABLE_ID`: the Zapier Tables table that tracks each project's post.
-   - `REFERENCE_FIELD`, `POST_ID_FIELD`, `STATUS_FIELD`: the table's field keys (such as `new__data__f1`) for the project reference, CMS post ID and publish status. Map the user's column names to their keys.
-   - `CMS_POSTS_URL`: the CMS posts endpoint.
-   - `CMS_DEFAULT_CATEGORY`: the category every post is published under.
-   - `DISCORD_CHANNEL_ID`: the team channel that receives the summary.
-   - `PING_MENTIONS`: keep `false` so the summary never pings anyone.
-4. Publish, wait until the trigger is active, and give the user their webhook URL to point the project tool at.
+The Discord message never pings anyone: `PING_MENTIONS` stays `false`.
 
 ## Ask the user
 
-- Which Zapier Tables table tracks the posts, and which fields hold the project reference, post ID and status?
-- Which CMS and which endpoint publish the posts, and which category should they use?
-- Which Discord channel gets the summary?
-- What does the project tool send? The payload must carry `project_reference`, `title`, `description` and `status`; if its field names differ, change the input schema before installing.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                | What goes there                                                                 |
+| ---------------------- | ------------------------------------------------------------------------------- |
+| `TRACKING_TABLE_ID`    | The Zapier Tables table that tracks each project's public post                  |
+| `CMS_POSTS_URL`        | The URL of the CMS posts endpoint, such as `https://<their CMS host>/api/posts` |
+| `CMS_DEFAULT_CATEGORY` | The CMS category every post is published under                                  |
+| `DISCORD_CHANNEL_ID`   | The Discord channel that gets the team summary                                  |
 
-Run this sample as a draft test run before publishing, with a project reference that exists in the user's tracking table and a CMS post you can safely change:
+Also review the defaults with them: `REFERENCE_FIELD`, `POST_ID_FIELD` and `STATUS_FIELD` are the tracking table's field keys for the project reference, CMS post ID and publish status, so map them to the user's column names. Keep `PING_MENTIONS` `false`.
+
+Ask what the project tool sends. The payload must carry `project_reference`, `title`, `description` and `status`. If its field names differ, change the input schema in `workflow.ts` before publishing.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `zapier-tables` to the user's Zapier Tables connection (for the tracking table), `discord` to their Discord connection (for the team channel), and `cms_api` to their CMS connection. The CMS is not a Zapier app, so connect it in the CMS's own app or through a Zapier app that wraps it. Webhooks by Zapier needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/hook.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections (and sample the trigger, if it has one) before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test, with the tracking table, CMS category and Discord channel set to ones the user controls, so the test touches no real posts. Use this sample:
 
 ```json
 {
@@ -68,15 +62,12 @@ Run this sample as a draft test run before publishing, with a project reference 
 }
 ```
 
-Check that the tracking row for `PRJ-1042` has the post ID and status, that the CMS post shows the new title and body, and that one line reached the Discord channel with no mention. Then tell the user to revert the post and row if they were real data.
-
-## Customize
-
-- **Filter by initiative or tag:** add a check before the CMS step so only projects with a chosen tag are published.
-- **High-priority route:** send projects with a high-priority status to a separate Discord channel, or add an approval step before publishing.
+Check that the tracking row for `PRJ-1042` has the post ID and status, that the CMS post shows the new title and body, and that one line reached the Discord channel with no mention. If run-status tools aren't available, check the tracking table, the CMS and the Discord channel directly. Then publish, confirm the trigger is active, and ask the user to delete the test row, post and message. The user deletes test data, not the agent.
 
 ## Notes
 
-- The CMS is not a Zapier app. Its call runs through `sdk.fetch` with the `cms_api` connection, so that connection must exist before the workflow can publish.
+- The CMS call runs through `sdk.fetch` with the `cms_api` connection, so that connection must exist before the workflow can publish.
 - If two rows share a project reference, the lookup takes the first match.
-- Never commit a real spreadsheet, table, channel, CMS host or webhook URL. Anyone with the webhook URL can publish or change posts.
+- Anyone with the webhook URL can publish or change posts, so keep it private.
+- To publish only some projects, such as those with a chosen tag, add a check before the CMS step.
+- To send high-priority projects to a separate Discord channel, or to add an approval step before publishing, change the steps after the lookup.

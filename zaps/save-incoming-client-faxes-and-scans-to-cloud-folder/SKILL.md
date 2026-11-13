@@ -1,6 +1,6 @@
 ---
 name: save-incoming-client-faxes-and-scans-to-cloud-folder
-description: Build a Zapier Next Gen Zap that saves each attachment arriving in a scanner or fax label to a secure Google Drive archive folder, with a standardized date-based filename, then labels the email as processed. Use when a legal team receives client faxes or scanner PDFs by email and needs them filed in one cloud folder, searchable by date, without manual uploads.
+description: Build a Zap on Zapier that saves each attachment arriving in a scanner or fax label to a secure Google Drive archive folder, with a standardized date-based filename, then labels the email as processed. Use when a legal team receives client faxes or scanner PDFs by email and needs them filed in one cloud folder, searchable by date, without manual uploads.
 license: MIT
 metadata:
   author: zapier
@@ -13,42 +13,41 @@ metadata:
 
 # Save incoming client faxes and scans to cloud folder
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/save-incoming-client-faxes-and-scans-to-cloud-folder. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a new attachment arrives in the scanner label (Gmail, New Attachment).
-2. **Formatter (plain code):** builds a filename from the message date and the original attachment name, for example `2026-10-29_scan-0042.pdf`.
-3. **Google Drive:** uploads the attachment to the archive folder under that filename.
-4. **Gmail:** adds the processed label to the message so the mailbox stays uncluttered.
+1. **Trigger:** a new attachment arrives in the scanner label (`gmail`, `attachment`).
+2. **Filename:** the workflow builds it from the message date and the original attachment name, for example `2026-10-29_scan-0042.pdf`.
+3. **Google Drive** (`google-drive`) uploads the attachment to the archive folder under that filename.
+4. **Gmail** (`gmail`) adds the processed label to the message so the mailbox stays uncluttered.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/save-incoming-client-faxes-and-scans-to-cloud-folder` (it makes a zap project if you aren't in one), then `npx zap-pack deploy save-incoming-client-faxes-and-scans-to-cloud-folder` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Gmail, New Attachment (`gmail` / `attachment`), watching the scanner label through its `label_ids` parameter.
-2. **Connections** (each alias in the code is the app's slug):
-   - `gmail`: the work Gmail account (you@example.com) for the trigger and the label step.
-   - `google-drive`: a Google Drive connection for the account that owns the archive folder. The only one connected today is personal, so it still needs a work or firm account.
-3. **Constants:**
-   - `SCANNER_LABEL_ID`: the Gmail label ID the scanner or fax system files into.
-   - `PROCESSED_LABEL_ID`: the Gmail label ID to add after a save.
-   - `ARCHIVE_FOLDER_ID`: the Google Drive folder ID of the secure archive folder (the long ID in its URL). The folder must already exist.
+The Zap only adds a label. It never moves, deletes or replies to the email.
 
 ## Ask the user
 
-- Which Gmail label receives the scanner and fax emails, and which label marks them processed? Create the processed label first if it does not exist.
-- Which Google Drive folder is the secure archive? Create it first; the workflow does not create folders.
-- Which Google account should own the archive uploads? It must be a work or firm account.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                      | What goes there                                                                                            |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `REPLACE_SCANNER_LABEL_ID`   | The Gmail label the scanner or fax system files into. The trigger watches this label.                      |
+| `REPLACE_PROCESSED_LABEL_ID` | The Gmail label added after each save. Create it first if it does not exist.                               |
+| `REPLACE_ARCHIVE_FOLDER_ID`  | The Google Drive folder that is the secure archive. Create it first; the workflow does not create folders. |
 
-To test, use a draft test run with a sample payload. Create a test email with a small PDF to the scanner label, and use the `[install-test]` naming for any test folder or label.
+Also confirm which Google account owns the archive uploads. It must be a work or firm account.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `gmail` to the user's work Gmail account, for the trigger and the label step, and `google-drive` to the Google Drive connection for the account that owns the archive folder. Every app here needs a connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/attachment.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. Set the trigger's `label_ids` to the scanner label's ID so it fires only on that label. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Create a test email with a small PDF to the scanner label, then run it once as a draft test with this sample payload. Use `[install-test]` in the name of any test label or folder.
 
 ```json
 {
@@ -65,14 +64,11 @@ Check that:
 - the test email has the processed label
 - nothing else in the mailbox or Drive changed
 
-Compare them against a real trigger sample before publishing.
-
-## Customize
-
-- **Add an OCR extraction step before upload** to make PDFs searchable.
-- **Route files into client subfolders** using a simple lookup table instead of a flat folder.
+Compare the sample with a real trigger sample before publishing. If run-status tools aren't available, check the result in Google Drive and Gmail directly. The user deletes the test data, not the agent.
 
 ## Notes
 
 - The processed step adds a label rather than moving the message out of the inbox.
-- Do not commit real label, folder, or account IDs. Keep the placeholders in the copy you share.
+- Keep real label, folder and account IDs out of any copy you share.
+- To make PDFs searchable, add an OCR step before the upload.
+- To file by client, route uploads into subfolders with a lookup table instead of one flat folder.

@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { CHANNEL_PREFIX } from "@/config";
-import slack from "@/connections/slack";
+import { CHANNEL_PREFIX } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -33,7 +32,7 @@ function errorText(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-a-new-customer-support-channel-and-invite-owners",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -62,7 +61,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "slack",
             actionType: "write",
             actionKey: "new_channel",
-            connection: slack,
+            connection: "slack",
             inputs: { name },
           });
           const item = result.data?.[0] as
@@ -96,7 +95,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "slack",
           actionType: "write",
           actionKey: "channels_invite_v2",
-          connection: slack,
+          connection: "slack",
           inputs: { channel: channelId, users: [ownerId] },
         }),
       );
@@ -110,7 +109,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "slack",
           actionType: "write",
           actionKey: "channels_invite_v2",
-          connection: slack,
+          connection: "slack",
           inputs: { channel: channelId, users: supportIds },
         }),
       );

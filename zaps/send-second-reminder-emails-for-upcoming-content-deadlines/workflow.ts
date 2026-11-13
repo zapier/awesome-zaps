@@ -2,13 +2,14 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { INTERNAL_DOMAIN, SUBMISSION_MARKER, TIMEZONE } from "@/config";
-import gmail from "@/connections/gmail";
+import {
+  BCC_ADDRESS,
+  INTERNAL_DOMAIN,
+  SUBMISSION_MARKER,
+  TIMEZONE,
+} from "./config.ts";
 
 const sdk = createZapierSdk();
-
-// Addresses that get a blind copy of every reminder.
-const BCC_RECIPIENTS = ["YOUR_EMAIL_ADDRESS"];
 
 const EMAIL_PATTERN = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/;
 
@@ -22,7 +23,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "send-second-reminder-emails-for-upcoming-content-deadlines",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -77,10 +78,10 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: gmail,
+        connection: "gmail",
         inputs: {
           to: [contributorEmail],
-          bcc: BCC_RECIPIENTS,
+          bcc: [BCC_ADDRESS],
           subject,
           body,
           body_type: "plain",

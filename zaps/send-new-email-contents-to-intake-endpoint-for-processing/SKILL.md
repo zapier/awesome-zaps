@@ -1,6 +1,6 @@
 ---
 name: send-new-email-contents-to-intake-endpoint-for-processing
-description: Build a Zapier Next Gen Zap that posts each new email in a Gmail inbox (subject, plain-text body, sender and message ID) as JSON to your intake endpoint, so a ticketing or processing system can turn it into a ticket. Use when a support or operations inbox should feed a ticket queue or processing pipeline automatically, and you have an HTTP endpoint that accepts JSON.
+description: Build a Zap on Zapier that posts each new email in a Gmail inbox (subject, plain-text body, sender and message ID) as JSON to your intake endpoint, so a ticketing or processing system can turn it into a ticket. Use when a support or operations inbox should feed a ticket queue or processing pipeline automatically, and you have an HTTP endpoint that accepts JSON.
 license: MIT
 metadata:
   author: zapier
@@ -13,42 +13,44 @@ metadata:
 
 # Send new email contents to intake endpoint for processing
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/send-new-email-contents-to-intake-endpoint-for-processing. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** Gmail, New Email, in the Inbox. Each new message fires a run with its subject, plain-text body, sender and message ID.
+1. **Trigger:** Gmail, New Email (`gmail`, `message`). Each new message fires a run with its subject, plain-text body, sender and message ID.
 2. **Filter (built as code, not a step):** optional keyword and sender filters. Both are empty by default, so every email is forwarded.
 3. **Webhooks by Zapier, POST:** sends JSON `{ subject, message, sender, message_id }` to your intake endpoint. The subject maps to `subject`, the plain body to `message`, and the sender address to `sender`.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/send-new-email-contents-to-intake-endpoint-for-processing` (it makes a zap project if you aren't in one), then `npx zap-pack deploy send-new-email-contents-to-intake-endpoint-for-processing` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Gmail, New Email (`gmail`, `message`). Set the trigger's mailbox to **Inbox** (`label_ids: "INBOX"`). Left unset, it fires on every email, including drafts.
-2. **Connections** (each alias in the code is the app's slug):
-   - `gmail`: the Gmail account that receives the inbox to be processed.
-   - Webhooks by Zapier (`webhook`) needs no connection.
-3. **Constants:**
-   - `INTAKE_ENDPOINT_URL`: the URL of your intake endpoint. It must accept JSON POSTs.
-   - `ROUTING_KEYWORDS`: optional. Forward only emails containing one of these words. Empty forwards all emails.
-   - `MONITORED_SENDERS`: optional. Forward only emails from these addresses. Empty forwards all senders.
-4. Test with the sample below, then publish, confirm the trigger is active, and give the user the trigger's webhook details if the trigger exposes them. Nothing fires until the Gmail trigger sees mail.
+The Zap only forwards. Its one action is that POST, and nothing is written back to Gmail.
 
 ## Ask the user
 
-- Which Gmail account and mailbox should be watched? The default is the account's Inbox.
-- What is the intake endpoint URL? It must accept a JSON POST with `subject`, `message`, `sender` and `message_id`.
-- Should only some emails go through? If so, which keywords or sender addresses? Leave both empty to forward everything.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                       | What goes there                                                                                                                                                       |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `REPLACE_INTAKE_ENDPOINT_URL` | The URL of the intake endpoint (`config.ts`). It must accept a JSON POST with `subject`, `message`, `sender` and `message_id`. Use a test endpoint for the first run. |
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing. Point `INTAKE_ENDPOINT_URL` at a test endpoint first, not the production intake:
+Also review the defaults with them:
+
+- **Mailbox:** the trigger watches the Gmail Inbox (`label_ids: "INBOX"`, set in step 2 of Build it). Left unset, it fires on every email, including drafts.
+- **`ROUTING_KEYWORDS`** (in `workflow.ts`): optional. Forward only emails containing one of these words. Empty forwards every email.
+- **`MONITORED_SENDERS`** (in `workflow.ts`): optional. Forward only emails from these addresses. Empty forwards from any sender.
+
+Questions to settle: which Gmail account receives the inbox to be processed, and whether only some emails should go through (and if so, which keywords or sender addresses).
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `gmail` to the user's Gmail connection for the account that receives the inbox to be processed. Webhooks by Zapier needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/message.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them, and set the trigger's mailbox to Inbox (`label_ids: "INBOX"`). The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing. Point `REPLACE_INTAKE_ENDPOINT_URL` at a test endpoint first, not the production intake:
 
 ```json
 {
@@ -62,16 +64,11 @@ Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before 
 }
 ```
 
-Check: the run completes, and the endpoint receives a JSON body whose `subject`, `message`, `sender` and `message_id` match the sample. Read the body back from the run's step result (`get_run_output` with `include_results: true`), not from the run status alone.
-
-## Customize
-
-- **Strip signatures or extract fields:** add a Formatter step, or plain JavaScript in the workflow, to clean `message` or pull out order numbers before the POST.
-- **Route by subject:** post to different endpoints based on keywords or detected request type, using separate POST steps or a `switch` on subject text.
+Check that the run completes, and that the endpoint receives a JSON body whose `subject`, `message`, `sender` and `message_id` match the sample. Read the body back from the run's step result (`get_run_output` with `include_results: true`), not from the run status alone. If run-status tools aren't available, check the result in your intake endpoint directly. Ask the user to delete the test data; the agent doesn't. Then publish, confirm the trigger is active, and note that nothing fires until the Gmail trigger sees mail.
 
 ## Notes
 
-- Deduplication by Message-ID is not built. A durable workflow has no store to remember past IDs. Gmail's trigger does not re-deliver the same message, but a retry of a failed POST can send it twice.
-- `from` arrives as an object (`{ name, email }`). The workflow reads `email`. If the trigger sends a plain string, that is handled too.
-- The POST sends the email body as-is, so its contents go to your intake endpoint. Use an endpoint you trust, and HTTPS.
-- Do not commit a real intake endpoint URL. Anyone with it can submit tickets.
+- Deduplication by Message-ID is not built: a durable workflow has no store of past IDs. Gmail does not re-deliver the same message, but a retry of a failed POST can send it twice.
+- `from` arrives as an object (`{ name, email }`), and the workflow reads `email`. A plain string is handled too.
+- The POST sends the email body as-is, so use an endpoint you trust, over HTTPS. Don't commit a real intake endpoint URL; anyone with it can submit tickets.
+- To customize: strip signatures or pull out order numbers with a Formatter step or plain JavaScript before the POST, or route by subject to different endpoints with separate POST steps or a `switch`.

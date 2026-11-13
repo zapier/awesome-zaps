@@ -1,6 +1,6 @@
 ---
 name: create-dispatch-orders-from-zero-paid-invoices-for-ops
-description: Build a Zapier Next Gen Zap that watches Xero for paid sales invoices with a zero or near-zero total and creates a matching outbound order in CartonCloud, emailing IT when the order fails. Use when a sales team raises invoices that need no payment (free samples, credits, promo orders) and the warehouse still has to ship them, so ops doesn't re-key each one.
+description: Build a Zap on Zapier that watches Xero for paid sales invoices with a zero or near-zero total and creates a matching outbound order in CartonCloud, emailing IT when the order fails. Use when a sales team raises invoices that need no payment (free samples, credits, promo orders) and the warehouse still has to ship them, so ops doesn't re-key each one.
 license: MIT
 metadata:
   author: zapier
@@ -13,53 +13,51 @@ metadata:
 
 # Create dispatch orders from zero-paid invoices
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/create-dispatch-orders-from-zero-paid-invoices-for-ops. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a Xero sales invoice is updated to status `paid` (Xero's "Updated Sales Invoice" trigger).
-2. **Filter (plain code):** the run stops unless the invoice is paid and its total is between 0 and the threshold (`MAX_INVOICE_TOTAL`). Invoices whose reference contains a configured branch indicator are skipped.
+1. **Trigger:** a Xero sales invoice is updated to status `paid` (`xero`, `updated_invoice_v2`).
+2. **Filter (plain code):** the run stops unless the invoice is paid and its total is between 0 and `MAX_INVOICE_TOTAL`. Invoices whose reference contains a configured branch indicator are skipped.
 3. **CartonCloud** creates an outbound (sale) order. The invoice number is the order reference. The contact name and address lines go to the delivery address, each invoice line becomes an item (product code and quantity), and the invoice PDF is attached when Xero provides one.
 4. **Gmail:** if the CartonCloud step fails, one failure notice goes to the IT address with the invoice number and the error.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-dispatch-orders-from-zero-paid-invoices-for-ops` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-dispatch-orders-from-zero-paid-invoices-for-ops` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Xero, `xero` version `2.22.1`, action `updated_invoice_v2`. Params: `organization` set to the Xero organization, `status` set to `paid`. The trigger needs a Xero connection.
-2. **Connections** (each alias in the code is the app's slug):
-   - `xero`: the Xero connection for the organization being watched (the trigger uses it).
-   - `cartoncloud`: the CartonCloud connection for the warehouse account.
-   - `gmail`: the Gmail connection that sends IT notices.
-3. **Settings** (in `config.ts`; an `ask(…)` is asked when each person deploys):
-   - `XERO_ORGANIZATION`: the Xero organization ID.
-   - `MAX_INVOICE_TOTAL`: the largest total that counts as zero or near-zero. Set to `1`.
-   - `SKIP_BRANCH_INDICATORS`: reference words that mark a branch invoice to skip. Empty by default, which skips nothing.
-   - `CARTONCLOUD_TENANT`, `CARTONCLOUD_CUSTOMER`: the CartonCloud tenant and customer the orders belong to.
-   - `IT_ALERT_EMAIL`: the address for failure notices.
-4. Test with the steps below, then publish, wait until the trigger is active, and confirm the trigger is live in the editor.
+The Zap only creates orders and sends the IT notice. It never changes the invoice in Xero.
 
 ## Ask the user
 
-- Which Xero organization holds the invoices, and which CartonCloud tenant and customer should own the orders?
-- Is the threshold `1` right for "near-zero", or should it be another amount?
-- Are there branch indicators in invoice references to skip? If so, list them.
-- Which address should get failure notices?
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                        | Where                                                                           | What goes there                                                               |
+| ------------------------------ | ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `REPLACE_XERO_ORGANIZATION`    | `config.ts`, `XERO_ORGANIZATION`; `triggers/updated-invoice.ts`, `organization` | The Xero organization whose invoices are watched. Use the same value in both. |
+| `REPLACE_CARTONCLOUD_TENANT`   | `config.ts`, `CARTONCLOUD_TENANT`                                               | The CartonCloud tenant the orders are created in                              |
+| `REPLACE_CARTONCLOUD_CUSTOMER` | `config.ts`, `CARTONCLOUD_CUSTOMER`                                             | The CartonCloud customer the orders are raised against                        |
+| `REPLACE_IT_ALERT_EMAIL`       | `config.ts`, `IT_ALERT_EMAIL`                                                   | The address that receives failure notices. Use one they can read.             |
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing. Use a Xero invoice that is paid with a total of `0.00` and whose contact has a full address:
+Also review the defaults with them:
+
+- `MAX_INVOICE_TOTAL` (`1`): the largest total that counts as zero or near-zero.
+- `SKIP_BRANCH_INDICATORS` (empty, so nothing is skipped): reference words that mark a branch invoice to skip. If they have any, list them.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `cartoncloud` (the warehouse account that creates the orders) and `gmail` (sends the IT notices) to the user's connections, and `xero` (the trigger's account, for the organization being watched) to the user's Xero connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/updated-invoice.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test with this invoice. Every value is a placeholder:
 
 ```json
 {
   "invoice": {
     "InvoiceNumber": "INV-0001",
-    "InvoiceID": "<id>",
+    "InvoiceID": "<invoice-id>",
     "Reference": "Free sample pack",
     "Status": "PAID",
     "Total": "0.00",
@@ -80,15 +78,13 @@ Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before 
 }
 ```
 
-Check that one outbound order appears in CartonCloud with order reference `INV-0001`, the right address and item, and the invoice PDF attached. Then run it again with a `Total` above the threshold, such as `"250.00"`, and check that no order is created. Then run it with a broken CartonCloud connection, if you can, and check that the IT address gets one failure notice. Delete any test order in CartonCloud if it was real data.
+Check that one outbound order appears in CartonCloud with order reference `INV-0001`, the right address and item, and the invoice PDF attached. Then run it again with `"Total": "250.00"` and check that no order is created. Then run it with a broken CartonCloud connection, if you can, and check that the IT address gets one failure notice.
 
-## Customize
-
-- **Swap the warehouse system:** replace CartonCloud with any warehouse or order-management app that can create an outbound order.
-- **Swap the alert channel:** replace the Gmail failure notice with an SMS or team chat message.
+If run-status tools aren't available, check the result in CartonCloud and Gmail directly. Then publish, and confirm the trigger is active. Ask the user to delete any test order in CartonCloud; the agent doesn't delete test data.
 
 ## Notes
 
-- Create order runs once per paid invoice update. Check CartonCloud for an existing order before relying on this in production, since the workflow does not look up orders it already created.
-- The trigger reads Xero's invoice history. Xero can take a short time to record an update, so a zero-paid invoice may dispatch a few minutes after it is marked paid.
+- The Zap creates an order on every paid invoice update, and the workflow doesn't look up orders it already created. Check CartonCloud for an existing order before relying on this in production.
+- Xero can take a few minutes to record an update, so a zero-paid invoice may dispatch a few minutes after it is marked paid.
+- To swap the warehouse system, replace CartonCloud with any app that can create an outbound order. To swap the alert, use an SMS or team chat message instead of Gmail.
 - Never commit a real Xero organization ID, CartonCloud tenant, or email address.

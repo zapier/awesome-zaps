@@ -1,10 +1,9 @@
-import type { Trigger } from "zap-pack";
-
-import zapierTables from "@/connections/zapier-tables";
-
 export default {
   app: "zapier-tables",
   event: "new_record",
-  connection: zapierTables,
-  params: {},
-} satisfies Trigger;
+  connection: "zapier-tables",
+  params: {
+    // Ask the user which table holds the signal alerts, then look up its ID with their Zapier Tables connection. Same answer as TABLE_ID in config.ts.
+    table_id: "REPLACE_TABLE_ID",
+  },
+};

@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { SLACK_CHANNEL, LINK_NAMES } from "@/config";
-import slack from "@/connections/slack";
+import { SLACK_CHANNEL, LINK_NAMES } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -45,7 +44,7 @@ function buildSummary(input: Record<string, unknown>): string {
   ].join("\n");
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "post-daily-sales-report-to-central-team-chat",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -58,7 +57,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "channel_message",
-        connection: slack,
+        connection: "slack",
         inputs: {
           channel: SLACK_CHANNEL,
           text: summary,

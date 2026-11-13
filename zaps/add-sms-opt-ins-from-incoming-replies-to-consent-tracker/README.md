@@ -6,16 +6,18 @@ When someone texts an opt-in keyword to your number, they get a consent record i
 
 **Based on:** [Add SMS opt-ins from incoming replies to consent tracker](https://zapier.com/automations/legal/privacy-compliance/consent-management/add-sms-opt-ins-from-incoming-replies-to-consent-tracker) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/add-sms-opt-ins-from-incoming-replies-to-consent-tracker/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/add-sms-opt-ins-from-incoming-replies-to-consent-tracker
+
+The agent follows `SKILL.md`: it asks you for the Airtable base and table that hold consent records, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
-- `connections/`: the accounts it uses (`airtable`)
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
+- `connections/`: the account it uses (`airtable`)
 - `triggers/`: what starts it

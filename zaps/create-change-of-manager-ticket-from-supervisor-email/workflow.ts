@@ -7,9 +7,7 @@ import {
   HR_DEPARTMENT_ID,
   TICKET_TYPE,
   TICKET_PRIORITY,
-} from "@/config";
-import ai from "@/connections/ai";
-import freshservice from "@/connections/freshservice";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -38,7 +36,7 @@ const fullName = (first?: string | null, last?: string | null) =>
     .filter(Boolean)
     .join(" ");
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-change-of-manager-ticket-from-supervisor-email",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -51,7 +49,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "ai",
         actionType: "write",
         actionKey: "get_completion",
-        connection: ai,
+        connection: "ai",
         inputs: {
           model_id: "premium/auto",
           authentication_id: "0",
@@ -111,7 +109,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "freshservice",
         actionType: "write",
         actionKey: "create_ticket_action",
-        connection: freshservice,
+        connection: "freshservice",
         inputs: {
           ticket__subject: subject,
           ticket__description: description,

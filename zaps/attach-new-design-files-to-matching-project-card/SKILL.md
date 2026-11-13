@@ -1,6 +1,6 @@
 ---
 name: attach-new-design-files-to-matching-project-card
-description: Build a Zapier Next Gen Zap that watches a Dropbox folder and attaches each new design file to the Trello card whose name matches the filename exactly. Use when a design or CAD team drops files into a shared Dropbox folder and wants them on the matching Trello project card for review and handoff without manual uploads.
+description: Build a Zap on Zapier that watches a Dropbox folder and attaches each new design file to the Trello card whose name matches the filename exactly. Use when a design or CAD team drops files into a shared Dropbox folder and wants them on the matching Trello project card for review and handoff without manual uploads.
 license: MIT
 metadata:
   author: zapier
@@ -13,41 +13,37 @@ metadata:
 
 # Attach new design files to matching project card
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/attach-new-design-files-to-matching-project-card. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** Dropbox, New File in Folder, on the folder you choose. Each new file in that folder starts a run, with its name and contents.
+1. **Trigger:** Dropbox, New File in Folder (`dropbox`, `new_file`), on the folder you choose. Each new file in that folder starts a run, with its name and contents.
 2. **Trello, Find Card:** searches the board you choose for cards that contain the filename. If no card has exactly that name, the run stops and attaches nothing.
-3. **Trello, Add Attachment to Card:** attaches the full file (not a link) to the matching card.
-
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/attach-new-design-files-to-matching-project-card` (it makes a zap project if you aren't in one), then `npx zap-pack deploy attach-new-design-files-to-matching-project-card` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Dropbox, New File in Folder (`dropbox`, `new_file`, version 3.11.0). It needs a Dropbox connection, so set its `authentication_id` to that connection's ID.
-2. **Connections** (each alias in the code is the app's slug):
-   - `dropbox`: the Dropbox connection for the account that owns the design folder.
-   - `trello`: the Trello connection for the account that can see the board.
-3. **Constants:**
-   - `DROPBOX_FOLDER`: the folder path to watch, such as `/Design/CAD`. Also set `params.directory` on the trigger to the same path.
-   - `TRELLO_BOARD_ID`: the board's ID, from its URL.
-4. Test with the steps below, then publish, wait until the trigger is active, and give the user the trigger's webhook details if any are shown.
+3. **Trello, Add Attachment to Card:** attaches the full file (not a link) to the matching card. A file whose name matches no card changes nothing.
 
 ## Ask the user
 
-- Which Dropbox folder holds the design files?
-- Which Trello board holds the project cards, and do card names match the design filenames exactly (including the extension)?
-- Which Dropbox and Trello accounts should be connected? Use the account that owns the folder and the one that can see the board.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                   | Where                                                                     | What goes there                                                                                   |
+| ------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `REPLACE_DROPBOX_FOLDER`  | `triggers/new-file.ts`, `params.directory`; `config.ts`, `DROPBOX_FOLDER` | The Dropbox folder that holds the design files, such as `/Design/CAD`. Set both to the same path. |
+| `REPLACE_TRELLO_BOARD_ID` | `config.ts`, `TRELLO_BOARD_ID`                                            | The Trello board that holds the project cards.                                                    |
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing. Use a test file in the watched folder whose name matches a test card on the board:
+Also confirm with them that card names match the design filenames exactly, including the extension. A card with a different name is never matched.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `trello` (the account that can see the board) and `dropbox` (the account that owns the design folder, used by the trigger) to the user's connections. Neither needs another app.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/new-file.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test (`run_workflow_draft` in Zapier MCP) before publishing. Use a test file in the watched folder whose name matches a test card on the board:
 
 ```json
 {
@@ -56,14 +52,10 @@ Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before 
 }
 ```
 
-Check that the test card now has the file attached, and that a file whose name matches no card leaves every card unchanged. Then delete the test file and the test card if they are yours.
-
-## Customize
-
-- **Create a new card** when no match is found instead of skipping.
-- **Tag or move the card** to a review list after the attachment is added.
+Check that the test card now has the file attached, and that a file whose name matches no card leaves every card unchanged. If run-status tools aren't available, check the result in Trello directly. Then publish, confirm the trigger is active, and ask the user to delete the test file and the test card, not the agent.
 
 ## Notes
 
+- To create a card when no match is found instead of skipping, or to move the card to a review list after the attachment is added, add a step after the attachment.
 - Trello's keyword search returns up to 50 cards by default. If the board has more cards matching the filename than that, an exact match can be missed.
 - If two cards share the exact same name, the first one returned is used.

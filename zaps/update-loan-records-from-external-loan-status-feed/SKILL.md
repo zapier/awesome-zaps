@@ -1,6 +1,6 @@
 ---
 name: update-loan-records-from-external-loan-status-feed
-description: Build a Zapier Next Gen Zap that takes a loan status update from an external feed by webhook, finds the matching loan in Salesforce by its external loan ID, and updates the loan's status, property, finance and date fields. Use when a loan servicer or feed pushes loan status changes and the CRM loan records should stay current without manual edits. Does not create new loans.
+description: Build a Zap on Zapier that takes a loan status update from an external feed by webhook, finds the matching loan in Salesforce by its external loan ID, and updates the loan's status, property, finance and date fields. Use when a loan servicer or feed pushes loan status changes and the CRM loan records should stay current without manual edits. Does not create new loans.
 license: MIT
 metadata:
   author: zapier
@@ -13,42 +13,47 @@ metadata:
 
 # Update loan records from external loan status feed
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/update-loan-records-from-external-loan-status-feed. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a loan status update arrives at a Webhooks by Zapier catch hook (the loan feed posts to it).
-2. **Salesforce Find Record** looks up the loan whose external loan ID field matches `loan_id` in the payload. If there is no match, the run stops and writes nothing. It never creates a loan.
-3. **Plain code** skips the run unless the payload carries a status or a next-payment or maturity date. It then normalizes dates to `YYYY-MM-DD` and currency and rate strings to numbers.
-4. **Salesforce Update Record (UTC)** writes the status, property address, principal balance, interest rate and key dates onto the found loan.
-
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/update-loan-records-from-external-loan-status-feed` (it makes a zap project if you aren't in one), then `npx zap-pack deploy update-loan-records-from-external-loan-status-feed` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Webhooks by Zapier, Catch Hook (`webhook`, `hook_v2`). It needs no connection, so its `authentication_id` is `null`.
-2. **Connections** (each alias in the code is the app's slug):
-   - `salesforce`: the user's Salesforce connection for the account that owns the loan records.
-3. **Settings** (in `config.ts`; an `ask(…)` is asked when each person deploys):
-   - `LOAN_OBJECT`: the Salesforce API name of the loan object.
-   - `EXTERNAL_LOAN_ID_FIELD`: the loan object field that holds the feed's loan ID.
-   - `CRM_FIELDS`: the Salesforce field keys for status, the four property address parts, principal balance, interest rate, next payment date and maturity date.
+1. **Trigger:** a loan status update arrives at a Webhooks by Zapier catch hook (`webhook`, `hook_v2`). The loan feed posts to it.
+2. **Salesforce** Find Record looks up the loan whose external loan ID field matches `loan_id` in the payload. If there is no match, the run stops and writes nothing. It never creates a loan.
+3. **Code** skips the run unless the payload carries a status or a next-payment or maturity date. It then normalizes dates to `YYYY-MM-DD`, and currency and rate text to numbers.
+4. **Salesforce** Update Record (UTC) writes the status, property address, principal balance, interest rate and key dates onto the found loan.
 
 ## Ask the user
 
-- Which Salesforce object holds loans, and which field stores the external loan ID?
-- Which Salesforce fields hold the status, property address, principal balance, interest rate, next payment date and maturity date?
-- What exact field names does the loan feed send? The code expects `loan_id`, `status`, `property_street`, `property_city`, `property_state`, `property_postal_code`, `principal_balance`, `interest_rate`, `next_payment_date` and `maturity_date`. Rename the keys in `InputSchema` if the feed uses others. The code does not guess them.
-- Does the feed send dates as `MM/DD/YYYY` or ISO text? Both parse. Anything else becomes `null` and is not written.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                      | What goes there                                                      |
+| ---------------------------- | -------------------------------------------------------------------- |
+| `LOAN_OBJECT`                | The Salesforce object (API name) that holds the loans                |
+| `EXTERNAL_LOAN_ID_FIELD`     | The loan object field that stores the external loan ID from the feed |
+| `STATUS_FIELD`               | The loan object field for the loan status picklist                   |
+| `PROPERTY_STREET_FIELD`      | The loan object field for the property street address                |
+| `PROPERTY_CITY_FIELD`        | The loan object field for the property city                          |
+| `PROPERTY_STATE_FIELD`       | The loan object field for the property state                         |
+| `PROPERTY_POSTAL_CODE_FIELD` | The loan object field for the property postal code                   |
+| `PRINCIPAL_BALANCE_FIELD`    | The loan object field for the principal balance                      |
+| `INTEREST_RATE_FIELD`        | The loan object field for the interest rate                          |
+| `NEXT_PAYMENT_DATE_FIELD`    | The loan object field for the next payment date                      |
+| `MATURITY_DATE_FIELD`        | The loan object field for the maturity date                          |
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing, using a loan ID that exists in the user's Salesforce loan object, on a test or sandbox Salesforce connection:
+Before turning it on, confirm the feed sends these payload keys: `loan_id`, `status`, `property_street`, `property_city`, `property_state`, `property_postal_code`, `principal_balance`, `interest_rate`, `next_payment_date` and `maturity_date`. If it uses other names, rename the keys in `InputSchema` in `workflow.ts`. Also confirm whether the feed sends dates as `MM/DD/YYYY` or ISO text. Both parse; anything else becomes `null` and is not written.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `salesforce` to the user's Salesforce connection for the account that owns the loan records. The Webhooks catch hook needs no connection, so its `authentication_id` is `null`.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/hook.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger, if it has one, before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test (`run_workflow_draft`) on a sandbox Salesforce connection, against a test loan the user has created with the external loan ID `LN-100234`:
 
 ```json
 {
@@ -65,16 +70,12 @@ Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before 
 }
 ```
 
-Confirm the matching loan's status, address, balance, rate and both dates changed, and that no other loan changed. Also run one payload with an unknown `loan_id` and confirm the run skips with `loan-not-found`. This was not done for this version (see Status).
-
-## Customize
-
-- **Create a loan when no match is found**, instead of stopping.
-- **Notify owners on major status changes**: add an email or team message step after the update.
+Check that the test loan's status, address, balance, rate and both dates changed, and that no other loan changed. Then run one payload with an unknown `loan_id` and check that the run skips with `loan-not-found`. If run-status tools aren't available, check the test loan in Salesforce directly. Ask the user to delete the test loan, not the agent. Then publish, confirm the trigger is active, and do the real thing once with a feed update for a loan that exists.
 
 ## Notes
 
 - Nothing is created on a no-match run; loans must already exist in Salesforce.
-- A payload with no status or date changes is skipped, so routine finance-only updates do not overwrite the record.
-- Dates and currency are normalized in code before the write; amounts with unparseable text are written as `null`.
-- Never commit a real Salesforce object name, field key or webhook URL. Anyone with the webhook URL can change loan records.
+- A payload with no status or date change is skipped, so routine finance-only updates don't overwrite the record.
+- Dates and currency are normalized in code before the write. Amounts with unparseable text are written as `null`.
+- Anyone with the webhook URL can change loan records. Don't commit the real webhook URL, object name or field keys.
+- To extend it: create a loan when no match is found instead of stopping, or notify owners on major status changes with an email or team message step after the update.

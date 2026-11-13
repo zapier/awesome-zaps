@@ -2,7 +2,11 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { CREATE_TASK_URL, SCORE_TASK_URL, HABIT_TRACKER_TOKEN } from "@/config";
+import {
+  CREATE_TASK_URL,
+  SCORE_TASK_URL,
+  HABIT_TRACKER_TOKEN,
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -17,7 +21,7 @@ const InputSchema = z
 
 const headers = { Authorization: `Bearer ${HABIT_TRACKER_TOKEN}` };
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-habit-task-when-you-complete-a-todo",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -49,7 +53,8 @@ const workflow = defineDurable<unknown, unknown>(
       }),
     );
 
-    const taskId = created.data[0]?.id;
+    const taskId = (created.data[0] as { id?: string | number } | undefined)
+      ?.id;
     if (!taskId) {
       return {
         skipped: true,

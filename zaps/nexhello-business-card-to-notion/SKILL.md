@@ -1,6 +1,6 @@
 ---
 name: nexhello-business-card-to-notion
-description: Build a Zapier Next Gen Zap that sends every business card scanned with NexHello into a Notion contacts database. A webhook catches the contact NexHello sends, the code skips the connection test and anything without a contact ID, Notion finds the row by NexHello Contact ID (or creates it), and the row is updated with name, company, job title, email, phone, LinkedIn, website, address, about this person and the original card text. Use when someone scans business cards with NexHello and wants them in Notion without duplicates.
+description: Build a Zap on Zapier that sends every business card scanned with NexHello into a Notion contacts database. A webhook catches the contact NexHello sends, the code skips the connection test and anything without a contact ID, Notion finds the row by NexHello Contact ID (or creates it), and the row is updated with name, company, job title, email, phone, LinkedIn, website, address, about this person and the original card text. Use when someone scans business cards with NexHello and wants them in Notion without duplicates.
 license: MIT
 metadata:
   author: andrewckor
@@ -12,12 +12,14 @@ metadata:
 
 # NexHello Business Card to Notion
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/nexhello-business-card-to-notion. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** Webhooks by Zapier **Catch Hook** (`webhook`, `hook_v2`). NexHello posts the contact you pick after a scan to this URL.
-2. **Filter (code):** stops unless the event `type` is `contact.activity.recorded` and `data.contact.id` is set. NexHello's connection test (`webhook.test`, no contact) stops here, so it never creates a row.
-3. **Notion Find Data Source Items** (`notion`, `find_data_source_item`) in the NexHello Contacts data source, where **NexHello Contact ID** equals `data.contact.id`. If nothing matches, **Notion Create Data Source Item** (`create_database_item`) makes the row with the contact ID and first name.
-4. **Notion Update Data Source Item** (`update_database_item`) on that row:
+1. **Trigger:** Webhooks by Zapier catch hook (`webhook`, `hook_v2`). NexHello posts the contact you pick after a scan to the hook's URL.
+2. **Filter:** stops unless the event `type` is `contact.activity.recorded` and the contact has an ID. NexHello's connection test (`webhook.test`, no contact) stops here, so it never creates a row.
+3. **Notion** finds the row in the NexHello Contacts database whose **NexHello Contact ID** equals the contact's ID. If none matches, Notion creates one with the ID and first name.
+4. **Notion** updates that row with the contact's fields:
 
    | Notion property    | From NexHello                                          |
    | ------------------ | ------------------------------------------------------ |
@@ -36,42 +38,43 @@ metadata:
 
    Empty incoming fields are left out of the update, so existing Notion values stay.
 
-5. Returns the contact ID, name, company, the Notion item ID, whether the row was created, and how many fields were written.
-
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names. Without Zapier MCP, the Zapier SDK CLI works too (`npx skills add zapier/agent-skills --skill workflows-create`).
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/nexhello-business-card-to-notion` (it makes a zap project if you aren't in one), then `npx zap-pack deploy nexhello-business-card-to-notion` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Webhooks by Zapier, Catch Hook (`webhook`, `hook_v2`). No connection, so `authentication_id` is `null`, and no params.
-2. **Connections** (each alias in the code is the app's slug):
-   - `notion`: the user's Notion account. The NexHello Contacts database must be shared with that Notion connection, or it will not show up.
-3. **Constants:**
-   - `NOTION_DATA_SOURCE_ID`: the **data source** ID for the contacts database, taken from the `datasource` choices of the Notion action (not the database ID in the Notion page URL; they differ). The workflow refuses to run while it is still `SET_ME`.
-   - `PROPS` and `CONTACT_ID_FILTER`: check them before the first run (next step).
-4. **Check the Notion field keys.** Notion keys are `properties|||<Property name>|||<type>` and depend on the user's database. With the user's connection and data source, inspect the input fields of `find_data_source_item` (with `search_fields: ["NexHello Contact ID"]` and the filter set to `equals`), `create_database_item` (with `template_mode: "none"`) and `update_database_item`. Confirm each key in `PROPS` and `CONTACT_ID_FILTER`, and that the actions take `datasource` and (for the update) `page`. If a column has a different name or type (for example Primary email as text, so `rich_text` instead of `email`), change it in `PROPS`.
-5. Test with the steps below, then publish, wait until the trigger is active, copy the webhook URL, and paste it into NexHello's webhook integration.
+The match key is NexHello's contact ID, so a person scanned again updates their row and the Zap never creates a second one.
 
 ## Ask the user
 
-- Which Notion database holds the contacts? (`NOTION_DATA_SOURCE_ID`: pick "NexHello Contacts" from the Notion action's data source choices once connected). If they don't have one, have them create it with the properties in the table above, plus a **NexHello Contact ID** text property, and share it with the Zapier Notion connection.
-- Are any of the column names or types different from the table above?
-- Do they want any field left out? Remove it from `fields` in the update step.
-- NexHello also sends a `notes` field. It isn't written anywhere by default; ask if they want it, and map it to a Notion property in `PROPS` and `fields` if so.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-Note: the Webhooks by Zapier trigger needs a paid Zapier plan.
+| Setting                         | What goes there                                                                                                                                                                           |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `REPLACE_NOTION_DATA_SOURCE_ID` | The data source ID of the Notion database that holds the contacts (the NexHello Contacts one). Pick it from the Notion action's data source choices, not the database ID in the page URL. |
 
-## Test
+Also review the defaults with them: `PROPS` in `workflow.ts` maps each field to a Notion column and type. The names and types there match the NexHello Contacts template, so ask whether any column is named or typed differently (for example Primary email as plain text) and change it in `PROPS`. Ask whether they want any field left out, and whether they want the NexHello `notes` field written to a column; it isn't written by default.
 
-### Sample payload
+Prerequisites: the database needs the columns above plus a **NexHello Contact ID** text column, and it must be shared with the Notion connection, or it won't appear. If they don't have one, have them create it. The Webhooks by Zapier catch hook needs a paid Zapier plan.
 
-Run each sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing. Posting it to the webhook URL only works once the workflow is published.
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `notion` (the account that can see the contacts database) to the user's Notion connection. Webhooks by Zapier needs none.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/hook.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger, if it has one, before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run each sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing. The NexHello connection test must return `skipped` and run no Notion step:
+
+```json
+{
+  "id": "evt_test_0001",
+  "type": "webhook.test",
+  "created_at": "2026-10-23T14:10:00Z",
+  "data": {}
+}
+```
+
+Then run this sample, which should create one row, with the name, company, lowercased email, full `https://` LinkedIn and website, and the card text in Original text:
 
 ```json
 {
@@ -102,39 +105,12 @@ Run each sample as a draft test run (`run_workflow_draft` in Zapier MCP) before 
 }
 ```
 
-NexHello's connection test looks like this and must not create anything:
+Run it a second time with a different job title and a blank `about_this_person`. The same row should be updated with no second row, the job title changed, and About this person keeping its old value.
 
-```json
-{
-  "id": "evt_test_0001",
-  "type": "webhook.test",
-  "created_at": "2026-10-23T14:10:00Z",
-  "data": {}
-}
-```
-
-### Test with NexHello and Notion
-
-There is nothing to map by hand: the filter and the field mapping are in the code.
-
-1. Connect Notion in Zapier, bind `notion`, set `NOTION_DATA_SOURCE_ID` and confirm the `PROPS` keys (Build it, step 4). A copy of the database (for example "NexHello Contacts test") is a safe place to start.
-2. Run the workflow with the connection test payload. It should return `skipped` and run no Notion step.
-3. Run it with the sample payload. Check:
-   - `find-notion-contact` finds nothing, `create-notion-contact` creates the row, and `update-notion-contact` writes the fields.
-   - The Notion row shows Maya Lindqvist, Northwind Robotics, the lowercased email, the LinkedIn and website as full `https://` links, and the card text in Original text.
-4. Change the job title in the sample, blank out `about_this_person`, and run it again. The same row is updated (no second row, `created: false`), the job title changes, and About this person keeps its old value.
-5. Paste the webhook URL into NexHello, send its connection test, then scan a real business card and send the contact. Confirm the test made no row and the card did.
-6. Call it done when this run passes.
-
-## Customize
-
-- **Columns:** `PROPS` maps each field to a Notion property name and type. Add a property there and in `fields` to write more, or remove one to stop writing it.
-- **Event:** `EVENT_TYPE` (default `contact.activity.recorded`).
-- **Create step:** sets only the contact ID and first name, so the update step owns every other field. Add more there if you want the row complete even if the update step is turned off.
-- **Card text:** `NOTION_TEXT_LIMIT` trims the original text to fit one Notion text property.
+If run-status tools aren't available, check the result in Notion directly. Then publish, confirm the trigger is active, and ask the user to delete the test rows. The user deletes the test data, not the agent.
 
 ## Notes
 
-- The match key is NexHello's contact ID, so a person scanned twice stays one row, even if their name or email changes.
-- If the payload arrives as a JSON string or wrapped in `body`, the code unwraps it.
-- Never commit real webhook URLs, Notion ids, contact data or connection ids.
+- After publishing, copy the trigger's webhook URL and paste it into NexHello's webhook integration.
+- To write more or fewer fields, change `PROPS` and the `fields` in the update step together. `NOTION_TEXT_LIMIT` trims the original text, and `EVENT_TYPE` sets the event that is accepted.
+- Never commit real webhook URLs, Notion IDs, contact data or connection IDs.

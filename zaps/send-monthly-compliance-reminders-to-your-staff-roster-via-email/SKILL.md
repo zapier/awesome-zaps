@@ -1,6 +1,6 @@
 ---
 name: send-monthly-compliance-reminders-to-your-staff-roster-via-email
-description: Build a Zapier Next Gen Zap that emails a monthly policy compliance reminder, with the policy file links attached, to everyone on a staff roster kept in Google Sheets. Use when HR needs a recurring reminder sent to all staff on a schedule, with confirmations collected before a monthly deadline.
+description: Build a Zap on Zapier that emails a monthly policy compliance reminder, with the policy file links attached, to everyone on a staff roster kept in Google Sheets. Use when HR needs a recurring reminder sent to all staff on a schedule, with confirmations collected before a monthly deadline.
 license: MIT
 metadata:
   author: zapier
@@ -13,65 +13,67 @@ metadata:
 
 # Send monthly compliance reminders to your staff roster via email
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/send-monthly-compliance-reminders-to-your-staff-roster-via-email. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** Schedule by Zapier, Every Month, on the day and time you set (see Build it).
+1. **Trigger:** Schedule by Zapier, Every Month (`schedule`, `everyMonth`), on the day and time set in `triggers/every-month.ts`.
 2. **Google Sheets** reads the roster rows: name, email and policy file link.
 3. Rows with a blank email are skipped. The remaining emails are de-duplicated and the file links are collected.
 4. **Microsoft Outlook** sends one email. The roster addresses go in BCC, so recipients can't see each other, and the file links are attached.
 
 If no roster row has an email, the run stops and sends nothing.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/send-monthly-compliance-reminders-to-your-staff-roster-via-email` (it makes a zap project if you aren't in one), then `npx zap-pack deploy send-monthly-compliance-reminders-to-your-staff-roster-via-email` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Schedule by Zapier, Every Month (`schedule`, `everyMonth`). It needs no connection, so its `authentication_id` is `null`. Set `dom` to the day of the month and `hod` to the time, for example `["1"]` and `"9:00 AM"`, in the account's timezone.
-2. **Connections** (each alias in the code is the app's slug):
-   - `google-sheets`: the Google Sheets connection for the account that owns the roster.
-   - `microsoft-outlook`: the Microsoft Outlook connection for the account that sends the email.
-3. **Constants:**
-   - `SPREADSHEET_ID`: the long ID in the roster sheet's URL.
-   - `WORKSHEET_ID`: the tab. The first tab is `"0"`.
-   - `ROSTER_RANGE`, `MAX_ROSTER_ROWS`: the columns read and the row cap. The roster is assumed to be name, email, file link in columns A to C.
-   - `EMAIL_COLUMN`, `FILE_LINK_COLUMN`: column keys such as `COL$B`. Map the user's headers to their column letters.
-   - `TO_ADDRESS`: the address in the To field. Outlook requires one. Use an address you control; the roster goes in BCC.
-   - `SUBJECT_PREFIX`, `SUBJECT`, `BODY`: the email text. Leave the prefix empty for production.
-
 ## Ask the user
 
-- Which sheet and tab is the roster, and which columns hold the name, email and policy file link?
-- Which day of the month and what time should the reminder go out, and in which timezone?
-- What should the To address be? (The roster goes in BCC.)
-- What should the subject and body say?
-- Are the file links shareable as direct downloads? Outlook fetches each link and attaches the file. Google Drive and Docs share links often return a web page, not the file.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting          | What goes there                                                                                                     |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `SPREADSHEET_ID` | The staff roster sheet, found with the user's Google Sheets connection. It is the long ID in the sheet's URL        |
+| `TO_ADDRESS`     | The address in the To field. Use one the user controls, since the roster goes in BCC. Outlook requires a To address |
 
-Use a test roster sheet with one row whose email is your own work address, and an empty input `{}`. Check the sheet read first: `get_many_rows` with `output_format: "formatted_rows"` should return one row keyed `COL$A`, `COL$B`, `COL$C`.
+Also review the defaults with them:
+
+- `WORKSHEET_ID` in `config.ts`: the tab. `"0"` is the first tab.
+- `ROSTER_RANGE`, `EMAIL_COLUMN`, `FILE_LINK_COLUMN` in `config.ts`: the roster is assumed to be name, email and file link in columns A to C. Map their headers to column keys such as `COL$B`.
+- `dom` and `hod` in `triggers/every-month.ts`: the day of the month and the time, for example `["1"]` and `"9:00 AM"`, in the account's timezone.
+- `SUBJECT_PREFIX`, `SUBJECT` in `config.ts` and `BODY` in `workflow.ts`: the email text. Leave the prefix empty for production.
+
+Also confirm that the file links are shareable as direct downloads. Outlook fetches each link and attaches the file. Google Drive and Docs share links often return a web page, not the file.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `google-sheets` (the account that owns the roster) and `microsoft-outlook` (the account that sends the email) to the user's connections. Schedule by Zapier needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/every-month.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections (and sample the trigger, if it has one) before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test with a test roster sheet that has one row, whose email is the user's own address, and an empty input:
+
+```json
+{}
+```
+
+Check the sheet read first: `get_many_rows` with `output_format: "formatted_rows"` should return one row keyed `COL$A`, `COL$B`, `COL$C`.
 
 Then confirm:
 
 - The run completes and reports one BCC recipient.
-- The email arrives at your own inbox, with the file attached or linked, and the only recipient is the To address.
-- Put the real roster back, and don't keep test rows in it.
+- The email arrives at the user's own inbox, with the file attached or linked, and the only recipient is the To address.
+- Point the Zap back at the real roster before publishing.
 
-## Customize
-
-- **Managers on CC:** change BCC to CC for managers, or add a manager recipient column.
-- **Follow-up reminders:** add a follow-up reminder series for people who have not responded, at 72-hour intervals.
+If run-status tools aren't available, check the result in Microsoft Outlook directly. Ask the user to delete the test row and the test email; the agent doesn't delete them.
 
 ## Notes
 
 - The workflow sends a live email to every roster address on the day it runs. Test the roster first.
-- Every roster file link is attached to the one email, and every recipient receives all of them. If each person should get only their own policy, send one email per row instead.
+- Every roster file link is attached to the one email, and every recipient receives all of them. For one policy per person, send one email per row instead.
 - File links must point straight to a downloadable file. A Google Sheets or Google Docs share link attaches a web page, not the document.
-- The row cap is 1,500 rows. Larger rosters need the cap raised and a check of the Google Sheets limit.
+- The row cap is 1,500 rows (`MAX_ROSTER_ROWS` in `workflow.ts`). Larger rosters need the cap raised and a check of the Google Sheets limit.
+- For managers on CC, change BCC to CC for them, or add a manager recipient column. For follow-up reminders, add a series for people who have not responded, at 72-hour intervals.
 - Never commit a real spreadsheet ID or email address to a public copy of this file.

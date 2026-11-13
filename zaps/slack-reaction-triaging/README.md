@@ -1,25 +1,21 @@
 # Slack reaction to triage channel
 
-React to a Slack message with :ticket: and it's posted to your triage channel with a link back to it. This is the zap [zapier.sh](https://zapier.sh) shows on its homepage.
+React to a Slack message with :ticket: and it's posted to your triage channel with a link back to it.
 
 **Apps:** Slack
 
-## Build it
+## Install
 
-From a terminal:
+This folder is a Zap template. Paste this into your AI agent:
 
-```bash
-npx zap-pack add awesome-zaps/slack-reaction-triaging
-```
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/slack-reaction-triaging
 
-Or paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
-
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/awesome-zaps/slack-reaction-triaging/
+The agent follows `SKILL.md`: it asks you which channel to watch and which channel gets the triage posts, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
-- `connections/`: the accounts it uses (`slack`)
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
+- `connections/`: the account it uses (`slack`)
 - `triggers/`: what starts it

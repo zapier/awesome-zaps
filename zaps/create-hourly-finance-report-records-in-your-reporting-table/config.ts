@@ -1,11 +1,9 @@
-import { ask } from "zap-pack";
+// This zap's settings. Each "REPLACE_…" value is set per person before deploying; its comment says how to get it.
+// The other values are defaults you can change.
 
-export const REPORT_ID = ask(
-  "Salesforce report to run each hour (the report's ID, the 15/18-character ID in its URL).",
-);
-export const REPORTING_TABLE_ID = ask(
-  "Zapier Tables table that receives the report rows (the table's ID).",
-);
+export const REPORT_ID = "REPLACE_REPORT_ID"; // Ask the user which Salesforce report feeds finance, then look up its ID with their Salesforce connection (the 15/18-character ID in its URL).
+export const REPORTING_TABLE_ID = "REPLACE_REPORTING_TABLE_ID"; // Ask the user which Zapier Table receives the report rows, then look up its ID with their Zapier Tables connection.
+
 // Field keys of the reporting table, as Zapier Tables names them.
 export const FIELD_RECORD_KEY = "new__data__f1";
 export const FIELD_ACCOUNT = "new__data__f2";

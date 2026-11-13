@@ -6,16 +6,18 @@ When a procurement request reaches approval, the approver gets a Slack message w
 
 **Based on:** [Send approval nudge for procurement requests to approver](https://zapier.com/automations/business-owners/procurement-operations/procurement-workflow-management/send-approval-nudge-for-procurement-requests-to-approver) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/send-approval-nudge-for-procurement-requests-to-approver/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/send-approval-nudge-for-procurement-requests-to-approver
+
+The agent follows `SKILL.md`: it asks you for the URL of one request page in your procurement system, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
-- `connections/`: the accounts it uses (`slack`)
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
+- `connections/`: the account it uses (`slack`)
 - `triggers/`: what starts it

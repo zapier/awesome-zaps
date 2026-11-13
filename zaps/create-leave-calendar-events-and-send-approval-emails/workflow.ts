@@ -2,10 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { LEAVE_TRACKER_TABLE_ID, CALENDAR_ID } from "@/config";
-import googleCalendar from "@/connections/google-calendar";
-import gmail from "@/connections/gmail";
-import zapierTables from "@/connections/zapier-tables";
+import { LEAVE_TRACKER_TABLE_ID, CALENDAR_ID } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -50,7 +47,7 @@ function toMinutes(time: string): number {
   return hours * 60 + minutes;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-leave-calendar-events-and-send-approval-emails",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -88,7 +85,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-calendar",
         actionType: "write",
         actionKey: "detailed_event",
-        connection: googleCalendar,
+        connection: "google-calendar",
         inputs: {
           calendarid: CALENDAR_ID,
           summary: `${requesterName} - ${leaveType}`,
@@ -108,7 +105,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: gmail,
+        connection: "gmail",
         inputs: {
           to: [requesterEmail],
           subject: `Leave approved: ${leaveType}, ${when}`,
@@ -128,7 +125,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "search",
         actionKey: "find_record",
-        connection: zapierTables,
+        connection: "zapier-tables",
         inputs: {
           table_id: LEAVE_TRACKER_TABLE_ID,
           filter_count: "1",
@@ -148,7 +145,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "zapier-tables",
           actionType: "write",
           actionKey: "create_record",
-          connection: zapierTables,
+          connection: "zapier-tables",
           inputs: {
             table_id: LEAVE_TRACKER_TABLE_ID,
             new__data__f1: requesterEmail,
@@ -169,7 +166,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "increment_value",
-        connection: zapierTables,
+        connection: "zapier-tables",
         inputs: {
           table_id: LEAVE_TRACKER_TABLE_ID,
           record_id: recordId,

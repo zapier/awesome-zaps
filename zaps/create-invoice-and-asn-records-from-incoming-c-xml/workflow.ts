@@ -7,11 +7,7 @@ import {
   TABLE_ID,
   XERO_ORGANIZATION,
   ASN_TEMPLATE_ID,
-} from "@/config";
-import googleDrive from "@/connections/google-drive";
-import zapierTables from "@/connections/zapier-tables";
-import xero from "@/connections/xero";
-import pdffiller from "@/connections/pdffiller";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -49,7 +45,7 @@ function parseCxml(xml: string) {
   };
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-invoice-and-asn-records-from-incoming-c-xml",
   async (ctx, rawInput) => {
     const xml = extractXml(rawInput);
@@ -67,7 +63,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-drive",
         actionType: "write",
         actionKey: "newtxtfile",
-        connection: googleDrive,
+        connection: "google-drive",
         inputs: {
           file: xml,
           title: `${doc.messageType}-${doc.orderReference ?? "no-order"}-${timestamp}.xml`,
@@ -76,14 +72,16 @@ const workflow = defineDurable<unknown, unknown>(
         },
       }),
     );
-    const fileLink = rawFile.data[0]?.webViewLink ?? "";
+    const fileLink =
+      (rawFile.data[0] as { webViewLink?: string } | undefined)?.webViewLink ??
+      "";
 
     const match = await ctx.step("find-table-record", async () =>
       sdk.runAction({
         appKey: "zapier-tables",
         actionType: "search",
         actionKey: "find_record",
-        connection: zapierTables,
+        connection: "zapier-tables",
         inputs: {
           table_id: TABLE_ID,
           filter_count: "2",
@@ -96,7 +94,7 @@ const workflow = defineDurable<unknown, unknown>(
       }),
     );
 
-    const existing = match.data[0] ?? null;
+    const existing = (match.data[0] ?? null) as { record_id?: string } | null;
     let recordId = existing?.record_id ?? null;
     if (!existing) {
       const created = await ctx.step("create-table-record", async () =>
@@ -104,7 +102,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "zapier-tables",
           actionType: "write",
           actionKey: "create_record",
-          connection: zapierTables,
+          connection: "zapier-tables",
           inputs: {
             table_id: TABLE_ID,
             new__data__f1: doc.orderReference ?? "",
@@ -117,7 +115,9 @@ const workflow = defineDurable<unknown, unknown>(
           },
         }),
       );
-      recordId = created.data[0]?.record_id ?? null;
+      recordId =
+        (created.data[0] as { record_id?: string } | undefined)?.record_id ??
+        null;
     }
 
     const invoiceId = doc.documentId;
@@ -128,7 +128,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "xero",
           actionType: "search",
           actionKey: "find_invoice_by_id",
-          connection: xero,
+          connection: "xero",
           inputs: {
             organization: XERO_ORGANIZATION,
             invoice_id: invoiceId,
@@ -146,7 +146,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "pdffiller",
           actionType: "write",
           actionKey: "download_template",
-          connection: pdffiller,
+          connection: "pdffiller",
           inputs: {
             template_id: ASN_TEMPLATE_ID,
             template_name: `ASN-${doc.orderReference ?? "no-order"}-${timestamp}`,

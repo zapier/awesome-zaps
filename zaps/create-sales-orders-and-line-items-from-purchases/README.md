@@ -6,16 +6,18 @@ When a Shopify order is paid, its sales order and each item are created in your 
 
 **Based on:** [Create sales orders and line items from purchases](https://zapier.com/automations/sales/sales-operations/sales-order-processing/create-sales-orders-and-line-items-from-purchases) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/create-sales-orders-and-line-items-from-purchases/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/create-sales-orders-and-line-items-from-purchases
+
+The agent follows `SKILL.md`: it asks you for the ERP or CRM endpoint URLs for sales orders and sales-order lines, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
-- `connections/`: the accounts it uses (`shopify`)
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
+- `connections/`: the account it uses (`shopify`)
 - `triggers/`: what starts it

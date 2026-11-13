@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { TABLE_ID } from "@/config";
-import zapierTables from "@/connections/zapier-tables";
+import { TABLE_ID } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -37,7 +36,7 @@ function normalizeInput(rawInput: unknown): unknown {
   return rawInput;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-sku-level-product-records-from-each-online-order",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(normalizeInput(rawInput));
@@ -63,20 +62,20 @@ const workflow = defineDurable<unknown, unknown>(
     let failed = 0;
 
     // One record per line item. Each item has its own step so a failure is recorded and the rest still run.
-    for (const [index, item] of lineItems.entries()) {
+    for (const item of lineItems) {
       const quantity = Number(item.quantity ?? 0);
       const unitPrice = Number(item.price ?? 0);
       const totalRevenue = (unitPrice * quantity).toFixed(2);
 
       const outcome = await ctx.step(
-        `create-product-record-${index}`,
+        `create-product-record-${item.id}`,
         async () => {
           try {
             const result = await sdk.runAction({
               appKey: "zapier-tables",
               actionType: "write",
               actionKey: "create_record",
-              connection: zapierTables,
+              connection: "zapier-tables",
               inputs: {
                 table_id: TABLE_ID,
                 new__data__f1: item.name ?? item.title ?? "",
@@ -89,7 +88,9 @@ const workflow = defineDurable<unknown, unknown>(
                 new__data__f8: customerReference,
               },
             });
-            return { ok: true, recordId: result.data?.[0]?.record_id ?? null };
+            const record = result.data?.[0] as
+              { record_id?: string } | undefined;
+            return { ok: true, recordId: record?.record_id ?? null };
           } catch (error) {
             return {
               ok: false,

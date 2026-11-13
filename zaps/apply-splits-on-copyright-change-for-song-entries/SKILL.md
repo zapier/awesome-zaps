@@ -1,6 +1,6 @@
 ---
 name: apply-splits-on-copyright-change-for-song-entries
-description: Build a Zapier Next Gen Zap that recalculates and writes split percentages on a song item in a monday.com board whenever its copyright or allocation column changes, based on how many co-writers the song has. Use when a music publisher, label or songwriting team tracks royalty splits in monday.com and wants them recalculated without manual edits.
+description: Build a Zap on Zapier that recalculates and writes split percentages on a song item in a monday.com board whenever its copyright or allocation column changes, based on how many co-writers the song has. Use when a music publisher, label or songwriting team tracks royalty splits in monday.com and wants them recalculated without manual edits.
 license: MIT
 metadata:
   author: zapier
@@ -13,63 +13,65 @@ metadata:
 
 # Apply splits on copyright change for song entries
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/apply-splits-on-copyright-change-for-song-entries. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a monday.com board's column value changes (any column; the code keeps only changes to the allocation column).
-2. **Filter:** the run stops unless the changed column is the allocation column and the song has at least one co-writer. A song with more than 5 co-writers stops with a reason instead of writing partial splits.
-3. **Calculate:** each co-writer gets an equal share rounded down to two decimals (1 → 100, 2 → 50, 3 → 33.33, 4 → 25, 5 → 20). The main percentage column gets the sum of the written shares.
-4. **monday.com** updates the item in one call: the split columns for each co-writer slot and the main percentage column. Existing split values are overwritten.
+1. **Trigger:** a column value changes on a monday.com board (`monday`, `column_value_changed_in_board`). Any column can fire it; the code keeps only changes to the allocation column.
+2. **Filter:** the run stops unless the changed column is the allocation column and the song has at least one co-writer. A song with more than five co-writers stops with a reason instead of getting partial splits.
+3. **Calculate:** each co-writer gets an equal share rounded down to two decimals (1 gets 100, 2 get 50, 3 get 33.33, 4 get 25, 5 get 20). The main percentage column gets the sum of the written shares.
+4. **monday.com** updates the item in one call: the split column for each co-writer slot and the main percentage column.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/apply-splits-on-copyright-change-for-song-entries` (it makes a zap project if you aren't in one), then `npx zap-pack deploy apply-splits-on-copyright-change-for-song-entries` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** monday.com, Any Column Value Changed in Board (`monday` / `column_value_changed_in_board`). Set `board_id` to the board's integer ID. The trigger needs a monday.com connection.
-2. **Connections** (the alias in the code is the app's slug):
-   - `monday`: the user's monday.com connection, for the account that owns the board.
-3. **Constants:**
-   - `BOARD_ID`: the integer ID of the board that holds the song entries.
-   - `ALLOCATION_COLUMN_ID`: the column ID of the copyright/allocation field. Only changes to this column run the workflow.
-   - `CONTRIBUTOR_COUNT_COLUMN_ID`: the column that holds the number of co-writers. Declared for reference; the code reads the count from the trigger payload (see Ask the user).
-   - `SPLIT_COLUMN_IDS`: the split percentage columns, one per co-writer slot, in order. Up to five.
-   - `TOTAL_PERCENTAGE_COLUMN_ID`: the main percentage column that receives the total.
-4. Test with the steps below, then publish, wait until the trigger is active, and tell the user it is live.
+The zap overwrites existing split values, so point it at the board whose splits you intend to change.
 
 ## Ask the user
 
-- Which board holds the song entries? What is its ID?
-- Which column is the copyright/allocation field, which column holds the co-writer count, which are the split percentage columns and which is the main percentage column?
-- Does the trigger's payload include the item ID, the changed column ID and the co-writer count? If not, a read step is needed to fetch the count from the item before calculating. This zap assumes the payload carries them.
-- Is a song with more than five co-writers possible? If so, the split columns need extending.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                                                    | Where                                                                                 | What goes there                                                                                               |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `REPLACE_BOARD_ID`                                         | `triggers/column-value-changed-in-board.ts` (`board_id`) and `config.ts` (`BOARD_ID`) | The monday.com board that holds the song entries                                                              |
+| `REPLACE_ALLOCATION_COLUMN_ID`                             | `config.ts` (`ALLOCATION_COLUMN_ID`)                                                  | The copyright/allocation column. Only changes to it run the zap                                               |
+| `REPLACE_CONTRIBUTOR_COUNT_COLUMN_ID`                      | `config.ts` (`CONTRIBUTOR_COUNT_COLUMN_ID`)                                           | The column holding the number of co-writers. Declared for reference; the count comes from the trigger payload |
+| `REPLACE_TOTAL_PERCENTAGE_COLUMN_ID`                       | `config.ts` (`TOTAL_PERCENTAGE_COLUMN_ID`)                                            | The main percentage column, which receives the total                                                          |
+| `REPLACE_SPLIT_1_COLUMN_ID` to `REPLACE_SPLIT_5_COLUMN_ID` | `config.ts` (`SPLIT_1_COLUMN_ID` to `SPLIT_5_COLUMN_ID`)                              | The split percentage column for each co-writer slot, in order. Up to five                                     |
+
+Defaults to review with them: shares are rounded down to two decimals, so three co-writers total 99.99, not 100. The zap skips songs with more than five co-writers, the length of the split list in `workflow.ts`.
+
+Prerequisite questions:
+
+- Does the trigger's payload include the item ID, the changed column ID and the co-writer count? This zap assumes it does. If not, a read step is needed to fetch the count before calculating.
+- Could a song have more than five co-writers? If so, add split columns in `config.ts` and extend the split list in `workflow.ts`.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `monday` to the user's monday.com connection for the account that owns the board. The trigger and the actions both use it. No other app needs a connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/column-value-changed-in-board.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connection, and sample the trigger, before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
 
 Once a monday.com connection and a test board exist, run a draft test (`run_workflow_draft`) on an item the test created, named `[install-test] …`, with this sample input:
 
 ```json
 {
-  "item_id": "YOUR_TEST_ITEM_ID",
-  "column_id": "YOUR_ALLOCATION_COLUMN_ID",
+  "item_id": "<test item ID>",
+  "column_id": "<allocation column ID from config.ts>",
   "contributor_count": 3
 }
 ```
 
-Check that the three split columns read `33.33`, the main percentage column reads `99.99`, and the item's other columns did not change. Then delete the test item only if you created it.
+Check that the three split columns read `33.33`, the main percentage column reads `99.99`, and the item's other columns did not change. If run-status tools aren't available, check the item on the board directly. The user deletes the test item afterwards, not the agent.
 
-## Customize
-
-- **Manager review before writing:** add a notification step (for example a Slack or email message to the manager) before the monday.com update, so changes are reviewed first.
-- **Split presets:** add a lookup table of custom split presets per song type or agreement, and use it instead of the equal-share calculation when a preset exists.
+Then publish, confirm the trigger is active, and tell the user it is live.
 
 ## Notes
 
-- Splits are rounded down to two decimals, so three equal shares total 99.99, not 100. Change the rounding if the agreement needs a total of exactly 100.
-- The workflow overwrites existing split values each time the allocation column changes.
-- Never commit a real board ID or column ID. Use placeholders in shared copies.
+- Splits are rounded down to two decimals, so three equal shares total 99.99. Change the rounding if the agreement needs exactly 100.
+- Each allocation change overwrites the existing split values.
+- To review changes first, add a notification step (for example a Slack or email message to the manager) before the monday.com update.
+- To use split presets per song type or agreement, add a lookup table and use it instead of the equal-share calculation when a preset exists.
+- Never commit a real board or column ID. Use placeholders in shared copies.

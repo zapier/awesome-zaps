@@ -1,6 +1,6 @@
 ---
 name: send-delivery-notices-to-carrier-for-new-deliveries
-description: Build a Zapier Next Gen Zap that emails the carrier a clear notice for each delivery event (new pickup, weight update or cancellation) received by webhook. Use when a dispatch or delivery system can POST delivery events and carriers need consistent, timely instructions by email.
+description: Build a Zap on Zapier that emails the carrier a clear notice for each delivery event (new pickup, weight update or cancellation) received by webhook. Use when a dispatch or delivery system can POST delivery events and carriers need consistent, timely instructions by email.
 license: MIT
 metadata:
   author: zapier
@@ -13,42 +13,44 @@ metadata:
 
 # Send delivery notices to carrier for new deliveries
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/send-delivery-notices-to-carrier-for-new-deliveries. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a delivery event arrives at a Webhooks by Zapier catch hook (the delivery system POSTs JSON to it).
+1. **Trigger:** the delivery system POSTs a delivery event as JSON to a catch hook (`webhook`, `hook_v2`).
 2. **Filter:** events flagged `customer_excluded` are skipped, and so are notice types other than `new_pickup`, `weight_update` and `cancellation`.
 3. **Gmail** sends one plain-text email to the carrier. The subject is `New pickup - <delivery_id>`, `Weight update - <delivery_id>` or `Cancelled delivery - <delivery_id>`. The body lists the pickup date, pickup location, delivery address, recipient, phone, delivery window and total weight. Missing fields read "not given".
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/send-delivery-notices-to-carrier-for-new-deliveries` (it makes a zap project if you aren't in one), then `npx zap-pack deploy send-delivery-notices-to-carrier-for-new-deliveries` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Webhooks by Zapier, Catch Hook (`webhook`, `hook_v2`, version 1.2.0). It needs no connection, so its `authentication_id` is `null`.
-2. **Connections** (each alias in the code is the app's slug):
-   - `gmail`: the Gmail account that sends the notices.
-3. **Constants:**
-   - `CARRIER_EMAIL`: the carrier's inbox. Replace `YOUR_EMAIL_ADDRESS`.
-   - `SKIP_EXCLUDED_CUSTOMERS`: `true` skips events where the payload's `customer_excluded` is true. Set `false` to send them anyway.
-   - `NOTICE_PREFIXES`: the subject prefix for each `notice_type`. Rename the prefixes here if the carrier expects other wording.
-4. Test with the sample below, then publish, wait until the trigger is active, and give the user their webhook URL to point the delivery system at.
+The Zap only emails the carrier. It never changes the delivery or contacts the customer.
 
 ## Ask the user
 
-- Which carrier inbox should receive the notices? That is `CARRIER_EMAIL`.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
+
+| Setting         | What goes there                                             |
+| --------------- | ----------------------------------------------------------- |
+| `CARRIER_EMAIL` | The carrier's inbox, the address that receives every notice |
+
+Also review the defaults with them: `SKIP_EXCLUDED_CUSTOMERS` (`true` skips events where the payload's `customer_excluded` is true; `false` sends them anyway) and `NOTICE_PREFIXES` (the subject prefix for each `notice_type`; rename them if the carrier expects other wording).
+
+Confirm these with them too:
+
 - Which fields does the delivery system send, and under what names? The code expects `delivery_id`, `notice_type`, `customer_excluded`, `pickup_date`, `pickup_location`, `delivery_address`, `recipient_name`, `recipient_phone`, `delivery_window` and `total_weight`. Rename them in the code if the sender uses other names.
+- Do excluded or test customers come as a `customer_excluded` flag in the payload? If not, add the check that matches the sender's data.
 - Should the originator be copied on each notice? The Gmail connection can only send to its own address during testing, so the copy is not built; add a CC once the address is known.
-- Do the excluded or test customers come as a flag in the payload? If not, add the check that matches the sender's data.
 
-## Test
+## Build it
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing. Use test data only, with names prefixed `[install-test]`:
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `gmail` to the user's Gmail connection, the account that sends the notices. The webhook trigger needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with `CARRIER_EMAIL` replaced by the user's answer. `triggers/hook.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect the Gmail action's fields with the user's connection before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test run (`run_workflow_draft` in Zapier MCP) with test data only, with names prefixed `[install-test]`:
 
 ```json
 {
@@ -65,15 +67,11 @@ Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before 
 }
 ```
 
-Check that the run completes, that one email arrives at `CARRIER_EMAIL` with subject `New pickup - [install-test] DEL-1001`, and that its body shows each field from the sample. Then delete the test email if it was real data.
-
-## Customize
-
-- **Alert on cancellations:** post a Slack or team channel message when `notice_type` is `cancellation`, so the change is visible straight away.
-- **High-weight pickup task:** when `total_weight` is over a threshold, also create a pickup task in your task tracker.
+Check that the run completes, that one email arrives at `CARRIER_EMAIL` with subject `New pickup - [install-test] DEL-1001`, and that its body shows each field from the sample. If run-status tools aren't available, check the result in Gmail directly. Ask the user to delete the test email; the agent doesn't delete it. Then publish, confirm the trigger is active, and give the user their webhook URL to point the delivery system at.
 
 ## Notes
 
-- Each webhook event sends one email. Nothing matches an event to an earlier notice, so a repeated event sends a repeated notice. Add a lookup on `delivery_id` in your tracker first if repeats are a problem.
+- Each webhook event sends one email, and nothing matches an event to an earlier notice, so a repeated event sends a repeated notice. Add a lookup on `delivery_id` in your tracker first if repeats are a problem.
 - The notices are plain text. Gmail may show the pickup time in the sender's time zone, not the carrier's.
+- To alert on cancellations, post a Slack or team channel message when `notice_type` is `cancellation`. For a high-weight pickup, create a pickup task in your task tracker when `total_weight` is over a threshold.
 - Never commit a real carrier address or webhook URL. Anyone with the webhook URL can send carrier notices.

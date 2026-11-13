@@ -1,6 +1,6 @@
 ---
 name: send-tailored-email-replies-to-new-inbox-messages
-description: Build a Zapier Next Gen Zap that sends a short, polite AI-written reply to each new message in an Outlook inbox after a 5-minute delay, skipping thread replies and simple acknowledgments. Use when a support or service inbox gets repetitive questions and senders should get a fast, personal-feeling confirmation without anyone triaging by hand.
+description: Build a Zap on Zapier that sends a short, polite AI-written reply to each new message in an Outlook inbox after a 5-minute delay, skipping thread replies and simple acknowledgments. Use when a support or service inbox gets repetitive questions and senders should get a fast, personal-feeling confirmation without anyone triaging by hand.
 license: MIT
 metadata:
   author: zapier
@@ -13,51 +13,49 @@ metadata:
 
 # Send tailored email replies to new inbox messages
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/send-tailored-email-replies-to-new-inbox-messages. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a new message arrives in the connected Outlook inbox (Microsoft Outlook, New Message in Folder, with no folder set, so every new inbox message).
+1. **Trigger:** a new message arrives in the connected Outlook inbox (`microsoft-outlook`, `new_message_in_folder`, with no folder set, so every new inbox message).
 2. **Filter (plain code):** skips thread replies (subject starts with `Re:`, `Fw:` or `Fwd:`) and short acknowledgments (a preview of 40 characters or fewer that starts with a thank-you or confirmation word). Skipped messages stop there.
 3. **Wait:** 5 minutes, so the sender can correct or add information first.
-4. **AI by Zapier:** writes a concise HTML reply from the sender's first name, the subject and the preview: a greeting, a 1–2 sentence body and a warm closing.
-5. **Microsoft Outlook, Send Email:** sends the reply to the sender's address, subject `Re:` plus the original subject, with your company signature appended.
+4. **AI** (`ai`): writes a concise HTML reply from the sender's first name, the subject and the preview: a greeting, a 1–2 sentence body and a warm closing.
+5. **Send** (`microsoft-outlook`, `send_email`): sends the reply to the sender's address, subject `Re:` plus the original subject, with the company signature appended.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/send-tailored-email-replies-to-new-inbox-messages` (it makes a zap project if you aren't in one), then `npx zap-pack deploy send-tailored-email-replies-to-new-inbox-messages` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** `microsoft-outlook` / `new_message_in_folder`, with empty params (all new messages in the inbox). Outlook trigger parameters for a shared inbox or a specific folder are left blank.
-2. **Connections** (each alias in the code is the app's slug):
-   - `microsoft-outlook`: the user's Outlook connection, used for the trigger and the send step.
-   - AI by Zapier (`ai`) needs no connection: it uses Zapier-managed credentials (`authentication_id: "0"`).
-3. **Constants:**
-   - `COMPANY_SIGNATURE_HTML`: the HTML signature block appended to every reply. Replace `YOUR_COMPANY_SIGNATURE` with the real block.
-   - `REPLY_DELAY_SECONDS`: seconds to wait before replying. Defaults to `300` (5 minutes).
-   - `ACK_MAX_PREVIEW_CHARS`: the longest preview still treated as a simple acknowledgment. Defaults to `40`.
-4. Test with the steps below, then publish, wait until the trigger is active, and tell the user where to see the replies being sent.
+The reply goes only to the sender of the message that triggered it, and the Zap never replies to thread replies or simple acknowledgments.
 
 ## Ask the user
 
-- Which Outlook inbox should it watch? The default is the connected account's own inbox; a shared inbox or a specific folder needs its name as the trigger's params.
-- What should the company signature say? Put the HTML block in `COMPANY_SIGNATURE_HTML`.
-- Should the wait stay at 5 minutes, or be shorter for known senders?
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                          | What goes there                                                                   |
+| -------------------------------- | --------------------------------------------------------------------------------- |
+| `REPLACE_COMPANY_SIGNATURE_HTML` | The company signature as an HTML block, from `config.ts`, appended to every reply |
 
-Before publishing, run one draft test (`run_workflow_draft` in Zapier MCP) with a sample message whose sender is the connected account's own address, so the reply can only go to the user:
+Review these defaults with them: the wait before replying (`REPLY_DELAY_SECONDS`, 300 seconds) and the longest preview still treated as an acknowledgment (`ACK_MAX_PREVIEW_CHARS`, 40 characters), both at the top of `workflow.ts`.
+
+Also ask which Outlook inbox it should watch. The trigger has no folder set, so it watches the connected account's whole inbox; a shared inbox or a specific folder needs its name as the trigger's params. Confirm they are happy for every sender, including automated ones, to get a reply.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `microsoft-outlook` to the user's Outlook connection, used for the trigger and the send step. AI by Zapier needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/new-message-in-folder.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections (and sample the trigger, if it has one) before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test with a sample message whose sender is the user's own Outlook address, so the reply can only go to them:
 
 ```json
 {
   "from": {
     "emailAddress": {
       "name": "Test Sender",
-      "address": "YOUR_OWN_OUTLOOK_ADDRESS"
+      "address": "<the user's own Outlook address>"
     }
   },
   "subject": "Where can I find my invoice?",
@@ -65,15 +63,11 @@ Before publishing, run one draft test (`run_workflow_draft` in Zapier MCP) with 
 }
 ```
 
-Confirm the run completes, that the reply email arrives in the connected inbox with the signature, and that a thread reply (`Re: …` subject) and a short "Thanks!" preview are skipped. The 5-minute wait is part of the run, so allow for it.
-
-## Customize
-
-- **Faster replies for VIP domains:** shorten or remove the wait for chosen sender domains.
-- **Human review for risky topics:** route messages that match given domains or keywords to a review queue before sending.
+Confirm the run completes, that the reply arrives in the connected inbox with the signature, and that a thread reply (`Re: …` subject) and a short "Thanks!" preview are skipped. The 5-minute wait is part of the run, so allow for it. If run-status tools aren't available, check the result in Outlook directly. The user deletes the test data; the agent does not. Publish only after the test passes, and confirm the trigger is active.
 
 ## Notes
 
 - Replies go to whoever sent the message, so test with your own address first and never publish with a test address in the trigger.
 - Acknowledgment and thread-reply detection use simple text rules, not AI judgement. Messages that don't match the rules are replied to.
-- Anyone who emails the inbox gets a reply, including automated senders. Consider an allow-list or a skip for `noreply` addresses before relying on it.
+- Anyone who emails the inbox gets a reply, including automated senders. Consider an allow-list, or a skip for `noreply` addresses, before relying on it.
+- To customize, shorten the wait for chosen sender domains, or route messages that match chosen domains or keywords to a review queue before sending.

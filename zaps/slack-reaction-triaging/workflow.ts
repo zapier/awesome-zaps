@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { SLACK_CHANNEL_ID } from "@/config";
-import slack from "@/connections/slack";
+import { SLACK_CHANNEL_ID } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -11,22 +10,28 @@ const sdk = createZapierSdk();
 const InputSchema = z
   .object({
     message: z
-      .object({ raw_text: z.string(), permalink: z.string().nullish() })
-      .loose(),
+      .object({
+        raw_text: z.string().nullable().optional(),
+        permalink: z.string().nullable().optional(),
+      })
+      .loose()
+      .nullable()
+      .optional(),
   })
   .loose();
 
 export default defineDurable("slack-reaction-triaging", async (ctx, input) => {
   const { message } = InputSchema.parse(input);
+  const text = message?.raw_text ?? "(no message text)";
   return ctx.step("post-to-triage", () =>
     sdk.runAction({
       appKey: "slack",
       actionType: "write",
       actionKey: "channel_message",
-      connection: slack,
+      connection: "slack",
       inputs: {
         channel: SLACK_CHANNEL_ID,
-        text: `Support request: ${message.raw_text}\n${message.permalink ?? ""}`,
+        text: `Support request: ${text}\n${message?.permalink ?? ""}`,
       },
     }),
   );

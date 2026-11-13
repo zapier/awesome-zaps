@@ -1,10 +1,7 @@
 import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 
-import { STATUS_CHECK_URL } from "@/config";
-import quickbooks from "@/connections/quickbooks";
-import gmail from "@/connections/gmail";
-import smsConnection from "@/connections/sms";
+import { STATUS_CHECK_URL } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -183,7 +180,7 @@ const toSeconds = (v: unknown) => {
   return Number.isFinite(n) && n > 0 ? Math.round(n) : undefined;
 };
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "unpaid-invoice-nudge",
   async (ctx, rawInput) => {
     const payload = normalizeInput(rawInput);
@@ -202,7 +199,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "quickbooks",
             actionType: "search",
             actionKey: "invoice",
-            connection: quickbooks,
+            connection: "quickbooks",
             inputs: invoice.invoiceId
               ? { invoiceId: invoice.invoiceId }
               : { number: invoice.number },
@@ -298,7 +295,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: gmail,
+        connection: "gmail",
         inputs: {
           to: [invoice.email],
           subject,
@@ -344,7 +341,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "sms",
         actionType: "write",
         actionKey: "send_v2",
-        connection: smsConnection,
+        connection: "sms",
         inputs: { message },
       }),
     );

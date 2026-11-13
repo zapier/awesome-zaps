@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { PRODUCT_COLUMN, BRANCH_COLUMN, STOCK_COLUMN } from "@/config";
-import gmail from "@/connections/gmail";
+import { PRODUCT_COLUMN, BRANCH_COLUMN, STOCK_COLUMN } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -11,7 +10,10 @@ const sdk = createZapierSdk();
 // Add one entry per branch, keyed by the identifier that appears in BRANCH_COLUMN.
 const BRANCH_LEADERS: Record<string, { emails: string[]; threshold: number }> =
   {
-    YOUR_BRANCH_ID: { emails: ["YOUR_TEAM_LEADER_EMAIL"], threshold: 5 },
+    REPLACE_BRANCH_ID: {
+      emails: ["REPLACE_TEAM_LEADER_EMAIL"], // Ask the user for this branch's team leaders' email addresses, and the branch's identifier as it appears in the branch column (the key).
+      threshold: 5, // Default minimum stock count, below which the leaders are alerted. Review it with the user.
+    },
   };
 
 const InputSchema = z
@@ -22,7 +24,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "send-low-stock-email-alerts-to-team-leaders",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -51,7 +53,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: gmail,
+        connection: "gmail",
         inputs: {
           to: settings.emails,
           subject: `Low stock at ${branch}: ${product}`,

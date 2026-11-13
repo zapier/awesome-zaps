@@ -1,6 +1,6 @@
 ---
 name: create-formatted-order-rows-from-incoming-order-emails
-description: Build a Zapier Next Gen Zap that reads order confirmation emails from Gmail, pulls out the order, customer, address and payment fields, and appends one cleaned row per paid order to a master orders sheet, skipping orders already in it. Use when a shop or service business gets order confirmations by email and wants them logged as tidy rows in a spreadsheet without retyping.
+description: Build a Zap on Zapier that reads order confirmation emails from Gmail, pulls out the order, customer, address and payment fields, and appends one cleaned row per paid order to a master orders sheet, skipping orders already in it. Use when a shop or service business gets order confirmations by email and wants them logged as tidy rows in a spreadsheet without retyping.
 license: MIT
 metadata:
   author: zapier
@@ -13,48 +13,46 @@ metadata:
 
 # Create formatted order rows from incoming order emails
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/create-formatted-order-rows-from-incoming-order-emails. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a new Gmail email that matches the search `subject:"order confirmation" in:inbox`.
+1. **Trigger:** a new Gmail email matching the search in `GMAIL_QUERY`, by default `subject:"order confirmation" in:inbox` (`gmail`, `search`).
 2. **Code:** reads the order reference from the subject (`#<id>`), falling back to an `Order number:` line in the body. Skips the email if it mentions onboarding, course, registration or newsletter, or if it has no order reference and no total.
 3. **Code:** reads the customer's name, email, phone, address lines, business and total from labelled lines in the body. Splits the name into first and last, turns `$`, `£` or `€` into `USD`, `GBP` or `EUR`, and makes the amount a number.
 4. **Google Sheets** looks up the order reference in the orders sheet. If a row already has it, the run stops and writes nothing.
 5. **Google Sheets** appends one row with the parsed fields, the sender's address in Source, and the time it was logged.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-formatted-order-rows-from-incoming-order-emails` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-formatted-order-rows-from-incoming-order-emails` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Gmail, New Email Matching Search (`gmail`, key `search`). Its `authentication_id` is the Gmail connection.
-2. **Connections** (each alias in the code is the app's slug):
-   - `gmail`: the Gmail account that receives the order emails.
-   - `google-sheets`: the Google account that owns the orders sheet.
-3. **Constants:**
-   - `GMAIL_QUERY`: the Gmail search for order confirmations. Narrow it to the sender or the subject your shop uses.
-   - `SPREADSHEET_ID`: the long ID in the orders sheet's URL.
-   - `WORKSHEET_ID`: the tab. The first tab is `"0"`.
-   - `COLUMNS`: column keys such as `COL$A`, not header names. Map your headers to their letters. The code writes thirteen columns, A to M.
-   - `EXCLUDE_PATTERN`: words that mark an email as not an order.
-   - `CURRENCY_SYMBOLS`: symbols to currency codes; add any others you take.
-4. Test with the steps below, then publish, wait until the trigger is active, and give the user the workflow's link.
+A row already in the sheet is never updated.
 
 ## Ask the user
 
-- Which Gmail account receives the order confirmations, and what subject or sender do they use? The default search is `subject:"order confirmation"`.
-- Which sheet and tab are the orders, and which columns hold each field? The code expects the thirteen columns in `COLUMNS`, in that order.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
+
+| Setting          | What goes there                                                                    |
+| ---------------- | ---------------------------------------------------------------------------------- |
+| `SPREADSHEET_ID` | The orders sheet: the long ID in its URL. Look it up from the sheet the user names |
+
+Also review the defaults with them: `GMAIL_QUERY` (narrow it to the sender or subject their shop uses), `WORKSHEET_ID` (`"0"` is the first tab), and in `workflow.ts`, `COLUMNS` (the code writes thirteen columns, A to M, in that order; map their headers to those letters), `EXCLUDE_PATTERN` and `CURRENCY_SYMBOLS`.
+
+Before turning it on, confirm:
+
+- Which Gmail account receives the order confirmations, and does the default search match their subject or sender?
 - What does a real order confirmation look like? The parser reads labels like `Order number:`, `Email:`, `Total:` and `Address line 1:`. If the email uses other labels, change them in the code before going live.
 - Is an order "paid" when it has a total, or do they need a payment-status check? The default counts any email with an order reference and a total.
 
-## Test
+## Build it
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing. It uses a test sheet, so the row lands there, not in the orders sheet:
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `google-sheets` (the Google account that owns the orders sheet) to the user's connection. The trigger uses `gmail` (the Gmail account that receives the order emails). The parsing code needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/search.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test with a test sheet as the orders sheet, so the row lands there, not in the real one:
 
 ```json
 {
@@ -65,16 +63,11 @@ Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before 
 }
 ```
 
-Confirm that a row appears with the order ID, name split into first and last, phone, address lines, business, `USD`, the amount as `1250`, the sender in Source and a logged-at time. Run the same sample again: it should finish with `reason: "duplicate-order"` and add no row. Then tell the user to delete the test row if it was real data.
-
-## Customize
-
-- **Alert billing staff for high-value orders:** add a Slack or email step after the row is written, for amounts above a threshold you choose.
-- **Tag rows by event group or product type:** add a column and set it from the subject or the body.
+Check that one row appears with the order ID, name split into first and last, phone, address lines, business, `USD`, the amount as `1250`, the sender in Source and a logged-at time. Run the same sample again: it should finish with `reason: "duplicate-order"` and add no row. If run-status tools aren't available, check the result in Google Sheets directly. Then publish, confirm the trigger is active, and give the user the workflow's link. Ask the user to delete the test row, not the agent.
 
 ## Notes
 
 - The parser is simple: it reads labelled lines, not the whole email layout. Check it against a few real order emails before trusting it.
-- Only the first matching row is checked for a duplicate; an order reference that already exists is never updated.
-- The code reads `subject`, `body_plain` and `from` as shown in the trigger's output schema.
-- Never commit a real spreadsheet ID. Anyone with access to the sheet can read the orders in it.
+- Only the first matching row is checked for a duplicate.
+- To alert billing staff on high-value orders, add a Slack or email step after the row is written, for amounts above a threshold. To tag rows by product type, add a column set from the subject or body.
+- Don't commit a real spreadsheet ID. Anyone with access to the sheet can read the orders in it.

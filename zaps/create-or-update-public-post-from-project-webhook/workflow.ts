@@ -10,10 +10,7 @@ import {
   CMS_POSTS_URL,
   CMS_DEFAULT_CATEGORY,
   DISCORD_CHANNEL_ID,
-} from "@/config";
-import zapierTables from "@/connections/zapier-tables";
-import cmsApi from "@/connections/cms_api";
-import discord from "@/connections/discord";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -29,7 +26,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-or-update-public-post-from-project-webhook",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -48,7 +45,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "search",
         actionKey: "find_record",
-        connection: zapierTables,
+        connection: "zapier-tables",
         inputs: {
           table_id: TRACKING_TABLE_ID,
           filter_count: "1",
@@ -68,7 +65,7 @@ const workflow = defineDurable<unknown, unknown>(
       const response = await sdk.fetch(
         existingPostId ? `${CMS_POSTS_URL}/${existingPostId}` : CMS_POSTS_URL,
         {
-          connection: cmsApi,
+          connection: "cms_api",
           method: existingPostId ? "PATCH" : "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -98,7 +95,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "zapier-tables",
           actionType: "write",
           actionKey: "update_record",
-          connection: zapierTables,
+          connection: "zapier-tables",
           inputs: { ...recordInputs, record_id: String(existing.id) },
         }),
       );
@@ -108,7 +105,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "zapier-tables",
           actionType: "write",
           actionKey: "create_record",
-          connection: zapierTables,
+          connection: "zapier-tables",
           inputs: recordInputs,
         }),
       );
@@ -119,7 +116,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "discord",
         actionType: "write",
         actionKey: "send_channel_message",
-        connection: discord,
+        connection: "discord",
         inputs: {
           channel_id: DISCORD_CHANNEL_ID,
           content: `${title} (${projectReference}): ${status}`,

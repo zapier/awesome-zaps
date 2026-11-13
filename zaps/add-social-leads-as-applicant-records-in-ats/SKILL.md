@@ -1,6 +1,6 @@
 ---
 name: add-social-leads-as-applicant-records-in-ats
-description: Build a Zapier Next Gen Zap that takes each new Facebook Lead Ads form submission, tidies the phone number and name, and sends it to your applicant tracking system as an applicant record. Use when a recruiting team gets candidates from social lead forms and wants them in the ATS without re-typing.
+description: Build a Zap on Zapier that takes each new Facebook Lead Ads form submission, tidies the phone number and name, and sends it to your applicant tracking system as an applicant record. Use when a recruiting team gets candidates from social lead forms and wants them in the ATS without re-typing.
 license: MIT
 metadata:
   author: zapier
@@ -13,43 +13,45 @@ metadata:
 
 # Add social leads as applicant records in ATS
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/add-social-leads-as-applicant-records-in-ats. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a new lead from a Facebook Lead Ads form (the New Lead trigger).
+1. **Trigger:** a new lead from a Facebook Lead Ads form (`facebook-lead-ads`, `lead`).
 2. **Normalize:** the phone number is reduced to digits (keeping a leading `+`), and a combined full name is split into first and last name. Plain JavaScript, no step.
-3. **Send to ATS:** one JSON POST via Webhooks by Zapier to your applicant tracking system's webhook. It carries the applicant's name, email, phone, language, the source tag `Facebook Lead Ads`, the intake stage, and `match_by: "email"`. The ATS decides whether to match an existing record by email or create a new one.
+3. **Send to ATS:** one JSON POST via Webhooks by Zapier (`webhook`, `post`) to your applicant tracking system's webhook. It carries the applicant's name, email, phone, language, the source tag `Facebook Lead Ads`, the intake stage, and `match_by: "email"`. The ATS decides whether to match an existing record by email or create a new one.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/add-social-leads-as-applicant-records-in-ats` (it makes a zap project if you aren't in one), then `npx zap-pack deploy add-social-leads-as-applicant-records-in-ats` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Facebook Lead Ads, New Lead (`facebook-lead-ads`, action `lead`). It needs a connected Facebook account, and the Page and Form are chosen from that account.
-2. **Connections:**
-   - `facebook-lead-ads`: the Facebook account that owns the lead form's Page.
-   - `webhook` (Webhooks by Zapier): no connection needed.
-3. **Constants:**
-   - `ATS_WEBHOOK_URL`: your ATS's webhook URL that accepts applicant JSON.
-   - `INTAKE_STAGE`: the stage new applicants land in.
-   - `SOURCE_TAG`: fixed to `Facebook Lead Ads` unless you want another label.
-4. Test with the steps below, then publish, wait until the trigger is active, and give the user the webhook details for their ATS.
+The Zap only posts to your ATS. It doesn't contact the applicant.
 
 ## Ask the user
 
-- Which Facebook Page and lead form should feed this? (The trigger's Page and Form choices come from the connected account.)
-- What is the ATS's webhook URL, and does it match applicants by email on its own? If not, a lookup step is needed.
-- Which stage should new applicants land in?
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
+
+| Setting           | What goes there                                                                                                       |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `ATS_WEBHOOK_URL` | The applicant tracking system's webhook URL that accepts applicant records as JSON. Ask the user for it.              |
+| `INTAKE_STAGE`    | The stage sourced applicants are assigned to when created, as named in their applicant tracking system. Ask the user. |
+
+Also ask:
+
+- Which Facebook Page and lead form should feed this? The trigger's Page and Form choices come from the connected Facebook account.
+- Does the ATS match applicants by email on its own? If not, a lookup step is needed before the POST.
 - Does the lead form use `full_name`, `email`, `phone_number` and `language` as its field names? These were assumed, because the lead payload couldn't be sampled.
 
-## Test
+Defaults worth reviewing: `SOURCE_TAG` (`Facebook Lead Ads`), written to every applicant record.
 
-Before publishing, run a draft test with a lead from a form the user controls, and an ATS endpoint that is a test or sandbox environment. Use a sample like this:
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `facebook-lead-ads` (the Facebook account that owns the lead form's Page, used by the trigger) to the user's Facebook connection. Webhooks by Zapier needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/lead.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test, with a lead from a form the user controls and an ATS endpoint that is a test or sandbox environment. Use a sample like this:
 
 ```json
 {
@@ -60,15 +62,11 @@ Before publishing, run a draft test with a lead from a form the user controls, a
 }
 ```
 
-Check that the ATS receives one record with `first_name` "[install-test] Jane", `last_name` "Example", `phone` "+15550100100", `source` "Facebook Lead Ads", and the intake stage. Then remove the test record from the ATS.
-
-## Customize
-
-- **Dedupe by phone** instead of email, for regions where emails are unreliable: change the lookup key in the ATS payload, or add a lookup step before the POST.
-- **Enrich before creating the record** (resume parsing or a score): add a step between normalize and the POST.
+Check that the ATS receives one record with `first_name` "[install-test] Jane", `last_name` "Example", `phone` "+15550100100", `source` "Facebook Lead Ads", and the intake stage. If run-status tools aren't available, check the result in the applicant tracking system directly. Ask the user to delete the test record; the agent doesn't delete test data. Then publish, and confirm the trigger is active.
 
 ## Notes
 
-- Facebook lead field names vary by form. If the form's fields differ from the names this zap assumed, update the input schema before publishing.
-- Phone formatting only strips non-digits. It doesn't add a country code, so leads entered without one stay as typed.
+- Facebook lead field names vary by form. If the form's fields differ from `full_name`, `email`, `phone_number` and `language`, update the input schema in `workflow.ts` before publishing.
+- Phone formatting only strips non-digits and adds no country code, so numbers entered without one stay as typed.
+- To dedupe by phone instead of email, change the lookup key in the ATS payload. To enrich the record first (resume parsing or a score), add a step between normalize and the POST.
 - Never commit a real ATS webhook URL. Anyone with it can create applicant records.

@@ -1,6 +1,6 @@
 ---
 name: create-staff-bonus-records-when-appointments-are-added
-description: Build a Zapier Next Gen Zap that logs a Staff Account Transaction in Salesforce with a tiered bonus whenever a qualifying Appointment record is created, finding (or creating) the staff record it belongs to. Use when a clinic, salon or service business tracks appointments in Salesforce and pays staff a per-appointment bonus through payroll.
+description: Build a Zap on Zapier that logs a Staff Account Transaction in Salesforce with a tiered bonus whenever a qualifying Appointment record is created, finding (or creating) the staff record it belongs to. Use when a clinic, salon or service business tracks appointments in Salesforce and pays staff a per-appointment bonus through payroll.
 license: MIT
 metadata:
   author: zapier
@@ -13,48 +13,59 @@ metadata:
 
 # Create staff bonus records when appointments are added
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/create-staff-bonus-records-when-appointments-are-added. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a new record of the Appointment object is created in Salesforce.
-2. **Bonus tier** (code, no step): the appointment's type picks the bonus. Types in `LARGE_TIER_TYPES` get `LARGE_TIER_AMOUNT` ($5.00), types in `SMALL_TIER_TYPES` get `SMALL_TIER_AMOUNT` ($2.50). Any other type stops the run and writes nothing.
-3. **Salesforce** finds the staff record whose `STAFF_MATCH_FIELD` equals the appointment's staff reference (`APPOINTMENT_STAFF_REF_FIELD`, falling back to the appointment's `OwnerId`). If none is found, it creates one.
-4. **Salesforce** creates a Staff Account Transaction: created date from the appointment's `CreatedDate`, the staff lookup, the bonus amount, the appointment's `Name` as the memo, and the classification labels `TX_CLASSIFICATION_VALUE` / `TX_DETAIL_VALUE`.
+1. **Trigger:** a new Appointment record is created in Salesforce (`salesforce`, `new_record`).
+2. **Bonus tier** (code, no step): the appointment's type picks the bonus. Types in `LARGE_TIER_TYPES` get $5.00, types in `SMALL_TIER_TYPES` get $2.50. Any other type stops the run and writes nothing.
+3. **Salesforce** finds the staff record whose staff match field equals the appointment's staff reference, falling back to the appointment's `OwnerId`. If none is found, it creates one.
+4. **Salesforce** creates a Staff Account Transaction: created date from the appointment, the staff lookup, the bonus amount, the appointment's name as the memo, and the classification labels.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-staff-bonus-records-when-appointments-are-added` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-staff-bonus-records-when-appointments-are-added` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Salesforce, New Record (`salesforce`, `new_record`), with `params.object` set to the Appointment object's API name (the draft used `Appointment__c`). Its `authentication_id` is the user's Salesforce connection ID.
-2. **Connections** (each alias in the code is the app's slug):
-   - `salesforce`: the user's Salesforce connection, for the org that holds appointments, staff and transactions. Use a sandbox org for the first test.
-3. **Settings** (in `config.ts`; an `ask(…)` is asked when each person deploys):
-   - `APPOINTMENT_STAFF_REF_FIELD`: the appointment field naming the staff member. If it's empty the code uses `OwnerId`.
-   - `APPOINTMENT_TYPE_FIELD`: the appointment field holding its type.
-   - `SMALL_TIER_TYPES`, `LARGE_TIER_TYPES`: type values (exact picklist values) for each tier.
-   - `SMALL_TIER_AMOUNT`, `LARGE_TIER_AMOUNT`: bonus amounts. Default 2.50 and 5.00.
-   - `STAFF_OBJECT`, `STAFF_MATCH_FIELD`: the staff object and the field matched against the staff reference. A new staff record gets `Name` and that field set to the reference; add any fields the org requires.
-   - `TRANSACTION_OBJECT` and the `TX_*_FIELD` constants: the Staff Account Transaction object and its created-date, staff-lookup, currency, memo, classification and detail fields.
-   - `TX_CLASSIFICATION_VALUE`, `TX_DETAIL_VALUE`: the labels written on every transaction. Defaults `"Credit"` and `"Appointment Bonus"`.
-4. Sample the trigger (`new_record` read with the same `object`) and check the record really carries `Id`, `Name`, `CreatedDate`, `OwnerId` and the two appointment fields above. Then test, publish, and wait until the trigger is active.
+The Zap only creates records. It never changes an existing staff record or transaction.
 
 ## Ask the user
 
-- Which Salesforce object holds appointments, and which fields hold the staff reference and the appointment type?
-- Which appointment types earn the smaller bonus, which the larger, and are $2.50 and $5.00 right?
-- Which object holds staff, and which of its fields matches the appointment's staff reference? What else must a new staff record have?
-- Which object and fields make up a Staff Account Transaction, and which classification labels should it carry?
+Each `REPLACE_…` value is set per person. Resolve names to API names with the user's Salesforce connection; don't ask them to paste a field name you can look up.
+
+| Setting                               | Where                                     | What goes there                                                        |
+| ------------------------------------- | ----------------------------------------- | ---------------------------------------------------------------------- |
+| `REPLACE_APPOINTMENT_OBJECT`          | `triggers/new-record.ts`, `params.object` | The object that holds appointments                                     |
+| `REPLACE_APPOINTMENT_STAFF_REF_FIELD` | `config.ts`                               | The appointment field naming the staff member; falls back to `OwnerId` |
+| `REPLACE_APPOINTMENT_TYPE_FIELD`      | `config.ts`                               | The appointment field holding the type that picks the bonus tier       |
+| `REPLACE_STAFF_OBJECT`                | `config.ts`                               | The object that holds staff                                            |
+| `REPLACE_STAFF_MATCH_FIELD`           | `config.ts`                               | The staff field matched against the appointment's staff reference      |
+| `REPLACE_TRANSACTION_OBJECT`          | `config.ts`                               | The Staff Account Transaction object                                   |
+| `REPLACE_TX_CREATED_DATE_FIELD`       | `config.ts`                               | The transaction field holding the created date                         |
+| `REPLACE_TX_STAFF_LOOKUP_FIELD`       | `config.ts`                               | The transaction field linking to the staff record                      |
+| `REPLACE_TX_AMOUNT_FIELD`             | `config.ts`                               | The transaction field holding the bonus amount                         |
+| `REPLACE_TX_MEMO_FIELD`               | `config.ts`                               | The transaction field holding the memo                                 |
+| `REPLACE_TX_CLASSIFICATION_FIELD`     | `config.ts`                               | The transaction field holding the classification label                 |
+| `REPLACE_TX_DETAIL_FIELD`             | `config.ts`                               | The transaction field holding the detail label                         |
+
+Also review these defaults with them:
+
+- `SMALL_TIER_TYPES` and `LARGE_TIER_TYPES` in `workflow.ts`: which appointment types earn each tier, as exact picklist values. Defaults `Standard` and `Premium`.
+- `SMALL_TIER_AMOUNT` and `LARGE_TIER_AMOUNT` in `workflow.ts`: the bonus amounts, in the org's currency. Defaults 2.50 and 5.00.
+- `TX_CLASSIFICATION_VALUE` and `TX_DETAIL_VALUE` in `config.ts`: the labels written on every transaction. Defaults `"Credit"` and `"Appointment Bonus"`.
+
+Also ask:
+
+- Does a new staff record need any other required fields? If so, the create step in `workflow.ts` must set them.
 - Is there a sandbox org to test in? Don't test against a production org.
 
-## Test
+## Build it
 
-Run this as a draft test run (`run_workflow_draft` in Zapier MCP) against a sandbox org, with field names changed to match the constants:
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `salesforce` to the user's Salesforce connection for the org that holds appointments, staff and transactions.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/new-record.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connection, and sample the trigger (`new_record` read with the same object) before the first test run. Check that the record carries `Id`, `Name`, `CreatedDate`, `OwnerId` and the appointment type and staff fields, then fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test (`run_workflow_draft`) against a sandbox org, with field names changed to match the settings:
 
 ```json
 {
@@ -72,16 +83,12 @@ Check in Salesforce that:
 - a staff record with reference `[install-test] STAFF-001` exists (created on the first run, reused on a second run with the same reference);
 - one new Staff Account Transaction links to it, with amount 5.00, memo `[install-test] Premium appointment`, the created date above and the two classification labels.
 
-Then run it with `"Type__c": "Other"` and confirm it returns `appointment-type-not-eligible` and writes nothing. Delete the test records afterwards.
-
-## Customize
-
-- **Notify payroll:** add a step that posts each new transaction to the payroll channel (Slack, Teams or email).
-- **Different bonus rules:** replace the fixed tiers with a percentage of the appointment value, or a promotion-based amount.
+Then run it with `"Type__c": "Other"` and confirm it returns `appointment-type-not-eligible` and writes nothing. If run-status tools aren't available, check the result in Salesforce directly. Ask the user to delete the test records; the agent doesn't delete them.
 
 ## Notes
 
-- The spec's Paths step is a plain `if/else` in code, and the trigger mapping is just reading fields from the record, so the workflow has only two or three Salesforce steps.
+- Tiers are plain code, not a Paths step, so the workflow has only a few Salesforce steps.
 - The staff search uses a SOQL `WHERE` clause; the reference is quoted and escaped. If more than one staff record matches, the first one is used.
 - The created date is copied from the appointment as Salesforce sends it. If the transaction's date field is a Date (not Date/Time), Salesforce may reject the full timestamp; trim it to `YYYY-MM-DD` or switch the action to `create_record_utc`.
-- Salesforce is a CRM with real records: never test against a production org, and name test records `[install-test] …`.
+- Salesforce holds real records: never test against a production org, and name test records `[install-test] …`.
+- To notify payroll, add a step after the transaction that posts it to Slack, Teams or email. To change the bonus rules, replace the fixed tiers with a percentage of the appointment value or a promotion-based amount.

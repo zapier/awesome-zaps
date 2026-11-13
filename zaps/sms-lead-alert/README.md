@@ -4,28 +4,17 @@ Texts you every new lead the moment it comes in: their name, number, what they n
 
 **Apps:** Webhooks by Zapier, AI by Zapier, SMS by Zapier (optional: Facebook Lead Ads)
 
-## How it works
+## Install
 
-**Starts with:** Webhooks by Zapier Catch Hook (optionally also Facebook Lead Ads New Lead)
+This folder is a Zap template. Paste this into your AI agent:
 
-1. Pull out name, phone and need, and draft a reply (AI by Zapier)
-2. Text the owner the lead (SMS by Zapier)
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/sms-lead-alert
 
-## What you need
-
-- SMS by Zapier
-
-## Install it
-
-Paste this into Claude, ChatGPT, Cursor, or any agent with [Zapier MCP](https://zapier.com/mcp) connected:
-
-> Install the Next Gen Zap at https://zapier.sh/zaps/sms-lead-alert using Zapier MCP.
-
-If you have this repo, the files in this folder are everything the agent needs: it follows `SKILL.md` and deploys `workflow.ts`.
+The agent follows `SKILL.md`: it asks you for your SMS by Zapier connection and where your leads come from, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `workflow.ts`: the Next Gen Zap code
-- `connections/`: the accounts it uses (`sms`)
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `connections/`: the account it uses (`sms`)
 - `triggers/`: what starts it
-- `SKILL.md`: how an agent builds it, what to ask you, and how to test it

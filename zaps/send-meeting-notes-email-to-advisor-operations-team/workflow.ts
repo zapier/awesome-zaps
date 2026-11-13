@@ -2,15 +2,14 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { REPLY_TO_EMAIL, SUBJECT_PREFIX } from "@/config";
-import microsoftOutlook from "@/connections/microsoft-outlook";
+import { REPLY_TO_EMAIL, SUBJECT_PREFIX } from "./config.ts";
 
 const sdk = createZapierSdk();
 
 // Advisor addresses the meeting notes are sent to (To:).
-const ADVISOR_EMAILS = ["YOUR_ADVISOR_EMAIL"];
+const ADVISOR_EMAILS = ["REPLACE_ADVISOR_EMAILS"]; // Ask the user which addresses get the notes, one per entry (a distribution list address works as one entry).
 // Operations coordinators copied on every email (CC:). Leave empty for no CC.
-const OPS_CC_EMAILS = ["YOUR_OPS_COORDINATOR_EMAIL"];
+const OPS_CC_EMAILS = ["REPLACE_OPS_COORDINATOR_EMAILS"]; // Ask the user which ops coordinator addresses are copied, one per entry, or use an empty list for no CC.
 
 const Participant = z.union([
   z.string(),
@@ -60,7 +59,7 @@ function toList(value: string | string[] | null | undefined): string[] {
   return items.map((item) => item.trim()).filter(Boolean);
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "send-meeting-notes-email-to-advisor-operations-team",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(normalizeInput(rawInput));
@@ -78,7 +77,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "microsoft-outlook",
           actionType: "search",
           actionKey: "find_email",
-          connection: microsoftOutlook,
+          connection: "microsoft-outlook",
           inputs: { searchValue: eventId },
         }),
       );
@@ -118,7 +117,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "microsoft-outlook",
         actionType: "write",
         actionKey: "send_email",
-        connection: microsoftOutlook,
+        connection: "microsoft-outlook",
         inputs: {
           recipients: ADVISOR_EMAILS,
           ...(OPS_CC_EMAILS.length ? { ccRecipients: OPS_CC_EMAILS } : {}),

@@ -6,16 +6,18 @@ When a client texts in their weight, it's logged as a timestamped row in your ce
 
 **Based on:** [Create weight log record from client SMS messages](https://zapier.com/automations/personal-productivity/health-wellness-tracking/fitness-tracking-automation/create-weight-log-record-from-client-sms-messages) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/create-weight-log-record-from-client-sms-messages/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/create-weight-log-record-from-client-sms-messages
+
+The agent follows `SKILL.md`: it asks you for the Quo number clients text and the Zapier Table that holds your weight log, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
 - `connections/`: the accounts it uses (`quo`, `zapier-tables`)
 - `triggers/`: what starts it

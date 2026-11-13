@@ -8,9 +8,7 @@ import {
   PROGRAM_LINK_FIELD,
   PERSON_TRAINING_FIELD,
   PERSON_LINK_FIELD,
-} from "@/config";
-import zapierTables from "@/connections/zapier-tables";
-import pipedrive from "@/connections/pipedrive";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -20,7 +18,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "add-training-program-link-to-new-person-records",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -38,7 +36,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "search",
         actionKey: "find_record",
-        connection: zapierTables,
+        connection: "zapier-tables",
         inputs: {
           table_id: TRAINING_TABLE_ID,
           filter_count: "1",
@@ -66,7 +64,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "pipedrive",
         actionType: "write",
         actionKey: "update_personV2",
-        connection: pipedrive,
+        connection: "pipedrive",
         inputs: {
           id: Number(personId),
           [PERSON_LINK_FIELD]: link,

@@ -1,6 +1,6 @@
 ---
 name: assign-randomized-a-b-test-tags-to-new-subscribers
-description: Build a Zapier Next Gen Zap that randomly sorts each new Kit subscriber into an A or B group by tagging them, so welcome sequences can run valid split tests. Use when a creator or marketer runs email A/B tests in Kit and wants an even, automatic 50/50 split without assigning people by hand.
+description: Build a Zap on Zapier that randomly sorts each new Kit subscriber into an A or B group by tagging them, so welcome sequences can run valid split tests. Use when a creator or marketer runs email A/B tests in Kit and wants an even, automatic 50/50 split without assigning people by hand.
 license: MIT
 metadata:
   author: zapier
@@ -13,42 +13,41 @@ metadata:
 
 # Assign randomized A/B test tags to new subscribers
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/assign-randomized-a-b-test-tags-to-new-subscribers. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a subscriber is added to a Kit tag you choose (Kit's "Subscriber Added to Tag" trigger).
+1. **Trigger:** a subscriber is added to a Kit tag you choose (`kit`, `tagHook`).
 2. **Random draw:** a whole number from 1 to 10,000,000 is drawn, once per subscriber, and kept with the run.
 3. **Split:** draws at or below 5,000,000 go to group A; above it go to group B.
-4. **Kit** adds the subscriber to the A-group or B-group tag (creating the subscriber if their email is not yet in Kit).
-
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/assign-randomized-a-b-test-tags-to-new-subscribers` (it makes a zap project if you aren't in one), then `npx zap-pack deploy assign-randomized-a-b-test-tags-to-new-subscribers` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Kit, Subscriber Added to Tag (`kit`, action `tagHook`). Set the `id` parameter to the tag that marks new subscribers who should enter the test.
-2. **Connections** (each alias in the code is the app's slug):
-   - `kit`: the user's Kit connection.
-3. **Constants:**
-   - `TAG_A_ID`: the Kit tag ID for group A.
-   - `TAG_B_ID`: the Kit tag ID for group B. Use a different tag from the trigger tag, or the workflow will re-trigger on its own tags.
-   - `RANDOM_RANGE_MAX` and `RANDOM_MIDPOINT`: the draw range and the split point. The defaults give about 50/50.
-4. Test with the steps below, then publish, wait until the trigger is active, and give the user the trigger's webhook details if any.
+4. **Kit** adds the subscriber to the group A or group B tag, creating the subscriber if their email is not yet in Kit.
 
 ## Ask the user
 
-- Which Kit tag marks a new subscriber who should be in the test, and which tags are the A-group and B-group?
-- Should the split be 50/50 (the default) or another ratio?
-- Should a subscriber who already has an A or B tag be skipped, or re-assigned?
+Each `REPLACE_…` value is set per person. Resolve tag names to IDs with the user's Kit connection; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                  | Where                        | What goes there                                                  |
+| ------------------------ | ---------------------------- | ---------------------------------------------------------------- |
+| `REPLACE_TRIGGER_TAG_ID` | `triggers/tag-hook.ts`, `id` | The Kit tag that marks new subscribers who should enter the test |
+| `REPLACE_TAG_A_ID`       | `config.ts`                  | The Kit tag for group A                                          |
+| `REPLACE_TAG_B_ID`       | `config.ts`                  | The Kit tag for group B                                          |
 
-The draft test run needs a Kit connection, and the trigger's tag ID cannot be read without one. To test, use a test subscriber email on a Kit test account and a test tag:
+The trigger tag must differ from both group tags, or the Zap re-triggers on its own tags.
+
+Also review the defaults with them: `RANDOM_RANGE_MAX` and `RANDOM_MIDPOINT` in `config.ts` give about a 50/50 split. Change the midpoint for another ratio.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `kit` to the user's Kit connection. The trigger and the tag action both use it. No other app needs a connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/tag-hook.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them, and put the trigger's `id` into the trigger's params. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's Kit connection, and sample the trigger, before the first test run. Fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test with a test subscriber on a Kit test account, using the trigger tag set to a test tag:
 
 ```json
 {
@@ -57,15 +56,11 @@ The draft test run needs a Kit connection, and the trigger's tag ID cannot be re
 }
 ```
 
-Check that the subscriber in Kit gets exactly one of the two group tags, that the run's `group` output matches `splitKey` (at or below 5,000,000 means A), and that over ten test subscribers both groups appear. Remove the test subscriber afterwards.
-
-## Customize
-
-- **Three-way or weighted splits** for multivariate tests.
-- **Weight assignment by signup source** to favor specific cohorts.
+Check that the subscriber in Kit gets exactly one of the two group tags, that the run's `group` output matches `splitKey` (at or below 5,000,000 means A), and that over ten test subscribers both groups appear. If run-status tools aren't available, check the result in Kit directly. Then publish, confirm the trigger is active, and ask the user to delete the test subscribers in Kit. The agent doesn't delete them.
 
 ## Notes
 
-- The trigger's payload field names for Kit were not read, because no connection was available. The workflow reads the email from `email_address` and the first name from `first_name`; check these against a real payload before publishing, since a wrong name makes every run skip with `no-email`.
-- Kit's tag IDs are numbers that change per account. Never commit a real tag ID; the template uses placeholders.
-- A subscriber is tagged again each time they enter the trigger tag, so remove the trigger tag if you want one assignment per person.
+- The workflow reads the email from `email_address` and the first name from `first_name`. Neither was checked against a real Kit payload. Confirm them in the first test run, since a wrong email name makes every run skip with `no-email`.
+- A subscriber is tagged again each time they enter the trigger tag. Remove the trigger tag after tagging if you want one assignment per person.
+- Kit's tag IDs change per account. Never commit a real tag ID.
+- To extend it: a three-way or weighted split for multivariate tests, or weighting assignment by signup source.

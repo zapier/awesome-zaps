@@ -8,8 +8,7 @@ import {
   SYNONYMS_COLUMN,
   THESAURUS_URL,
   SYNONYM_SEPARATOR,
-} from "@/config";
-import googleDocs from "@/connections/google-docs";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -32,7 +31,7 @@ function extractTerms(text: string): string[] {
   return [...new Set(lines)].slice(0, MAX_WORDS);
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-synonym-entries-from-document-word-list-into-cache",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -44,7 +43,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-docs",
         actionType: "search",
         actionKey: "get_document_content",
-        connection: googleDocs,
+        connection: "google-docs",
         inputs: { document_id: input.id },
       }),
     );
@@ -58,9 +57,9 @@ const workflow = defineDurable<unknown, unknown>(
 
     const results: { term: string; status: string }[] = [];
 
-    for (const [index, term] of terms.entries()) {
+    for (const term of terms) {
       try {
-        const existing = await ctx.step(`find-term-${index}`, async () =>
+        const existing = await ctx.step(`find-term-${term}`, async () =>
           sdk.runAction({
             appKey: "zapier-tables",
             actionType: "search",
@@ -74,7 +73,7 @@ const workflow = defineDurable<unknown, unknown>(
           continue;
         }
 
-        const thesaurus = await ctx.step(`fetch-synonyms-${index}`, async () =>
+        const thesaurus = await ctx.step(`fetch-synonyms-${term}`, async () =>
           sdk.runAction({
             appKey: "webhook",
             actionType: "write",
@@ -94,7 +93,7 @@ const workflow = defineDurable<unknown, unknown>(
           .map((synonym) => synonym.trim())
           .filter(Boolean);
 
-        await ctx.step(`create-term-${index}`, async () =>
+        await ctx.step(`create-term-${term}`, async () =>
           sdk.runAction({
             appKey: "zapier-tables",
             actionType: "write",

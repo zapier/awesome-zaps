@@ -1,7 +1,3 @@
-import type { Trigger } from "zap-pack";
-
-import { TIMEZONE } from "@/config";
-
 export default {
   app: "schedule",
   event: "everyDay",
@@ -9,6 +5,6 @@ export default {
   params: {
     hod: "7:00 PM",
     weekends: "yes",
-    timezone_override: TIMEZONE,
+    timezone_override: "America/New_York",
   },
-} satisfies Trigger;
+};

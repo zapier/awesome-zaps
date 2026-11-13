@@ -1,6 +1,6 @@
 ---
 name: add-ai-evaluation-note-to-candidate-profile
-description: Build a Zapier Next Gen Zap that screens each new Greenhouse application for one job with AI by Zapier, adds the AI scorecard to the candidate's Greenhouse profile as a private note for a recruiter to review, and logs the application to a Google Sheets hiring tracker. Use when a recruiting or talent acquisition team runs Greenhouse as its ATS and wants a consistent first read of every resume and application answer before a person decides what happens next. The note never rejects, advances or ranks anyone.
+description: Build a Zap on Zapier that screens each new Greenhouse application for one job with AI by Zapier, adds the AI scorecard to the candidate's Greenhouse profile as a private note for a recruiter to review, and logs the application to a Google Sheets hiring tracker. Use when a recruiting team runs Greenhouse and wants a consistent first read of every application before a person decides. The note never rejects, advances or ranks anyone.
 license: MIT
 metadata:
   author: zapier
@@ -13,54 +13,46 @@ metadata:
 
 # Add AI evaluation note to candidate profile
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/add-ai-evaluation-note-to-candidate-profile. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a candidate submits a new application in Greenhouse. Applications for any job other than the one you set are skipped.
-2. **Greenhouse** looks up the resume attached to that application.
-3. **Files by Zapier** turns the resume file into plain text. With no resume, the run carries on with the application answers alone.
-4. **AI by Zapier** reads the resume text and application answers and returns a scorecard against your job criteria: experience gate (met, not met or unclear), depth score (1 to 5), product thinking score (1 to 5), a one-line overall assessment, a short summary and things to check.
-5. **Greenhouse** adds the scorecard to the candidate's profile as a private note headed "AI screening notes for recruiter review. This is not a hiring decision."
-6. **Google Sheets** appends a row to your hiring tracker: application ID, overall assessment, job name, link to the candidate in Greenhouse, key answer excerpts and when they applied.
+1. **Trigger:** a new application in Greenhouse (`greenhouse`, `candidate_v2List`, no settings). Applications for any job other than `JOB_ID` are skipped.
+2. **Greenhouse** looks up the resume attached to the application.
+3. **Files by Zapier** turns the resume into plain text. With no resume, the run carries on with the answers alone.
+4. **AI by Zapier** scores the resume and answers against `ROLE_CRITERIA`: experience gate (met, not met, unclear), depth (1 to 5), product thinking (1 to 5), a one-line assessment, a summary and things to check.
+5. **Greenhouse** adds the scorecard to the candidate as a note headed "AI screening notes for recruiter review. This is not a hiring decision."
+6. **Google Sheets** appends a row to the hiring tracker: application ID, assessment, job, candidate link, answer excerpts, submitted at.
 
-The AI only describes the evidence. A recruiter reads the note and makes every decision; the zap never moves, rejects or emails a candidate.
-
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and sample the trigger, and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/add-ai-evaluation-note-to-candidate-profile` (it makes a zap project if you aren't in one), then `npx zap-pack deploy add-ai-evaluation-note-to-candidate-profile` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Greenhouse, New Candidate Application (`greenhouse`, `candidate_v2List`). It has no settings, so it fires for every new application in the account. Set the trigger's `authentication_id` to the user's Greenhouse connection.
-2. **Connections** (each alias in the code is the app's slug):
-   - `greenhouse`: the user's Greenhouse connection. The trigger, the resume lookup and the note all use it, so it needs permission to list attachments and create notes.
-   - `google-sheets`: the user's Google Sheets connection, for the account that owns the hiring tracker.
-   - Files by Zapier and `ai` need no connection. AI by Zapier uses a managed model credential (`authentication_id: "0"`).
-3. **Constants:**
-   - `JOB_ID`: the Greenhouse job to screen, the number in the job's URL.
-   - `JOB_NAME`: the job name written to the tracker.
-   - `ROLE_CRITERIA`: the experience gate, depth and product thinking criteria the AI scores against. The default describes a payroll product manager; rewrite it for the user's role.
-   - `NOTE_AUTHOR_USER_ID`: the Greenhouse user the note is created on behalf of. Pick it from the `on_behalf_of` choices on Create Candidate Note.
-   - `NOTE_VISIBILITY`: `private` (default), `admin_only` or `public`. Private keeps interviewers from being primed by the AI's read.
-   - `SPREADSHEET_ID`, `WORKSHEET_ID`: the tracker sheet and tab. Columns A to F must be application ID, overall assessment, job, application link, key answer excerpts, submitted at.
-   - `MAX_RESUME_CHARS`, `MAX_EXCERPTS`, `MAX_EXCERPT_CHARS`: how much resume text goes to the AI and how much of the answers lands in the sheet.
-   - `MODEL_ID`: the AI model tier. Defaults to `"standard/auto"`.
-4. Test with the steps below, then publish and wait until the trigger is active.
+The AI only describes the evidence. A recruiter makes every decision; the Zap never moves, rejects or emails a candidate.
 
 ## Ask the user
 
-- Which Greenhouse job should be screened, and what does a strong candidate for it look like? Turn their answer into `ROLE_CRITERIA`.
-- Who should the note be created on behalf of, and who should be able to see it?
-- Which sheet and tab is the hiring tracker? Does it have the six columns in the order above?
-- Has their recruiting, legal or people team agreed to AI reading applications for this role? Some places require candidates to be told.
+Each `REPLACE_…` value in `config.ts` is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting               | What goes there                                                                                                                                     |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `JOB_ID`              | The Greenhouse job to screen: the number in the job's URL                                                                                           |
+| `JOB_NAME`            | That job's name as shown in Greenhouse; look it up from `JOB_ID` so the two always match                                                            |
+| `NOTE_AUTHOR_USER_ID` | The Greenhouse user the note is created on behalf of: pick from `on_behalf_of` on Create Candidate Note                                             |
+| `SPREADSHEET_ID`      | The hiring tracker spreadsheet. Columns A to F must be application ID, overall assessment, job, application link, key answer excerpts, submitted at |
 
-Sample the trigger first and confirm the record carries `id`, `candidate_id`, `job_id`, `answers` and `candidate.fullName`. Then run a draft test with a test candidate's application on the chosen job, for example:
+Also review the defaults with them: `ROLE_CRITERIA` (written for a payroll product manager: rewrite it from what they say a strong candidate looks like), `NOTE_VISIBILITY` (`private`, `admin_only` or `public`), `WORKSHEET_ID` (`"0"` is the first tab) and `MODEL_ID`.
+
+Before turning it on, confirm their recruiting, legal or people team has agreed to AI reading applications for this role. Some places require candidates to be told.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `greenhouse` (needs permission to list attachments and create notes) and `google-sheets` (the account that owns the tracker) to the user's connections. Files by Zapier and AI by Zapier need none.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/candidate-v2-list.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test with a test candidate's application on the chosen job:
 
 ```json
 {
@@ -68,8 +60,6 @@ Sample the trigger first and confirm the record carries `id`, `candidate_id`, `j
   "candidate_id": 3900001,
   "job_id": 4200001,
   "created_at": "2026-11-09T15:00:00.000Z",
-  "status": "in_process",
-  "prospect": false,
   "answers": [
     {
       "question": "Tell us about a payroll product you owned.",
@@ -83,17 +73,11 @@ Sample the trigger first and confirm the record carries `id`, `candidate_id`, `j
 }
 ```
 
-Confirm that the test candidate's profile has one private note with the heading, both scores and the summary, and that one row landed in the tracker. Then delete the note and the row. Also run an application for another job and confirm it is skipped with nothing written.
-
-## Customize
-
-- **Alert on strong matches:** add a Slack or email step that posts when the experience gate is met and both scores clear a threshold you set, for a recruiter to follow up on.
-- **Stricter checks for regulated roles:** swap the AI step for a custom model, or add a second check before the note is written.
-- **Screen by stage:** skip applications unless they sit in a chosen interview stage (`stage_name` in the trigger record).
+Check that the candidate has one note with the heading, both scores and the summary, and that one row landed in the tracker. If run-status tools aren't available, check Greenhouse and the sheet directly. Then ask the user to delete both. An application for another job should be skipped with nothing written. Publish only after the test passes, and confirm the trigger is active.
 
 ## Notes
 
-- The scorecard is input for a human reviewer, not a decision. Keep the note heading, and do not add steps that reject or advance candidates from the AI's output.
-- Greenhouse resume links expire, so the zap fetches a fresh one on each run instead of storing it.
-- Scanned resumes without a text layer may extract as empty text; the AI then works from the answers, and the note says no resume was read only when none was attached.
-- Resumes and answers are personal data. Keep the tracker sheet shared only with the hiring team, and never commit a real spreadsheet, job or user ID.
+- The note is input for a reviewer, not a decision. Keep its heading, and don't add steps that reject or advance candidates from the AI's output.
+- Greenhouse resume links expire, so the Zap fetches a fresh one on each run.
+- Resumes and answers are personal data. Share the tracker only with the hiring team, and never commit a real spreadsheet, job or user ID.
+- To extend it: alert on strong matches in Slack, add a second check for regulated roles, or screen only a chosen stage (`stage_name` in the trigger record).

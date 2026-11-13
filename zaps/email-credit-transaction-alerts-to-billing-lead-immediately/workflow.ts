@@ -2,7 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { BILLING_LEAD_EMAIL, FROM_NAME } from "@/config";
+import { BILLING_LEAD_EMAIL, FROM_NAME } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -58,7 +58,7 @@ function lineItemDescriptions(lineItems: unknown): string[] {
     .map((d) => d.trim());
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "email-credit-transaction-alerts-to-billing-lead-immediately",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(

@@ -6,8 +6,7 @@ import {
   TICKET_TYPE,
   SUPPORT_QUEUE_GROUP_ID,
   AUDIT_TAG,
-} from "@/config";
-import zendesk from "@/connections/zendesk";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -15,7 +14,7 @@ const sdk = createZapierSdk();
 const AUDIT_NOTE =
   "Created automatically by the monthly policy admin review schedule.";
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-monthly-policy-admin-ticket-for-compliance-reviews",
   async (ctx) => {
     const runMonth = await ctx.step("capture-run-month", async () =>
@@ -29,7 +28,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zendesk",
         actionType: "write",
         actionKey: "ticket",
-        connection: zendesk,
+        connection: "zendesk",
         inputs: {
           subject,
           first_comment: `Monthly policy report review for ${runMonth}. Confirm distribution and record the outcome on this ticket.`,
@@ -50,7 +49,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zendesk",
         actionType: "write",
         actionKey: "update_ticket_v2",
-        connection: zendesk,
+        connection: "zendesk",
         inputs: {
           ticket: String(createdTicket.id),
           group_id: Number(SUPPORT_QUEUE_GROUP_ID),

@@ -1,6 +1,6 @@
 ---
 name: create-weekly-video-performance-summaries-for-reporting-dashboards
-description: Build a Zapier Next Gen Zap that takes a YouTube video ID and a date range and returns that video's views, average watch time, engagement percentage, revenue and subscriber change, ready for a reporting dashboard. Use when a dashboard, spreadsheet or another workflow needs per-video YouTube performance summaries for a reporting period.
+description: Build a Zap on Zapier that takes a YouTube video ID and a date range and returns that video's views, average watch time, engagement percentage, revenue and subscriber change, ready for a reporting dashboard. Use when a dashboard, spreadsheet or another workflow needs per-video YouTube performance summaries for a reporting period.
 license: MIT
 metadata:
   author: zapier
@@ -13,59 +13,57 @@ metadata:
 
 # Create weekly video performance summaries for reporting dashboards
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/create-weekly-video-performance-summaries-for-reporting-dashboards. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a request arrives at a Webhooks by Zapier catch hook carrying `video_id`, `start_date` and `end_date`.
-2. **YouTube** runs a Get Report (Top Videos breakdown) on your channel, filtered to that video ID, for the date range, requesting views, watch time, likes, comments, shares, estimated revenue and subscribers gained and lost.
+1. **Trigger:** a request arrives at a catch hook (`webhook`, `hook_v2`) carrying `video_id`, `start_date` and `end_date`.
+2. **YouTube** (`youtube`) runs a Get Report (Top Videos breakdown) on the channel, filtered to that video ID, for the date range, requesting views, watch time, likes, comments, shares, estimated revenue and subscribers gained and lost.
 3. The first row of the report is reduced to the summary: views, average watch time (seconds), engagement percentage ((likes + comments + shares) / views), revenue, and subscriber delta (gained minus lost). If there's no data, every value is zero.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-weekly-video-performance-summaries-for-reporting-dashboards` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-weekly-video-performance-summaries-for-reporting-dashboards` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Webhooks by Zapier, Catch Hook (`webhook`, `hook_v2`). It needs no connection, so its `authentication_id` is `null`.
-2. **Connections** (each alias in the code is the app's slug):
-   - `youtube`: the user's YouTube connection, for the account that owns the channel to report on.
-3. **Constants:**
-   - `CHANNEL_ID`: the `UC…` ID of the YouTube channel the videos belong to.
-   - `METRICS`: the report metrics. Change these only if you want different columns.
+The Zap only reads from YouTube. It writes nothing to the channel.
 
 ## Ask the user
 
-- Which YouTube channel do the videos belong to? (Set `CHANNEL_ID`.)
-- Which YouTube connection should the workflow use? (It must be a connected account that owns or manages that channel.)
-- What does the sender post? The payload must carry `video_id`, `start_date` (`YYYY-MM-DD`) and `end_date` (`YYYY-MM-DD`). If the sender uses other field names, tell the workflow before installing.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting              | What goes there                                                                                          |
+| -------------------- | -------------------------------------------------------------------------------------------------------- |
+| `REPLACE_CHANNEL_ID` | The YouTube channel the videos belong to, as its `UC…` ID; look it up with the user's YouTube connection |
 
-The test plan, to run once the YouTube connection is reconnected:
+Also review the default with them: `METRICS` (the report columns; change these only if they want different columns).
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing, using a video that exists on the channel:
+Before building, ask:
+
+- Which YouTube connection should the Zap use? It must be a connected account that owns or manages the channel.
+- What does the sender post? The payload must carry `video_id`, `start_date` (`YYYY-MM-DD`) and `end_date` (`YYYY-MM-DD`). If the sender uses other field names, change them in `workflow.ts` before installing.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `youtube` to the user's YouTube connection for the account that owns or manages the channel to report on. The trigger, `webhook`, needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with `REPLACE_CHANNEL_ID` replaced by the user's answer. `triggers/hook.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connection and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run this sample once as a draft test before publishing, using a video that exists on the channel:
 
 ```json
 {
-  "video_id": "YOUR_VIDEO_ID",
+  "video_id": "VIDEO_ID_ON_THE_CHANNEL",
   "start_date": "2026-10-19",
   "end_date": "2026-10-25"
 }
 ```
 
-Check that the returned payload has the video's own views and that the engagement percentage is consistent with its likes, comments and shares. For a video with no activity in the range, check that the values are zero and `reason` is `no-report-data`. Draft test runs can't confirm the row's field names until a real report has run, so compare the step's output against the YouTube result before trusting the mapping.
-
-## Customize
-
-- **Write each summary to Google Sheets** for archival reporting: add a Google Sheets step after the summary that appends one row.
-- **Alert on thresholds:** post a Slack message to a configured channel when revenue or engagement crosses a set value.
+Check that the returned payload has the video's own views and that the engagement percentage is consistent with its likes, comments and shares. For a video with no activity in the range, check that the values are zero and `reason` is `no-report-data`. Draft test runs can't confirm the row's field names until a real report has run, so compare the step's output against the YouTube result before trusting the mapping. If run-status tools aren't available, check the result in YouTube directly. Any test data is the user's to delete, not the agent's.
 
 ## Notes
 
 - The workflow returns its summary in the run output. A catch hook can't return a value to the sender, so the caller reads results from the run, or from a later step that writes them somewhere.
-- Engagement percentage is a derived figure (likes, comments and shares over views). Change the formula in `workflow.ts` if your dashboard defines engagement differently.
-- Never commit a real channel ID or webhook URL. Anyone with the webhook URL can request reports.
+- Engagement percentage is a derived figure (likes, comments and shares over views). Change the formula in `workflow.ts` if the dashboard defines engagement differently.
+- To write each summary to Google Sheets for archival reporting, add a Google Sheets step after the summary that appends one row. To alert on thresholds, post a Slack message when revenue or engagement crosses a set value.
+- Keep the webhook URL private. Anyone with it can request reports.

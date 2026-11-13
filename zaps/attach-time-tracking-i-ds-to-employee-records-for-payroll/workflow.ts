@@ -8,8 +8,7 @@ import {
   EMAIL_FIELD,
   FULL_NAME_FIELD,
   TIME_TRACKING_LINK_FIELD,
-} from "@/config";
-import airtable from "@/connections/airtable";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -27,7 +26,13 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+// The Airtable record shape the find and update steps return, as this zap reads it.
+type EmployeeRecord = {
+  id?: string | number;
+  fields?: Record<string, unknown>;
+};
+
+const workflow = defineDurable(
   "attach-time-tracking-i-ds-to-employee-records-for-payroll",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -46,18 +51,18 @@ const workflow = defineDurable<unknown, unknown>(
           continue;
         }
 
-        let employee = null;
+        let employee: EmployeeRecord | null = null;
         let matchedBy = null;
 
         if (email) {
           const byEmail = await ctx.step(
-            `find-employee-by-email-${index}`,
+            `find-employee-by-email-${recordId}`,
             async () =>
               sdk.runAction({
                 appKey: "airtable",
                 actionType: "search",
                 actionKey: "findRecord",
-                connection: airtable,
+                connection: "airtable",
                 inputs: {
                   applicationId: AIRTABLE_BASE_ID,
                   tableName: EMPLOYEE_TABLE,
@@ -67,19 +72,19 @@ const workflow = defineDurable<unknown, unknown>(
                 },
               }),
           );
-          employee = byEmail.data?.[0] ?? null;
+          employee = (byEmail.data?.[0] as EmployeeRecord | undefined) ?? null;
           matchedBy = employee ? "email" : null;
         }
 
         if (!employee && fullName) {
           const byName = await ctx.step(
-            `find-employee-by-name-${index}`,
+            `find-employee-by-name-${recordId}`,
             async () =>
               sdk.runAction({
                 appKey: "airtable",
                 actionType: "search",
                 actionKey: "findRecord",
-                connection: airtable,
+                connection: "airtable",
                 inputs: {
                   applicationId: AIRTABLE_BASE_ID,
                   tableName: EMPLOYEE_TABLE,
@@ -89,7 +94,7 @@ const workflow = defineDurable<unknown, unknown>(
                 },
               }),
           );
-          employee = byName.data?.[0] ?? null;
+          employee = (byName.data?.[0] as EmployeeRecord | undefined) ?? null;
           matchedBy = employee ? "name" : null;
         }
 
@@ -100,11 +105,8 @@ const workflow = defineDurable<unknown, unknown>(
         }
 
         // Keep existing links and append the new ID, without duplicates.
-        const existing = Array.isArray(
-          employee.fields?.[TIME_TRACKING_LINK_FIELD],
-        )
-          ? employee.fields[TIME_TRACKING_LINK_FIELD].map(String)
-          : [];
+        const linkedIds = employee.fields?.[TIME_TRACKING_LINK_FIELD];
+        const existing = Array.isArray(linkedIds) ? linkedIds.map(String) : [];
         if (existing.includes(recordId)) {
           outcomes.push({
             index,
@@ -115,30 +117,32 @@ const workflow = defineDurable<unknown, unknown>(
           continue;
         }
         const combined = [...existing, recordId];
+        const employeeId = String(employee.id);
 
         const update = await ctx.step(
-          `link-time-tracking-id-${index}`,
+          `link-time-tracking-id-${recordId}`,
           async () =>
             sdk.runAction({
               appKey: "airtable",
               actionType: "write",
               actionKey: "updateRecord",
-              connection: airtable,
+              connection: "airtable",
               inputs: {
                 applicationId: AIRTABLE_BASE_ID,
                 tableName: EMPLOYEE_TABLE,
-                rowId: String(employee.id),
+                rowId: employeeId,
                 [TIME_TRACKING_LINK_FIELD]: combined,
               },
             }),
         );
+        const updated = update.data?.[0] as { id?: unknown } | undefined;
 
         outcomes.push({
           index,
           linked: true,
           matchedBy,
           employeeId: employee.id,
-          updated: update.data?.[0]?.id ?? null,
+          updated: updated?.id ?? null,
         });
       } catch (error) {
         outcomes.push({

@@ -2,9 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { QUO_FROM_PHONE_NUMBER_ID, TABLE_ID, ACK_TEMPLATE } from "@/config";
-import zapierTables from "@/connections/zapier-tables";
-import quo from "@/connections/quo";
+import { QUO_FROM_PHONE_NUMBER_ID, TABLE_ID, ACK_TEMPLATE } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -28,7 +26,7 @@ function parseWeight(text: string): number | null {
   return value > MIN_WEIGHT ? value : null;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-weight-log-record-from-client-sms-messages",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -45,7 +43,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "create_record",
-        connection: zapierTables,
+        connection: "zapier-tables",
         inputs: {
           table_id: TABLE_ID,
           new__data__f1: input.createdAt ?? "now",
@@ -70,7 +68,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "quo",
         actionType: "write",
         actionKey: "send_message",
-        connection: quo,
+        connection: "quo",
         inputs: {
           to: input.from,
           body: ACK_TEMPLATE.replace("{weight}", String(weight)),

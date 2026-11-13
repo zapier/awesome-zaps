@@ -1,6 +1,6 @@
 ---
 name: save-security-report-attachments-to-shared-drive-folder
-description: Build a Zapier Next Gen Zap that saves the attachments of matching security report emails to a shared drive folder, dated and named by original filename, then labels the message as processed. Use when security, compliance or audit evidence arrives by email and needs to be filed in a Drive folder without manual downloads.
+description: Build a Zap on Zapier that saves the attachments of matching security report emails to a shared drive folder, dated and named by original filename, then labels the message as processed. Use when security, compliance or audit evidence arrives by email and needs to be filed in a Drive folder without manual downloads.
 license: MIT
 metadata:
   author: zapier
@@ -13,48 +13,43 @@ metadata:
 
 # Save security report attachments to shared drive folder
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/save-security-report-attachments-to-shared-drive-folder. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a new Gmail email matching a search string arrives.
+1. **Trigger:** a new Gmail email matching a search string arrives (`gmail`, `search`).
 2. **Filter (in code):** the subject must contain the configured text and the To header must contain the configured recipient. Messages with no attachments stop here.
 3. **Google Drive** uploads each attachment to the configured folder, named `<received date>_<original filename>`. A failed upload is counted, and the run continues with the next attachment.
 4. **Gmail** adds the processed label to the message, but only if every upload succeeded. Otherwise the message is left unlabelled so the next run can retry it.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/save-security-report-attachments-to-shared-drive-folder` (it makes a zap project if you aren't in one), then `npx zap-pack deploy save-security-report-attachments-to-shared-drive-folder` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Gmail, New Email Matching Search (`gmail` / `search`). Its `query` param is `SEARCH_QUERY`.
-2. **Connections** (each alias in the code is the app's slug):
-   - `gmail`: the Gmail account that receives the reports.
-   - `google-drive`: the Google account that owns the destination folder. Bind this before publishing; the workflow cannot upload without it.
-3. **Constants:**
-   - `SEARCH_QUERY`: the Gmail search that picks up report emails, in Gmail search syntax.
-   - `SUBJECT_CRITERIA`: text the subject must contain.
-   - `RECIPIENT_PATTERN`: text the To header must contain, such as the receiving mailbox.
-   - `DRIVE_FOLDER_ID`: the folder ID from the folder's URL.
-   - `SHARED_DRIVE_ID`: the shared drive ID, or leave it empty to use My Drive.
-   - `PROCESSED_LABEL_ID`: the Gmail label ID to add to processed messages.
-4. Test with the steps below, then publish, wait until the trigger is active, and tell the user the trigger is live.
+The Zap never sends, moves or deletes email. Its only Gmail action is adding the label.
 
 ## Ask the user
 
-- Which Gmail search finds the report emails? Give the search string in Gmail syntax.
-- What text must the subject contain, and which recipient address must the email be sent to?
-- Which Drive folder should receive the files: its ID, and is it in a shared drive (if so, which)?
-- Which Gmail label marks processed messages? The label must already exist.
-- The folder must already exist. The workflow does not create it.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting              | Where                                            | What goes there                                                                                             |
+| -------------------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| `SEARCH_QUERY`       | `config.ts`, and `query` in `triggers/search.ts` | The Gmail search that finds the report emails, in Gmail search syntax                                       |
+| `SUBJECT_CRITERIA`   | `config.ts`                                      | Text the subject must contain before attachments are saved                                                  |
+| `RECIPIENT_PATTERN`  | `config.ts`                                      | Text the To header must contain, such as the receiving mailbox address                                      |
+| `DRIVE_FOLDER_ID`    | `config.ts`                                      | The Drive folder that receives the files, by its ID (the long ID in its URL). The folder must already exist |
+| `PROCESSED_LABEL_ID` | `config.ts`                                      | The Gmail label added to processed messages. The label must already exist                                   |
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing. It does not match the filter, so it writes nothing:
+Also review the default with them: `SHARED_DRIVE_ID` is empty, which uploads to My Drive. Set it to a shared drive's ID to upload there instead.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `gmail` (the Gmail account that receives the reports) and `google-drive` (the Google account that owns the destination folder) to the user's connections. Bind `google-drive` before publishing; the workflow cannot upload without it.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/search.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them, and set the trigger's `query` to the same search as `SEARCH_QUERY`. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections, and sample the trigger, before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run this sample as a draft test (`run_workflow_draft` in Zapier MCP). It does not match the filter, so it writes nothing:
 
 ```json
 {
@@ -66,16 +61,14 @@ Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before 
 }
 ```
 
-Confirm the run completes with `reason: "subject-or-recipient-did-not-match"` and that no file was added to the folder and no label was added. Then run a second sample against a test email you control: send it to your own address, with the subject text and one attachment, and give the attachment's `url`. Check that the file appears in the folder with the date-prefixed name and that the message gets the processed label. Delete the test file and label afterwards.
+Confirm the run completes with `reason: "subject-or-recipient-did-not-match"`, and that no file was added to the folder and no label was added. Then run a second sample against a test email you control: send it to your own address, with the subject text and one attachment, and give the attachment's `url`. Check that the file appears in the folder with the date-prefixed name and that the message gets the processed label. Publish once both runs pass, and confirm the trigger is active.
 
-## Customize
-
-- **Log uploads** to a tracking sheet or ticketing system for auditability.
-- **Name files by source email and timestamp** for easier search.
+If run-status tools aren't available, check the result in Gmail and Google Drive directly. The user deletes the test file and label afterwards, not the agent.
 
 ## Notes
 
-- Gmail trigger payload field names for attachments (`url`, `filename`) were assumed, because the sample read returned no records. Check them on the first real run.
+- The attachment fields `url` and `filename` were assumed from the Gmail trigger payload, because the sample read returned no records. Check them on the first real run.
 - Drive allows duplicate file names, so a second report with the same name and date creates a second file rather than overwriting.
 - A message with several attachments is processed as one run. If any upload fails, the message stays unlabelled and the next matching run tries again, which can re-upload the attachments that already succeeded.
-- Never commit a real folder ID, label ID, or email address.
+- To log uploads to a tracking sheet or ticketing system, add a step after the uploads. To name files by source email and timestamp, change `new_name` in `workflow.ts`.
+- Folder IDs, label IDs and email addresses belong to the user's account. Don't commit them.

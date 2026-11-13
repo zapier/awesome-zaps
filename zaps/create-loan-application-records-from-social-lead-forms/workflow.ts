@@ -22,8 +22,7 @@ import {
   LEAD_BUSINESS_NAME_KEY,
   LEAD_REVENUE_KEY,
   TIME_ZONE,
-} from "@/config";
-import airtable from "@/connections/airtable";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -80,7 +79,7 @@ function normalizeRevenue(value: string | null): number | null {
   return Math.round(Number(match[1]) * multiplier);
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-loan-application-records-from-social-lead-forms",
   async (ctx, rawInput) => {
     const raw = (
@@ -125,7 +124,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "airtable",
         actionType: "write",
         actionKey: "_zap_raw_request",
-        connection: airtable,
+        connection: "airtable",
         inputs: {
           method: "PATCH",
           url: `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(AIRTABLE_TABLE)}`,

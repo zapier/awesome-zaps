@@ -8,8 +8,7 @@ import {
   SECTION_NAME,
   OWNER_ID,
   TASK_NAME_PREFIX,
-} from "@/config";
-import asana from "@/connections/asana";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -32,7 +31,7 @@ const MONTHS = [
 ];
 const pad = (value: number) => String(value).padStart(2, "0");
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-monthly-release-notes-task-and-launch-checklist",
   async (ctx) => {
     const runAt = await ctx.step("capture-run-date", async () =>
@@ -50,7 +49,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "asana",
         actionType: "search",
         actionKey: "find_task_v3",
-        connection: asana,
+        connection: "asana",
         inputs: {
           name: taskName,
           project: [PROJECT_ID],
@@ -72,7 +71,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "asana",
           actionType: "write",
           actionKey: "create_task_from_template",
-          connection: asana,
+          connection: "asana",
           inputs: {
             name: taskName,
             workspace: WORKSPACE_ID,
@@ -88,7 +87,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "asana",
         actionType: "search",
         actionKey: "find_section",
-        connection: asana,
+        connection: "asana",
         inputs: {
           name: SECTION_NAME,
           project: PROJECT_ID,
@@ -106,7 +105,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "asana",
         actionType: "write",
         actionKey: "add_task_to_section",
-        connection: asana,
+        connection: "asana",
         inputs: {
           section: String(sectionRow.id),
           task_id: task.gid,
@@ -121,7 +120,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "asana",
         actionType: "write",
         actionKey: "create_subtask_v3",
-        connection: asana,
+        connection: "asana",
         inputs: {
           name: `Determine newsletter send date for ${monthName} ${year}`,
           task_id: task.gid,

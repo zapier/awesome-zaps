@@ -10,8 +10,7 @@ import {
   BANK_ACCOUNT_ID,
   EXPENSE_ACCOUNT_ID,
   EXPENSE_PAYMENT_TYPE,
-} from "@/config";
-import quickbooks from "@/connections/quickbooks";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -42,7 +41,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-invoices-and-expenses-from-new-table-rows",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -79,7 +78,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "quickbooks",
           actionType: "search",
           actionKey: "invoice",
-          connection: quickbooks,
+          connection: "quickbooks",
           inputs: { number: documentNumber },
         }),
       );
@@ -96,14 +95,16 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "quickbooks",
           actionType: "search",
           actionKey: "customer_v2",
-          connection: quickbooks,
+          connection: "quickbooks",
           inputs: {
             search_field: "name",
             search_value: counterpartyName || DEFAULT_CUSTOMER_NAME,
           },
         }),
       );
-      const customerId = customer.data?.[0]?.id;
+      const customerId = (
+        customer.data?.[0] as { id?: string | number } | undefined
+      )?.id;
       if (!customerId) {
         return { skipped: true, reason: "customer-not-found", documentNumber };
       }
@@ -113,7 +114,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "quickbooks",
           actionType: "write",
           actionKey: "new_invoice_v4",
-          connection: quickbooks,
+          connection: "quickbooks",
           inputs: {
             customer: String(customerId),
             number: documentNumber,
@@ -139,7 +140,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "quickbooks",
         actionType: "search",
         actionKey: "find_purchase_expense",
-        connection: quickbooks,
+        connection: "quickbooks",
         inputs: { docNumber: documentNumber },
       }),
     );
@@ -156,11 +157,12 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "quickbooks",
         actionType: "search",
         actionKey: "vendor",
-        connection: quickbooks,
+        connection: "quickbooks",
         inputs: { name: counterpartyName || DEFAULT_VENDOR_NAME },
       }),
     );
-    const vendorId = vendor.data?.[0]?.id;
+    const vendorId = (vendor.data?.[0] as { id?: string | number } | undefined)
+      ?.id;
     if (!vendorId) {
       return { skipped: true, reason: "vendor-not-found", documentNumber };
     }
@@ -170,7 +172,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "quickbooks",
         actionType: "write",
         actionKey: "expense",
-        connection: quickbooks,
+        connection: "quickbooks",
         inputs: {
           payee_type: "Vendor",
           payee: String(vendorId),

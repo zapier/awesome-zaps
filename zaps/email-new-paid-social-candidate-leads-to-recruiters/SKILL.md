@@ -1,6 +1,6 @@
 ---
 name: email-new-paid-social-candidate-leads-to-recruiters
-description: Build a Zapier Next Gen Zap that logs each new Facebook Lead Ads candidate to a recruiting spreadsheet and emails the recruiters a short summary with a link to the sheet. Use when paid social or web form candidate leads arrive in Facebook Lead Ads and recruiters want each one logged for tracking and alerted by email without manual copying.
+description: Build a Zap on Zapier that logs each new Facebook Lead Ads candidate to a recruiting spreadsheet and emails the recruiters a short summary with a link to the sheet. Use when paid social or web form candidate leads arrive in Facebook Lead Ads and recruiters want each one logged for tracking and alerted by email without manual copying.
 license: MIT
 metadata:
   author: zapier
@@ -13,46 +13,38 @@ metadata:
 
 # Email new paid social candidate leads to recruiters
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/email-new-paid-social-candidate-leads-to-recruiters. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a new lead on a Facebook Lead Ads form (`lead`, default form).
+1. **Trigger:** a new lead on a Facebook Lead Ads form (`facebook-lead-ads-beta`, `lead`, the default form).
 2. **Formatter (plain code):** trims and normalizes the name, keeps digits and `+` in the phone, lowercases the email, takes the first number from years of experience, and joins certification answers. If the lead has no submission ID, the run stops and writes nothing.
 3. **Google Sheets** appends one row per lead: submission ID, name, phone, email, years, certifications, and the time it was logged.
 4. **Microsoft Outlook** sends an HTML email to the configured recruiters with the applicant summary and a link to the recruiting sheet.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/email-new-paid-social-candidate-leads-to-recruiters` (it makes a zap project if you aren't in one), then `npx zap-pack deploy email-new-paid-social-candidate-leads-to-recruiters` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Facebook Lead Ads, New Lead (`facebook-lead-ads-beta`, action `lead`). Needs the user's Facebook Lead Ads connection, which is bound by the trigger's `authentication_id`.
-2. **Connections** (each alias in the code is the app's slug):
-   - `google-sheets`: the Google account that owns the recruiting sheet.
-   - `microsoft-outlook`: the Outlook account that sends the alert. Emails go from this account to the recruiter addresses.
-3. **Constants:**
-   - `SPREADSHEET_ID`: the long ID in the sheet's URL.
-   - `WORKSHEET_ID`: the tab. The first tab is `"0"`.
-   - `RECRUITER_EMAILS`: the recruiter addresses that get each alert.
-   - `FIELD_KEYS`: the keys of the lead's fields in the Facebook payload. The values shown are placeholders to confirm against a real lead.
-   - `COLUMNS`: the sheet's column keys, such as `COL$A`, in the order A to G. Map them to the user's headers.
-4. Test with the steps below, then publish, wait until the trigger is active, and give the user the Facebook form setup they need.
-
 ## Ask the user
 
-- Which sheet and tab hold the recruiting log, and which column letters hold each field?
-- Which recruiter addresses should get the alert?
-- Which Facebook lead form should trigger it: any form on the Page, or one specific form?
-- What are the field keys in the lead payload (name, phone, email, years of experience, certifications)? Read them from a real lead rather than guessing.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                   | What goes there                                                                                               |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `REPLACE_SPREADSHEET_ID`  | The sheet that holds the recruiting log. Look up its ID from the sheet the user picks, the long ID in its URL |
+| `REPLACE_RECRUITER_EMAIL` | Each recruiter address that gets an alert. Add one entry to `RECRUITER_EMAILS` per address                    |
 
-To test, run a draft test run (`run_workflow_draft`) with a sample lead whose submission ID does not already exist in the user's sheet:
+Also review the defaults with them: `WORKSHEET_ID` (`"0"` is the first tab; set it to the tab that holds the log), the columns in `workflow.ts` (`COLUMNS` writes A to G as submission ID, name, phone, email, years, certifications and logged at, so map them to the user's headers), `FIELD_KEYS` (read the field keys from a real lead rather than guessing), and which Facebook lead form the trigger watches.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `google-sheets` to the Google account that owns the recruiting sheet, and `microsoft-outlook` to the Outlook account that sends the alert. The trigger's `facebook-lead-ads-beta` account is the Facebook Lead Ads connection for the Page. Formatter needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/lead.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test with a test lead whose submission ID does not already exist in the sheet:
 
 ```json
 {
@@ -65,16 +57,12 @@ To test, run a draft test run (`run_workflow_draft`) with a sample lead whose su
 }
 ```
 
-Confirm that one new row was appended to the configured worksheet with the normalized values and a logged-at time, and that one email reached the recruiter address with the summary and a link to the sheet. Then tell the user to delete the test row if it was real data.
-
-## Customize
-
-- **Replace Microsoft Outlook** with any team email or chat app for alerts.
-- **Swap Facebook Lead Ads** for any paid social or web form source.
+Check that one new row was appended to the configured worksheet with the normalized values and a logged-at time, and that one email reached the recruiter address with the summary and a link to the sheet. If run-status tools aren't available, check the sheet and the recruiter's inbox directly. Then publish, confirm the trigger is active, and ask the user to delete the test row and test email, since the agent does not delete test data.
 
 ## Notes
 
 - Google Sheets may show the logged-at time in the sheet's own format and time zone.
 - The email link opens the recruiting worksheet, not the exact row.
 - If the sheet append succeeds but the email fails, the row stays logged and the run shows the email error.
-- Never commit a real spreadsheet ID, recruiter address or webhook URL.
+- To alert in a team chat or another email app, replace the Outlook step. To take leads from another paid social or web form source, change the trigger.
+- Never commit a real spreadsheet ID or recruiter address.

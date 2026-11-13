@@ -1,6 +1,6 @@
 ---
 name: update-device-asset-fields-from-incoming-admin-webhook
-description: Build a Zapier Next Gen Zap that takes an admin submission posted to a webhook, reads the asset number and model out of the submitted device text, and writes them to the matching Notion page. Use when an admin form, script or check-in system posts device details and the Notion asset record should be kept complete without manual edits.
+description: Build a Zap on Zapier that takes an admin submission posted to a webhook, reads the asset number and model out of the submitted device text, and writes them to the matching Notion page. Use when an admin form, script or check-in system posts device details and the Notion asset record should be kept complete without manual edits.
 license: MIT
 metadata:
   author: zapier
@@ -13,62 +13,55 @@ metadata:
 
 # Update device asset fields from incoming admin webhook
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/update-device-asset-fields-from-incoming-admin-webhook. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** an admin submission arrives at a Webhooks by Zapier catch hook (a form, script or check-in system posts to it). The payload must carry `page_id` (the Notion page to update) and `device_text` (the raw device description).
-2. **Parse:** the asset number and model are read from `device_text` by looking for the words "asset" and "model" and taking the value after each. If neither is found, the run stops and writes nothing.
-3. **Notion** updates the page named by `page_id`, writing `Asset:` and `Model:` lines into its body as Markdown.
+1. **Trigger:** an admin submission arrives at a catch hook (`webhook`, `hook_v2`), which a form, script or check-in system posts to. The payload must carry `page_id` (the Notion page to update) and `device_text` (the raw device description).
+2. **Parse:** the asset number and model are read from `device_text` by finding the words "asset" and "model" and taking the value after each. If neither is found, the run stops and writes nothing.
+3. **Notion** (`notion`) updates the page named by `page_id`, writing `Asset:` and `Model:` lines into its body as Markdown.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/update-device-asset-fields-from-incoming-admin-webhook` (it makes a zap project if you aren't in one), then `npx zap-pack deploy update-device-asset-fields-from-incoming-admin-webhook` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Webhooks by Zapier, Catch Hook (`webhook`, action `hook_v2`). It needs no connection, so its `authentication_id` is `null`.
-2. **Connections** (the alias in the code is the app's slug):
-   - `notion`: the user's Notion connection, for the workspace that holds the asset records. Bind a work or integration connection; the build used none.
-3. **Constants:**
-   - `ASSET_LABEL`: the word that comes before the asset number in `device_text`. Defaults to `"asset"`.
-   - `MODEL_LABEL`: the word that comes before the model in `device_text`. Defaults to `"model"`.
-   - `CONTENT_FORMAT`: the format of the text written to the page. Defaults to `"markdown"`.
-
-Test with the steps below, then publish, wait until the trigger is active, and give the user their webhook URL to point their submission system at.
+The Zap only updates the page it is given. It never searches for a page or changes any other one.
 
 ## Ask the user
+
+This zap has no `REPLACE_…` values to fill in per person. Review these defaults in `config.ts` with the user:
+
+- `ASSET_LABEL`: the word before the asset number in `device_text`. Defaults to `"asset"`.
+- `MODEL_LABEL`: the word before the model in `device_text`. Defaults to `"model"`.
+- `CONTENT_FORMAT`: the format of the text written to the page. Defaults to `"markdown"`.
+
+Then ask:
 
 - What exact fields does the admin submission send? The build assumes `page_id` and `device_text`. If the sender uses other names, change `InputSchema` before installing.
 - Which Notion database and properties hold the asset number and model? The build writes them into the page body, not into property columns (see Notes).
 - Should a payload with no asset or model in its text stop silently, or raise an alert?
 
-## Test
+## Build it
 
-Sample input for a draft test run (`run_workflow_draft` in Zapier MCP) before publishing, using a `page_id` of a test page in the user's own Notion workspace:
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `notion` to the user's Notion connection for the workspace that holds the asset records. `webhook` (Webhooks by Zapier) needs no account, so its `authentication_id` is `null`.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/hook.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect the Notion action's fields with the user's connection, and sample the webhook trigger to confirm its payload carries `page_id` and `device_text`, before the first test run. Fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test with a test page in the user's own Notion workspace:
 
 ```json
 {
-  "page_id": "YOUR_TEST_NOTION_PAGE_ID",
+  "page_id": "TEST_NOTION_PAGE_ID",
   "device_text": "Laptop, Asset: AST-TEST-001, Model: MBP-14"
 }
 ```
 
-The build attempted a draft run with `page_id` `install-test-no-such-page` and this `device_text`, and the attempt was rejected by the rate limit before anything ran. Confirm that the page body now has `Asset: AST-TEST-001` and `Model: MBP-14` on their own lines, and that no other page changed. Then remove those two lines from the test page.
-
-## Customize
-
-Not built. Options from the source spec, for later:
-
-- **Alert on missing models:** send a Slack or email message when a submission has an asset but no model.
-- **Follow-up task:** create a task when the device text names more than one device, since the build takes the first value it finds.
+Check that the page body has `Asset: AST-TEST-001` and `Model: MBP-14` on their own lines, and that no other page changed. If run-status tools aren't available, check the result in Notion directly. Then publish, confirm the trigger is active, and give the user their webhook URL to point their submission system at. Ask the user to delete the test lines from the test page.
 
 ## Notes
 
-- The source spec sent the lookup to an internal directory or device API with a stored token. No such endpoint or token was given, so that step is left out. The asset and model come from the submitted text instead.
-- The spec also matched pages by an identifier and then searched for them. The build takes `page_id` straight from the payload, so no search is needed.
-- Writing into property columns needs the database's property names, which can only be read through a connected Notion account. Until then the values go into the page body.
-- Never commit a real Notion page ID or webhook URL. Anyone with the webhook URL can change Notion pages.
+- The Zap writes into the page body, not property columns. Writing properties needs the database's property names, which can only be read through a connected Notion account.
+- The asset and model come only from the submitted text: there is no lookup to a device directory or API. If `device_text` names more than one device, the first value of each label is used.
+- Ideas for later: alert when a submission has an asset but no model (Slack or email), or create a follow-up task when `device_text` names more than one device.
+- Anyone with the webhook URL can change Notion pages, so never commit a real page ID or webhook URL.

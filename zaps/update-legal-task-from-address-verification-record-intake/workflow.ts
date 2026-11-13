@@ -2,9 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { INTAKE_TABLE_ID, CLICKUP_TEAM_ID } from "@/config";
-import clickup from "@/connections/clickup";
-import zapierTables from "@/connections/zapier-tables";
+import { INTAKE_TABLE_ID, CLICKUP_TEAM_ID } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -39,7 +37,7 @@ function normalizeInput(rawInput: unknown): unknown {
   return rawInput;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "update-legal-task-from-address-verification-record-intake",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(normalizeInput(rawInput));
@@ -68,7 +66,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "clickup",
         actionType: "search",
         actionKey: "findTaskById",
-        connection: clickup,
+        connection: "clickup",
         inputs: { task_id: taskReference },
       }),
     );
@@ -87,7 +85,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "clickup",
         actionType: "write",
         actionKey: "updateTask",
-        connection: clickup,
+        connection: "clickup",
         inputs: { team_id: CLICKUP_TEAM_ID, task_id: task.id },
       }),
     );
@@ -107,7 +105,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "delete_record",
-        connection: zapierTables,
+        connection: "zapier-tables",
         inputs: { table_id: INTAKE_TABLE_ID, record_id: input.record_id },
       }),
     );

@@ -1,6 +1,6 @@
 ---
 name: send-personalized-itinerary-emails-one-day-before-trips
-description: Build a Zapier Next Gen Zap that emails a traveler a personalized itinerary link from a new Google Calendar travel event, one day before the trip (or straight away for short-notice trips). Use when a travel-hosting or concierge business keeps trip details in a calendar and wants each traveler's itinerary emailed without manual sends.
+description: Build a Zap on Zapier that emails a traveler a personalized itinerary link from a new Google Calendar travel event, one day before the trip (or straight away for short-notice trips). Use when a travel-hosting or concierge business keeps trip details in a calendar and wants each traveler's itinerary emailed without manual sends.
 license: MIT
 metadata:
   author: zapier
@@ -13,47 +13,43 @@ metadata:
 
 # Send personalized itinerary emails one day before trips
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/send-personalized-itinerary-emails-one-day-before-trips. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a new event is created on your travel calendar in Google Calendar.
+1. **Trigger:** a new event is created on your travel calendar in Google Calendar (`google-calendar`, `new_event`).
 2. **Plain code** reads the traveler's email address from the event description, and the itinerary token from the event's location URL. If either is missing, the run stops and nothing is sent.
 3. **Plain code** works out when to send. Trips starting within one day are skipped. Trips with less than 11 days' notice are emailed right away. Other trips wait until one day before the trip starts.
 4. **Gmail** sends the traveler an HTML email with a personalized subject and a link to their itinerary, built from the token.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**Check the fields first:** with the user's own connections, inspect the trigger and the Gmail send action (`get_trigger_fields`, `inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/send-personalized-itinerary-emails-one-day-before-trips` (it makes a zap project if you aren't in one), then `npx zap-pack deploy send-personalized-itinerary-emails-one-day-before-trips` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Google Calendar, New Event (`google-calendar`, action `new_event`). Set `calendarid` to the travel calendar. It needs the user's Google Calendar connection.
-2. **Connections** (each alias in the code is the app's slug):
-   - `gmail`: the user's Gmail connection, for the account the emails are sent from.
-3. **Constants:**
-   - `CALENDAR_ID`: the travel calendar's ID. Use the same value as the trigger's `calendarid`.
-   - `ITINERARY_BASE_URL`: the base URL of your itinerary site. The token from the event's location URL is appended to it.
-   - `SENDER_ADDRESS`: a sender alias on the connected Gmail account. Leave it empty to send from the account's default address.
-   - `SHORT_NOTICE_DAYS`: trips with less notice than this many days are emailed right away. Defaults to `11`.
-   - `SEND_LEAD_DAYS`: how many days before the trip the email goes out. Defaults to `1`.
-4. Test with the steps below, then publish, wait until the trigger is active, and give the user the workflow's editor link.
+The Zap sends at most one email per event and never changes the calendar.
 
 ## Ask the user
 
-- Which Google calendar holds the travel events?
-- What is the base URL of the itinerary site, and does the event's location URL carry the traveler's token as its last path segment?
-- Which sender address should the emails come from? It must be an alias on the connected Gmail account.
-- Is 11 days the right short-notice cutoff, and is one day before the trip the right send time?
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                      | Where                                                             | What goes there                                                                                                   |
+| ---------------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `REPLACE_CALENDAR_ID`        | `config.ts`, `CALENDAR_ID`; `triggers/new-event.ts`, `calendarid` | The Google Calendar that holds the travel events. Use the same calendar in both.                                  |
+| `REPLACE_ITINERARY_BASE_URL` | `config.ts`, `ITINERARY_BASE_URL`                                 | The base URL of the itinerary site, ending in a slash. The token from the event's location URL is appended to it. |
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing. Use a test event on a calendar the user owns, and a traveler address the user controls:
+Review these defaults with the user:
+
+- `SENDER_ADDRESS` in `config.ts`: a sender alias on the connected Gmail account. Leave it empty to send from the account's default address.
+- `SHORT_NOTICE_DAYS` (11) and `SEND_LEAD_DAYS` (1) in `workflow.ts`: is 11 days the right short-notice cutoff, and is one day before the trip the right send time?
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `gmail` (the account the emails are sent from) and `google-calendar` (the account that reads the travel calendar; the trigger uses it too) to the user's connections. No other app needs a connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/new-event.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them, and set the trigger's `calendarid` to the same calendar as `CALENDAR_ID`. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test (`run_workflow_draft` in Zapier MCP) with a test event on a calendar the user owns and a traveler address the user controls:
 
 ```json
 {
@@ -64,15 +60,11 @@ Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before 
 }
 ```
 
-Check the draft run output: `sent` is true, `recipient` is the address in the description, and `link` ends with the token from the location URL. Check that the email arrived at the test address with the personalized subject and a working itinerary link. For a trip under 11 days away, confirm it was sent right away (`shortNotice` is true). Then delete the test event.
-
-## Customize
-
-- **Log each delivery** to a Google Sheets row after the email is sent, for reporting.
-- **Urgent same-day trips** get an extra SMS step.
+Check that `sent` is true, `recipient` is the address in the description, and `link` ends with the token from the location URL. Check that the email arrived at the test address with the personalized subject and a working itinerary link. For a trip under 11 days away, check that it was sent right away (`shortNotice` is true). If run-status tools aren't available, check the result in Gmail directly. Publish only after the test passes, and confirm the trigger is active. The user deletes the test event and the test email, not the agent.
 
 ## Notes
 
 - Google Calendar and Gmail both need the user's own connections. The traveler's email address and the itinerary token come from the calendar event, so keep the event description and location consistent with how the itinerary site expects them.
 - A trip that starts within one day is skipped on purpose, because the one-day-before email would already be late.
-- Never commit a real calendar ID, sender address or itinerary site URL. Anyone reading them can see where your travel data lives.
+- Don't share a copy of the Zap that still has your real calendar ID, sender address or itinerary site URL in it.
+- To log each delivery, add a Google Sheets row after the email is sent. For urgent same-day trips, add an SMS step.

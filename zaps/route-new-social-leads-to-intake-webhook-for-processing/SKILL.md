@@ -1,6 +1,6 @@
 ---
 name: route-new-social-leads-to-intake-webhook-for-processing
-description: Build a Zapier Next Gen Zap that sends each new Facebook Lead Ads submission as normalized JSON to your intake endpoint. Use when social lead forms need to reach an internal intake or qualification system immediately, without manual copying.
+description: Build a Zap on Zapier that sends each new Facebook Lead Ads submission as normalized JSON to your intake endpoint. Use when social lead forms need to reach an internal intake or qualification system immediately, without manual copying.
 license: MIT
 metadata:
   author: zapier
@@ -13,40 +13,41 @@ metadata:
 
 # Route new social leads to intake webhook for processing
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/route-new-social-leads-to-intake-webhook-for-processing. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a new lead is submitted on a Facebook Lead Ads form (Facebook Lead Ads, New Lead).
-2. **Webhooks by Zapier** POSTs a JSON body to your intake endpoint. The body has the contact name, email and phone, the notes, the ad's form, page and ad IDs, and the submission time. It also includes the raw lead payload for troubleshooting.
+1. **Trigger:** a new lead is submitted on a Facebook Lead Ads form (`facebook-lead-ads`, `lead`). The default form setting covers every form on the Page.
+2. **Webhooks by Zapier** (`webhook`) POSTs a JSON body to the intake endpoint. The body has the contact name, email and phone, the notes, the ad's form, page and ad IDs, and the submission time. It also includes the raw lead payload for troubleshooting.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/route-new-social-leads-to-intake-webhook-for-processing` (it makes a zap project if you aren't in one), then `npx zap-pack deploy route-new-social-leads-to-intake-webhook-for-processing` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Facebook Lead Ads, New Lead (`facebook-lead-ads`, `lead`). It needs the user's Facebook Lead Ads connection and a Page. Form: "Default (Any Form)".
-2. **Connections:**
-   - `facebook-lead-ads`: the user's Facebook Lead Ads connection, for the Page that owns the lead form.
-   - Webhooks by Zapier (`webhook`) needs no connection.
-3. **Constants:**
-   - `INTAKE_WEBHOOK_URL`: the URL of your intake endpoint. Replace `YOUR_INTAKE_WEBHOOK_URL`.
-   - `INCLUDE_RAW_LEAD`: `true` adds the raw lead payload to the body. Set `false` to leave it out.
-   - Trigger `page`: the Facebook Page ID. Replace `YOUR_PAGE_ID` in the trigger configuration.
+The body carries personal contact details, so send it only to an endpoint you control.
 
 ## Ask the user
 
-- Which Facebook Page and lead form should trigger the workflow? ("Default (Any Form)" covers every form on the Page.)
-- What is the intake endpoint URL, and does it need an API key? The spec asks for a key header stored in a connection. The workflow as written sends no header; see Notes.
-- Should the raw lead payload go in the body, or only the normalized fields?
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                      | What goes there                                                                                             |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `REPLACE_INTAKE_WEBHOOK_URL` | The intake endpoint URL that receives the lead JSON: a Webhooks by Zapier catch hook, or the user's own URL |
 
-Testing needs a Facebook Lead Ads connection and a Page with a real or test lead form, and an intake endpoint that can receive a POST. Suggested test once those exist: submit a test lead on the form, or use a draft test run with this sample input:
+Also review these with the user:
+
+- `INCLUDE_RAW_LEAD` in `workflow.ts`: `true` adds the raw lead payload to the body for troubleshooting; `false` leaves it out.
+- Which Facebook Page and lead form should trigger the Zap? "Default (Any Form)" covers every form on the Page.
+- Does the intake endpoint need an API key? The workflow sends no header; see Notes.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `facebook-lead-ads` to the user's Facebook Lead Ads connection for the Page that owns the lead form. Webhooks by Zapier needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/lead.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections (and sample the trigger, if it has one) before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test with the intake endpoint set to one you control, using this sample input:
 
 ```json
 {
@@ -61,14 +62,10 @@ Testing needs a Facebook Lead Ads connection and a Page with a real or test lead
 }
 ```
 
-Check that your intake endpoint receives one JSON body with `contact`, `notes`, `ad` and `submitted_at` filled in. The field names in the sample are not verified against Facebook's real payload; check the real keys on the first run and fix the mapping in `workflow.ts` if they differ.
-
-## Customize
-
-- **Dedupe lookup:** add a lookup step before the POST to block repeat submissions. Not built.
-- **Formatter:** normalize phone numbers or localize timestamps before the POST. Not built.
+Check that the endpoint receives one JSON body with `contact`, `notes`, `ad` and `submitted_at` filled in. The sample's field names are not verified against Facebook's real payload, so check the real keys on the first run and fix the mapping in `workflow.ts` if they differ. If run-status tools aren't available, check the result in your intake system directly. Then publish, confirm the trigger is active, and do the real thing once: submit a test lead on the form. Ask the user to delete the test lead and any record it created; the agent doesn't delete test data.
 
 ## Notes
 
-- The spec's API key header is not built. The spec wants the key stored in a connection, and Webhooks by Zapier has no connection for it. Adding it means putting the key in a header in the POST action, which should be done with the user's own secret store, not in this file.
+- The API key header is not built. The spec wants the key stored in a connection, and Webhooks by Zapier has no connection for it. To add one, put the key in a header on the POST action from the user's own secret store, never in `workflow.ts`.
+- A dedupe lookup and a Formatter step (normalizing phone numbers or timestamps) are not built. Add them before the POST if needed.
 - Never commit a real intake URL or Page ID. Anyone with the intake URL can post leads to your system.

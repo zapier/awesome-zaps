@@ -8,8 +8,7 @@ import {
   CUSTOMER_ID_COLUMN,
   EMAIL_COLUMN,
   PHONE_COLUMN,
-} from "@/config";
-import sharepoint from "@/connections/sharepoint";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -30,7 +29,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-customer-reference-records-in-shared-project-list",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -53,7 +52,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "sharepoint",
         actionType: "search",
         actionKey: "find_list_item",
-        connection: sharepoint,
+        connection: "sharepoint",
         inputs: {
           siteId: SITE_ID,
           listId: LIST_ID,
@@ -72,7 +71,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "sharepoint",
             actionType: "write",
             actionKey: "update_list_item",
-            connection: sharepoint,
+            connection: "sharepoint",
             inputs: {
               siteId: SITE_ID,
               listId: LIST_ID,
@@ -95,7 +94,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "sharepoint",
         actionType: "write",
         actionKey: "create_list_item",
-        connection: sharepoint,
+        connection: "sharepoint",
         inputs: {
           siteId: SITE_ID,
           listId: LIST_ID,

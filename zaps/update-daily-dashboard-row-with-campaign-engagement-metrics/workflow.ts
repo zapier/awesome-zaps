@@ -9,8 +9,7 @@ import {
   SPREADSHEET_ID,
   WORKSHEET_ID,
   DATE_COLUMN,
-} from "@/config";
-import googleSheets from "@/connections/google-sheets";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -101,7 +100,7 @@ function pickPath(value: unknown, path: string): unknown {
     );
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "update-daily-dashboard-row-with-campaign-engagement-metrics",
   async (ctx, rawInput) => {
     InputSchema.parse(
@@ -156,7 +155,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "search",
         actionKey: "lookup_row",
-        connection: googleSheets,
+        connection: "google-sheets",
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,
@@ -179,7 +178,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "update_row",
-        connection: googleSheets,
+        connection: "google-sheets",
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,

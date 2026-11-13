@@ -1,6 +1,6 @@
 ---
 name: update-record-with-ai-analysis-for-signal-alerts
-description: Build a Zapier Next Gen Zap that, when a new signal-alert record is added to a Zapier Table, fetches recent price and volume data, has an AI model review the record's strategy text against that data, and writes a verdict and reasoning back to the same record. Use when a trading, monitoring or alerting team triages signals in a table and wants an AI first-pass review on every new alert without manual lookups.
+description: Build a Zap on Zapier that, when a new signal-alert record is added to a Zapier Table, fetches recent price and volume data, has an AI model review the record's strategy text against that data, and writes a verdict and reasoning back to the same record. Use when a trading, monitoring or alerting team triages signals in a table and wants an AI first-pass review on every new alert without manual lookups.
 license: MIT
 metadata:
   author: zapier
@@ -13,67 +13,58 @@ metadata:
 
 # Update record with AI analysis for signal alerts
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/update-record-with-ai-analysis-for-signal-alerts. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a new record is added to a Zapier Table (`zapier-tables` New Record, `new_record`).
+1. **Trigger:** a new record is added to a Zapier Table (`zapier-tables`, `new_record`).
 2. **Webhooks by Zapier** sends a GET request to your market-data endpoint and takes the JSON response (trimmed to 20,000 characters).
 3. **ChatGPT (OpenAI)** runs a Conversation prompt with the record's strategy text and that market data. It returns a verdict (BUY, SELL, HOLD or INSUFFICIENT DATA) on the first line, then one short paragraph of reasoning.
 4. **Zapier Tables** updates the same record: the analysis field gets the verdict and reasoning, and the reviewed-at field gets the time.
 
 Records with an empty strategy field stop early and write nothing.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/update-record-with-ai-analysis-for-signal-alerts` (it makes a zap project if you aren't in one), then `npx zap-pack deploy update-record-with-ai-analysis-for-signal-alerts` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Zapier Tables, New Record (`Zapier Tables@<version>` / `new_record`), with `table_id` set to your table. It needs your Zapier Tables connection.
-2. **Connections** (each alias in the code is the app's slug):
-   - `zapier-tables`: the user's Zapier Tables connection. It serves both the trigger and the update.
-   - `chatgpt`: the user's OpenAI connection, authorized through Zapier MCP.
-   - `webhook`: no connection (no-auth app), so no alias binding.
-3. **Constants:**
-   - `TABLE_ID`: the table the alerts land in.
-   - `STRATEGY_FIELD`: the field key holding the strategy text, not its header name.
-   - `ANALYSIS_FIELD`: the field key the verdict and reasoning are written to.
-   - `REVIEWED_AT_FIELD`: the field key for the reviewed-at time.
-   - `MARKET_DATA_URL`: a GET endpoint returning recent price and volume series as JSON.
-   - `MODEL`: the OpenAI model. Defaults to `gpt-4o`.
-4. Test with the steps below, then publish, wait until the trigger is active, and give the user the trigger's webhook URL if one is shown.
-
 ## Ask the user
 
-- Which table holds the signal alerts, and which field keys hold the strategy text, the analysis, and the reviewed-at time?
-- What is the market-data endpoint? It must be a GET endpoint that returns recent price and volume series as JSON.
-- Should the record also get a status value (for example "Reviewed") when the review is written? The build writes only the analysis and the timestamp.
-- Which OpenAI model should be used? The build defaults to `gpt-4o`.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                     | Where                                                           | What goes there                                                                    |
+| --------------------------- | --------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `REPLACE_TABLE_ID`          | `config.ts` as `TABLE_ID`; `triggers/new-record.ts`, `table_id` | The table the signal alerts land in                                                |
+| `REPLACE_STRATEGY_FIELD`    | `config.ts` as `STRATEGY_FIELD`                                 | The field key holding the strategy text, not its header name                       |
+| `REPLACE_ANALYSIS_FIELD`    | `config.ts` as `ANALYSIS_FIELD`                                 | The field key the verdict and reasoning are written to; overwritten on each review |
+| `REPLACE_REVIEWED_AT_FIELD` | `config.ts` as `REVIEWED_AT_FIELD`                              | The field key for the time the record was reviewed                                 |
+| `REPLACE_MARKET_DATA_URL`   | `config.ts` as `MARKET_DATA_URL`                                | A GET endpoint that returns recent price and volume series as JSON                 |
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing, using a record that exists in the user's table. Use a test table, not production data:
+Also review the default `MODEL` in `config.ts` (`gpt-4o`) with them.
+
+Before building, confirm they accept that strategy text and market data are sent to OpenAI. Ask whether they also want a status value, such as "Reviewed", written with each review; the build writes only the analysis and the timestamp.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `zapier-tables` (the user's Zapier Tables connection, used by the trigger and the update) and `chatgpt` (the user's OpenAI connection) to the user's connections. Webhooks by Zapier needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/new-record.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections (and sample the trigger, if it has one) before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing, using a record in a test table the user controls, not production data. Use the strategy field key from the Ask step in place of `REPLACE_STRATEGY_FIELD`:
 
 ```json
 {
-  "id": "YOUR_RECORD_ID",
-  "YOUR_STRATEGY_FIELD_KEY": "Buy when volume doubles against the 20-day average and price holds above the 50-day line."
+  "id": "<a record ID in the test table>",
+  "REPLACE_STRATEGY_FIELD": "Buy when volume doubles against the 20-day average and price holds above the 50-day line."
 }
 ```
 
-Confirm that the same record's analysis field now holds a verdict on the first line, with a reasoning paragraph, and that its reviewed-at field holds a recent time. No other record should change.
-
-## Customize
-
-- **Pre-filter on severity:** add a check before the AI step so only qualifying alerts continue.
-- **Staged rechecks:** add Delay by Zapier and a repeat fetch to recheck later and append follow-up notes.
+Check that the same record's analysis field now holds a verdict on the first line, with a reasoning paragraph, and that its reviewed-at field holds a recent time. No other record should change. If run-status tools aren't available, check the record in Zapier Tables directly. Then publish and confirm the trigger is active. The user deletes the test data, not the agent.
 
 ## Notes
 
 - Strategy text and market data are sent to OpenAI. Check that this is acceptable for your data.
-- The model's output may vary between runs. Treat the verdict as a first-pass review for triage, not a trading decision.
+- The verdict may vary between runs. Treat it as a first-pass review for triage, not a trading decision.
+- To pre-filter on severity, add a check before the AI step. To recheck later, add Delay by Zapier and a repeat fetch that appends follow-up notes. To also set a status, add it to the update step.
 - Never commit a real table ID, field key, market-data URL or webhook URL.

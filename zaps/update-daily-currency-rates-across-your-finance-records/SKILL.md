@@ -1,6 +1,6 @@
 ---
 name: update-daily-currency-rates-across-your-finance-records
-description: Build a Zapier Next Gen Zap that pulls daily exchange rates and writes them to one Notion rate record, so finance and billing read rates from one place. Use when a team keeps currency rates by hand or wants one authoritative FX record refreshed on a schedule.
+description: Build a Zap on Zapier that pulls daily exchange rates and writes them to one Notion rate record, so finance and billing read rates from one place. Use when a team keeps currency rates by hand or wants one authoritative FX record refreshed on a schedule.
 license: MIT
 metadata:
   author: zapier
@@ -13,54 +13,46 @@ metadata:
 
 # Update daily currency rates across your finance records
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/update-daily-currency-rates-across-your-finance-records. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** Schedule by Zapier, every hour at :00, including weekends.
-2. **Webhooks by Zapier** GETs a public FX API and reads the `rates` object for the target currencies.
-3. **Notion** writes the rates as plain-text lines (`CAD: <rate>`, `ILS: <rate>`, four decimal places) to the body of one configured page.
-
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/update-daily-currency-rates-across-your-finance-records` (it makes a zap project if you aren't in one), then `npx zap-pack deploy update-daily-currency-rates-across-your-finance-records` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Schedule by Zapier, `everyHour` (`schedule`). It needs no connection, so its `authentication_id` is `null`. Params: `moh: 0`, `weekends: "yes"`.
-2. **Connections** (each alias in the code is the app's slug):
-   - `notion`: the user's Notion connection, for the workspace that holds the rate record.
-   - Webhooks by Zapier (`webhook`, GET) needs no connection.
-3. **Constants:**
-   - `NOTION_PAGE_ID`: the ID of the Notion page or database item that holds the rates.
-   - `TARGET_CURRENCIES`: ISO codes to write. Defaults to `["CAD", "ILS"]`.
-   - `FX_API_URL`: the rates endpoint. Defaults to a free public API with base USD.
-4. Test with the steps below, then publish, wait until the trigger is active, and tell the user what the rate record will show.
+1. **Trigger:** the `schedule` app's `everyHour` event, every hour at :00, including weekends.
+2. **webhook** GETs a public FX API and reads the `rates` object for the target currencies.
+3. **notion** writes the rates as plain-text lines (`CAD: <rate>`, `ILS: <rate>`, four decimal places) to the body of one configured page.
 
 ## Ask the user
 
-- Which Notion page should hold the rates? Give its ID.
-- Which currencies, and which base currency? The default API is base USD.
-- Should the hourly run skip weekends? The default runs on weekends too.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                  | What goes there                                                                                         |
+| ------------------------ | ------------------------------------------------------------------------------------------------------- |
+| `REPLACE_NOTION_PAGE_ID` | The Notion page or database item whose body receives the rates. Look it up with their Notion connection |
 
-Run a draft test (`run_workflow_draft`) before publishing. The trigger sends no input, so the input is `null`. Then:
+Also review these defaults with them:
 
-- Check the run's `fetch-fx-rates` output: the `json` field should hold a `rates` object with the target currencies.
-- Check the Notion page: its body should end with one new line per target currency, and the values should match the run output.
-- Remember that each run appends to the page body (see Notes).
+- `FX_API_URL` in `config.ts`: a free public API with base USD. Change it if the team uses another base currency or provider.
+- `TARGET_CURRENCIES` in `workflow.ts`: the ISO codes written to the page. Defaults to `CAD` and `ILS`.
+- `weekends` in `triggers/every-hour.ts`: set to `"yes"`, so the hourly run also happens on weekends. Change it to skip them.
 
-## Customize
+## Build it
 
-- **Change only on threshold:** write only when a rate has moved more than a set amount since the last write.
-- **Error log or alert on failed fetch:** add a step after the FX fetch that writes a row or sends a message when `rates` is empty.
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `notion` to the user's Notion connection for the workspace that holds the rate record. The schedule and `webhook` need no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with `REPLACE_NOTION_PAGE_ID` replaced by the user's answer. `triggers/every-hour.ts` and `connections/` are settings, not code: set the workflow's trigger from it (`schedule`, `everyHour`, `moh: 0`, `weekends: "yes"`, no connection). The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections (and sample the trigger, if it has one) before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test, with the Notion page set to one the user controls. The trigger sends no input, so the sample input is `null`.
+
+Check that the `fetch-fx-rates` output's `json` field holds a `rates` object with the target currencies, and that the page body ends with one new line per target currency, with values matching the run output. If run-status tools aren't available, check the result in Notion directly. Then publish, confirm the trigger is active, and tell the user what the rate record will show. Ask the user to delete the test lines from the page, not the agent.
 
 ## Notes
 
-- The Notion action in this zap writes body text, not database property fields. If the rate record needs per-currency properties, that needs a different Notion action or a property-by-property update, which the connection's field list must provide.
 - Each run appends a new block of lines to the page body, so the page grows by one entry an hour. Clear old entries in Notion, or change the step to replace the body when that action is available.
+- The `notion` action writes body text, not database property fields. Per-currency properties need a different Notion action or a property-by-property update, which the connection's field list must provide.
 - The FX API is public and rate-limited. Keep the hourly schedule unless the provider's terms allow more.
+- To extend it: write only when a rate has moved more than a set amount since the last write, or add a step after the FX fetch that writes a row or sends a message when `rates` is empty.

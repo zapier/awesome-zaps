@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { LINKEDIN_ACCOUNT_ID, LINKEDIN_CONVERSION_ID } from "@/config";
-import linkedinConversions from "@/connections/linkedin-conversions";
+import { LINKEDIN_ACCOUNT_ID, LINKEDIN_CONVERSION_ID } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -23,7 +22,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-ad-conversion-events-for-new-list-contacts",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -55,7 +54,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "linkedin-conversions",
           actionType: "write",
           actionKey: "create_conversion_event",
-          connection: linkedinConversions,
+          connection: "linkedin-conversions",
           inputs: {
             account: LINKEDIN_ACCOUNT_ID,
             conversion: LINKEDIN_CONVERSION_ID,

@@ -1,10 +1,10 @@
-import type { Trigger } from "zap-pack";
-
-import googleCalendar from "@/connections/google-calendar";
-
+// What starts the zap: a new event on the travel calendar in Google Calendar.
 export default {
   app: "google-calendar",
   event: "new_event",
-  connection: googleCalendar,
-  params: {},
-} satisfies Trigger;
+  connection: "google-calendar",
+  params: {
+    // Ask the user which Google Calendar holds the travel events, then look up its ID with their Google Calendar connection. Same value as CALENDAR_ID in config.ts.
+    calendarid: "REPLACE_CALENDAR_ID",
+  },
+};

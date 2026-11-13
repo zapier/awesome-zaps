@@ -10,8 +10,7 @@ import {
   DURATION_COLUMN,
   SUMMARY_COLUMN,
   NOTES_COLUMN,
-} from "@/config";
-import googleSheets from "@/connections/google-sheets";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -29,7 +28,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "update-lesson-log-row-from-edited-calendar-event",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -48,7 +47,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "search",
         actionKey: "lookup_row",
-        connection: googleSheets,
+        connection: "google-sheets",
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,
@@ -66,7 +65,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "google-sheets",
           actionType: "write",
           actionKey: "update_row",
-          connection: googleSheets,
+          connection: "google-sheets",
           inputs: {
             spreadsheet: SPREADSHEET_ID,
             worksheet: WORKSHEET_ID,
@@ -90,7 +89,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "add_row",
-        connection: googleSheets,
+        connection: "google-sheets",
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,

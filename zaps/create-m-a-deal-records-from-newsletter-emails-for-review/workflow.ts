@@ -2,9 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { TABLE_ID, SLACK_CHANNEL, MESSAGE_PREFIX } from "@/config";
-import zapierTables from "@/connections/zapier-tables";
-import slack from "@/connections/slack";
+import { TABLE_ID, SLACK_CHANNEL, MESSAGE_PREFIX } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -30,7 +28,15 @@ const DealSchema = z.object({
 });
 type Deal = z.infer<typeof DealSchema>;
 
-const workflow = defineDurable<unknown, unknown>(
+// Keys each deal's step on seller and buyer, because the AI often leaves deal_number blank and a
+// repeated step name in one run reuses the first step's result. A deal mentioned twice gets one record.
+const dealKey = (deal: Deal) =>
+  `${deal.seller ?? ""}-${deal.buyer ?? ""}`
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+const workflow = defineDurable(
   "create-m-a-deal-records-from-newsletter-emails-for-review",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -109,12 +115,12 @@ const workflow = defineDurable<unknown, unknown>(
     const failures: number[] = [];
     for (const [index, deal] of deals.entries()) {
       try {
-        await ctx.step(`create-deal-record-${index}`, async () =>
+        await ctx.step(`create-deal-record-${dealKey(deal)}`, async () =>
           sdk.runAction({
             appKey: "zapier-tables",
             actionType: "write",
             actionKey: "create_record",
-            connection: zapierTables,
+            connection: "zapier-tables",
             inputs: {
               table_id: TABLE_ID,
               new__data__f1: deal.seller ?? "",
@@ -152,7 +158,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "channel_message",
-        connection: slack,
+        connection: "slack",
         inputs: {
           channel: SLACK_CHANNEL,
           text,

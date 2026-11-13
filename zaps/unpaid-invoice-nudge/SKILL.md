@@ -1,6 +1,6 @@
 ---
 name: unpaid-invoice-nudge
-description: Build a Zapier Next Gen Zap that follows up on every new invoice. 3 days after the due date, if it's still unpaid, AI writes a short, polite reminder in the owner's voice and Gmail sends it to the customer. On day 7, if it's still unpaid, SMS by Zapier texts the owner who owes what. Use when a service business owner wants invoices chased without doing it by hand. Works with QuickBooks Online, or any billing tool that can send a webhook.
+description: Build a Zap on Zapier that follows up on every new invoice. 3 days after the due date, if it's still unpaid, AI writes a short, polite reminder in the owner's voice and Gmail sends it to the customer. On day 7, if it's still unpaid, SMS by Zapier texts the owner who owes what. Use when a service business owner wants invoices chased without doing it by hand. Works with QuickBooks Online, or any billing tool that can send a webhook.
 license: MIT
 metadata:
   author: andrewckor
@@ -12,79 +12,55 @@ metadata:
 
 # Unpaid invoice nudge
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/unpaid-invoice-nudge. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** QuickBooks Online **New Invoice**. For any other billing tool (Stripe, FreshBooks, Square, a form, a spreadsheet), use a Webhooks by Zapier **Catch Hook** instead. One trigger per workflow; the code handles both payload shapes, including messy field names.
+1. **Trigger:** a new invoice in `quickbooks` (`invoice_v2`), or a `webhook` catch hook (`hook_v2`) for any other billing tool. The code handles both payload shapes, including messy field names.
 2. **Wait** (a durable `ctx.wait`, the run is saved while it waits) until **3 days after the due date**.
-3. **Check the invoice again.** QuickBooks path: **Find Invoice** by id, unpaid while `Balance > 0`. Webhook path: see "Webhook status check" below. **Paid means the run stops.**
-4. **AI by Zapier** writes a short, polite reminder in the owner's voice with the customer's first name, invoice number, amount, due date and pay link. No guilt trip, no invented links.
-5. **Gmail** sends it to the customer from the owner's address.
-6. **Wait 4 more days** (day 7 for an invoice that was on time) and **check again**. Paid means stop. An invoice that was already overdue still gets the full 4 days after its reminder before the owner is texted.
-7. **Still unpaid:** **SMS by Zapier** texts the owner, e.g.
-   ```
-   Dana K. still owes $480 on #1042, 7 days late.
-   ```
+3. **Check the invoice again.** QuickBooks path: `quickbooks` search `invoice` by id, unpaid while `Balance > 0`. Webhook path: see "Ask the user". **Paid means the run stops.**
+4. **`ai`** writes a short, polite reminder in the owner's voice with the customer's first name, invoice number, amount, due date and pay link.
+5. **`gmail`** sends it to the customer from the owner's address.
+6. **Wait 4 more days** (day 7 for an invoice that was on time) and **check again**. Paid means stop. An invoice already overdue still gets the full 4 days after its reminder before the owner is texted.
+7. **Still unpaid:** `sms` texts the owner, e.g. `Dana K. still owes $480 on #1042, 7 days late.`
 
-Sample reminder email (from a real test run):
-
-```
-Subject: Friendly reminder: Invoice #1042
-
-Hi Dana,
-
-I wanted to send a quick reminder that invoice #1042 for $480 was due Oct 13. I know these things can slip through the cracks. You can pay here:
-https://pay.example.com/i/1042
-
-Thanks,
-Sam
-```
-
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names. Without Zapier MCP, the Zapier SDK CLI works too (`npx skills add zapier/agent-skills --skill workflows-create`).
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/unpaid-invoice-nudge` (it makes a zap project if you aren't in one), then `npx zap-pack deploy unpaid-invoice-nudge` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger, pick one** (one per workflow):
-   - **QuickBooks Online:** New Invoice (`quickbooks`, `invoice_v2`, no params), authenticated with the user's QuickBooks Online connection.
-   - **Any other billing tool:** Webhooks by Zapier, Catch Hook (`webhook`, `hook_v2`). No connection, so `authentication_id` is `null`. The billing tool POSTs the invoice as JSON (customer name, customer email, invoice number, amount or balance due, due date, pay link, status).
-2. **Connections** (each alias in the code is the app's slug):
-   - `gmail`: the Gmail account the reminders go out from. Always required.
-   - `sms`: SMS by Zapier (the owner's verified number). Always required.
-   - `quickbooks`: **required on the QuickBooks path** (used by Find Invoice, search `invoice`). Not needed on the webhook path.
-   - AI by Zapier needs no connection. `authentication_id: "0"` in the code means Zapier's managed AI credentials; leave it as is.
-3. **Constants:** set the ones under "Ask the user".
-4. Test with the steps below, then publish. If using the catch hook, wait until the trigger is active and give the user their webhook URL.
+The reminder never invents a link, amount or date, and nothing goes out for a paid invoice.
 
 ## Ask the user
 
-- Where do invoices live: QuickBooks Online, or another tool that can send a webhook?
-- Which Gmail account should the reminders come from? (the Gmail connection, plus `BUSINESS_NAME` as the from name)
-- How do you sign and sound? (`OWNER_NAME`, `OWNER_VOICE`, e.g. "Maria, owner. Warm, direct, first names, no fluff.")
-- Which phone gets the day-7 text? (Set it in the SMS by Zapier connection, not in the code.)
-- Are 3 days (email) and 7 days (text) after the due date right? (`REMIND_AFTER_DAYS`, `ESCALATE_AFTER_DAYS`)
-- This follows invoices created after it's turned on. Invoices that are already overdue are not chased; say so, and offer the daily-schedule option in Notes if they need that.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Webhook status check
+| Setting            | Where              | What goes there                                                                                                                                                                                                       |
+| ------------------ | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Billing tool       | Build, step 2      | QuickBooks Online, or any other tool that can POST a webhook                                                                                                                                                          |
+| Gmail account      | `gmail` connection | The Gmail account the reminders go out from                                                                                                                                                                           |
+| Owner's phone      | `sms` connection   | The owner's verified number, which gets the day-7 text. SMS by Zapier texts only this number                                                                                                                          |
+| `OWNER_NAME`       | `workflow.ts`      | The name the reminder is signed with                                                                                                                                                                                  |
+| `BUSINESS_NAME`    | `workflow.ts`      | The sender name on the reminder email                                                                                                                                                                                 |
+| `OWNER_VOICE`      | `workflow.ts`      | How the reminder should sound, e.g. "Warm, direct, first names, no fluff"                                                                                                                                             |
+| `STATUS_CHECK_URL` | `config.ts`        | Webhook path only, optional: a URL that returns the invoice's current status as JSON, like `{"balance": 0}`. `{invoice}` in it is replaced with the invoice id or number. Empty means use the status the webhook sent |
 
-The webhook path has no app to re-check, so pick one:
+Also review the defaults with them: `REMIND_AFTER_DAYS` (3) and `ESCALATE_AFTER_DAYS` (7), both counted from the due date in `workflow.ts`.
 
-- **Default:** the run uses the status the webhook sent (`status: "paid"` or a balance of 0 stops it). Good for tools that only fire on unpaid invoices.
-- **Better:** set `STATUS_CHECK_URL` (or send `status_url` in the payload) to a URL that returns the invoice's current status as JSON, like `{"balance": 0}` or `{"status": "paid"}`. `{invoice}` in the URL is replaced with the invoice id or number. Both checks call it.
-- **Or:** use your billing tool's own Zapier "find invoice" search in place of the check step, the same way the QuickBooks path does.
+Before turning it on, confirm this follows invoices created after it's turned on. Invoices that are already overdue are not chased. Say so, and see Notes for the daily-schedule option.
 
-## Test
+## Build it
 
-### 1. Webhook sample
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
 
-Run each sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing. Posting it to the webhook URL only works once the workflow is published.
+1. **Accounts:** bind `gmail` (the account the reminders go out from), `sms` (the owner's verified number) and `quickbooks` (QuickBooks path only: used by the invoice search). `ai` and `webhook` need no connection. Keep `authentication_id: "0"` on `ai`, which uses Zapier's managed AI credentials.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each per-person value replaced by the user's answer. `connections/` is a setting, not code: set the workflow's connection bindings from it. This zap has no `triggers/` folder, so pick the trigger with the user:
+   - QuickBooks Online: `quickbooks`, `invoice_v2`, no params, on the user's QuickBooks connection.
+   - Any other billing tool: `webhook`, `hook_v2`, with no connection, so `authentication_id` is `null`. The billing tool POSTs the invoice as JSON: customer name, customer email, invoice number, amount or balance due, due date, pay link and status.
 
-Run the workflow with these two payloads (field names messy on purpose). `remind_wait_seconds` and `escalate_wait_seconds` shorten both waits to 60 seconds; leave them out in real use. Use your own email address as the customer email.
+   For the trigger's `selected_api`, call `search_triggers` with the app's slug, find the row whose `key` is the event, and use `<app_key>@<app_version>` from it.
+
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow. On the webhook path, wait until the trigger is active and give the user their webhook URL.
+4. **Fields:** inspect each action's fields with the user's connections (and sample the trigger, if using QuickBooks) before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run the two samples below as draft test runs before publishing, with `run_workflow_draft`. Posting to the webhook URL only works once the workflow is published. The field names are messy on purpose. `remind_wait_seconds` and `escalate_wait_seconds` shorten both waits to 60 seconds; leave them out in real use. Use your own email address as the customer email.
 
 ```json
 {
@@ -114,29 +90,19 @@ Run the workflow with these two payloads (field names messy on purpose). `remind
 }
 ```
 
-Expect: the unpaid one waits, checks, drafts, emails the reminder to your inbox, waits again, checks, and texts the owner `Dana K. still owes $480 on #1042, N days late.` The paid one waits, checks, and stops with `paid before reminder`: no email, no text.
+Expect: the unpaid one waits, checks, drafts, emails the reminder to your inbox, waits again, checks, and texts the owner `Dana K. still owes $480 on #1042, N days late.` The paid one waits, checks, and stops with `paid before reminder`: no email, no text. If run-status tools aren't available, check the result in Gmail and the owner's messages directly.
 
-### 2. Real test from QuickBooks Online
+For the QuickBooks path, run once against a QuickBooks sandbox company so no real customer gets an email. Create a test customer with your own email address and an invoice with a due date in the past, then run the workflow on it with both wait fields set to 60. Mark the invoice paid, run it again, and confirm it stops at the first check.
 
-The webhook sample proves the logic, not the QuickBooks trigger or Find Invoice.
-
-1. Connect QuickBooks Online in Zapier (a QuickBooks sandbox company from the Intuit Developer portal is ideal, so no real customer gets an email).
-2. Create a test customer whose email is your own address, then an invoice for them with a due date in the past.
-3. Pull it with the trigger's test / "find new records", and run the workflow on that record with `remind_wait_seconds` and `escalate_wait_seconds` added as 60.
-4. Then mark the invoice paid, run it again, and confirm it stops at the first check.
-5. Only call it done when this real run passes.
-
-## Customize
-
-- **Timing:** `REMIND_AFTER_DAYS` (default 3) and `ESCALATE_AFTER_DAYS` (default 7), both counted from the due date
-- **No pay link?** QuickBooks only includes `InvoiceLink` when online payments are on. Without one, the email tells the customer to reply for payment options.
-- **A second reminder to the customer:** copy the draft and email steps after the second wait, with a firmer tone
+Ask the user to delete the test emails, texts and invoices. The agent does not delete test data.
 
 ## Notes
 
-- **Only new invoices.** The trigger fires when an invoice is created, so invoices that are already overdue when the user turns this on are never chased. To cover them, run it on a daily schedule that searches QuickBooks for overdue invoices instead (not built here).
-- Paid at either check means the run stops. Nothing goes out for paid invoices.
-- The waits are durable: the run is saved and resumes on time.
+- **Only new invoices.** The trigger fires when an invoice is created, so invoices already overdue when this is turned on are never chased. To cover them, a daily scheduled run that searches QuickBooks for overdue invoices would do it (not built here).
+- Paid at either check stops the run. The waits are durable: the run is saved and resumes on time.
 - A reminder needs a customer email on the invoice. Without one, the run stops with `no customer email on the invoice`.
+- No pay link? QuickBooks only includes one when online payments are on. Without one, the email asks the customer to reply for payment options.
+- A second reminder to the customer: copy the draft and email steps after the second wait, with a firmer tone.
+- For the webhook path, a billing tool's own Zapier "find invoice" search can replace the status URL check.
 - SMS by Zapier texts only the verified owner number. Use Twilio or OpenPhone to text customers.
 - Never commit a real webhook URL, email address or phone number.

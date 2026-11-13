@@ -13,9 +13,15 @@ import {
   TOTAL_RMSE_COLUMN,
   HIGH_ERROR_RMSE_COLUMN,
   PROFIT_ESTIMATE_COLUMN,
-} from "@/config";
-import googleDrive from "@/connections/google-drive";
-import googleSheets from "@/connections/google-sheets";
+} from "./config.ts";
+
+// The sandbox provides Buffer; the compiler is not given node types.
+declare const Buffer: {
+  from(
+    data: string,
+    encoding: "base64",
+  ): { toString(encoding: "utf8"): string };
+};
 
 const sdk = createZapierSdk();
 
@@ -45,7 +51,7 @@ const rmse = (values: number[]) =>
     values.reduce((sum, value) => sum + value * value, 0) / values.length,
   );
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "log-model-evaluation-metrics-to-central-results-sheet",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -58,12 +64,14 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-drive",
         actionType: "search",
         actionKey: "file_v2",
-        connection: googleDrive,
+        connection: "google-drive",
         inputs: { title: TARGETS_FILE_NAME, search_type: "exact" },
       }),
     );
 
-    const fileId = targetsFile.data?.[0]?.id;
+    const fileId = (
+      targetsFile.data?.[0] as { id?: string | number } | undefined
+    )?.id;
     if (!fileId) {
       return { skipped: true, reason: "targets-file-not-found", batchId };
     }
@@ -73,16 +81,20 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-drive",
         actionType: "write",
         actionKey: "ae_461284_google_drive_download_file_custom_action",
-        connection: googleDrive,
+        connection: "google-drive",
         inputs: { fileId: String(fileId) },
       }),
     );
 
     // Targets JSON: { "<workshop selector>": [{ "id": ..., "actual": number }, ...] }
     const targets = JSON.parse(
-      Buffer.from(String(download.data?.[0]?.content ?? ""), "base64").toString(
-        "utf8",
-      ),
+      Buffer.from(
+        String(
+          (download.data?.[0] as { content?: string } | undefined)?.content ??
+            "",
+        ),
+        "base64",
+      ).toString("utf8"),
     ) as Record<string, { id: string | number; actual: number }[]>;
 
     const window = targets[input.workshop];
@@ -125,7 +137,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "add_row",
-        connection: googleSheets,
+        connection: "google-sheets",
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,

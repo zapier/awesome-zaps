@@ -1,6 +1,6 @@
 ---
 name: copy-new-tasks-into-your-primary-task-list
-description: Build a Zapier Next Gen Zap that copies each new task from a secondary Google Tasks list into your primary task list, so you keep one actionable task stream. Use when tasks land in a side list (a project, a shared list, a capture list) and you want them mirrored into your main list without copying by hand.
+description: Build a Zap on Zapier that copies each new task from a secondary Google Tasks list into your primary task list, so you keep one actionable task stream. Use when tasks land in a side list (a project, a shared list, a capture list) and you want them mirrored into your main list without copying by hand.
 license: MIT
 metadata:
   author: zapier
@@ -13,41 +13,40 @@ metadata:
 
 # Copy new tasks into your primary task list
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/copy-new-tasks-into-your-primary-task-list. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a new task is added to the secondary Google Tasks list you choose.
+1. **Trigger:** a new task is added to the secondary Google Tasks list (`google-tasks`, `tasks`).
 2. **Google Tasks** skips the task if it has no title or is already marked completed.
 3. **Google Tasks** looks for a task with the same title in your primary list. If one exists with the same due date, the run stops and nothing is copied.
 4. **Google Tasks** creates the task in your primary list with the same title, notes and due date.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**Check the fields first:** with your own connection, inspect the trigger and the actions (`get_trigger_fields`, `inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before you publish.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/copy-new-tasks-into-your-primary-task-list` (it makes a zap project if you aren't in one), then `npx zap-pack deploy copy-new-tasks-into-your-primary-task-list` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Google Tasks, New Task (`tasks`). Set its Task List to the secondary list you want watched. Leave Include Assigned Tasks off.
-2. **Connections** (each alias in the code is the app's slug):
-   - `google-tasks`: your Google Tasks connection. Use the account that owns both lists.
-3. **Constants:**
-   - `SOURCE_TASK_LIST_ID`: the secondary list to watch. Set the same ID as the trigger's Task List.
-   - `PRIMARY_TASK_LIST_ID`: your primary list, where copies are created.
+The Zap only creates tasks in the primary list. It never edits or deletes anything in the secondary list.
 
 ## Ask the user
 
-- Which Google Tasks list holds the new tasks, and which is the primary list?
-- Should tasks assigned to you (from Google Docs or Gmail) be copied too? The default is no.
+Each `REPLACE_…` value is set per person. Resolve list names to IDs with the user's Google Tasks connection; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                | What goes there                                                                         |
+| ---------------------- | --------------------------------------------------------------------------------------- |
+| `SOURCE_TASK_LIST_ID`  | The secondary Google Tasks list to watch. The same list goes in the trigger's Task List |
+| `PRIMARY_TASK_LIST_ID` | The primary list, where the copies are created                                          |
 
-Send one sample task through the trigger, or add a task with this shape to the secondary list:
+Also review the default with them: Include Assigned Tasks on the trigger stays off, so tasks assigned to them from Google Docs or Gmail are not copied. Turn it on only if they want those copied too.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `google-tasks` to the user's Google Tasks connection for the account that owns both lists.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/tasks.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them, and set the trigger's Task List to the same list as `SOURCE_TASK_LIST_ID`. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connection and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run this sample once as a draft test:
 
 ```json
 {
@@ -65,14 +64,11 @@ Check that:
 - Running the same sample again creates no second task; the run ends as already mirrored.
 - A sample with `"status": "completed"` creates nothing.
 
-Then delete any test task you added to the primary list.
-
-## Customize
-
-- **Alert on high-priority items:** add a Slack message step after the copy, for tasks whose title or notes contain a priority marker.
-- **Keep the source visible:** append the secondary list's name to the copied task's notes, so you can see where each task came from.
+If run-status tools aren't available, check the result in Google Tasks directly. Ask the user to delete the test task from the primary list; the agent doesn't delete test data.
 
 ## Notes
 
 - Matching is by title first, then by exact due date. Two different tasks with the same title and due date are treated as one.
 - Completed tasks are never copied. Tasks with no title are skipped.
+- To alert on high-priority items, add a Slack message step after the copy, for tasks whose title or notes contain a priority marker.
+- To keep the source visible, append the secondary list's name to the copied task's notes.

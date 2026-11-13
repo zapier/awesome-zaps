@@ -1,6 +1,6 @@
 ---
 name: add-new-hire-rows-to-onboarding-spreadsheet
-description: Build a Zapier Next Gen Zap that adds a row to a Google Sheets onboarding tracker every time a candidate is marked hired in Ashby, with the start date, job title, new hire's name and email, and hiring manager. Use when a People Ops, HR or recruiting team runs Ashby as its ATS and wants every hire handed off to onboarding, payroll and facilities in one consistent sheet without retyping.
+description: Build a Zap on Zapier that adds a row to a Google Sheets onboarding tracker every time a candidate is marked hired in Ashby, with the start date, job title, new hire's name and email, and hiring manager. Use when a People Ops, HR or recruiting team runs Ashby as its ATS and wants every hire handed off to onboarding, payroll and facilities in one consistent sheet without retyping.
 license: MIT
 metadata:
   author: zapier
@@ -13,41 +13,42 @@ metadata:
 
 # Add new hire rows to onboarding spreadsheet
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/add-new-hire-rows-to-onboarding-spreadsheet. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a candidate is marked hired in Ashby. The event carries the application (candidate, job, hiring team) and the most recent accepted offer.
+1. **Trigger:** a candidate is marked hired in Ashby (`ashby`, `candidate_hired`). The event carries the application (candidate, job, hiring team) and the most recent accepted offer.
 2. The workflow picks the hiring manager: the hiring team member with the `Hiring Manager` role, or the first team member if nobody has that role.
 3. **Google Sheets** adds one row to the onboarding worksheet with the offer's start date, the job title, the new hire's name and primary email, and the manager's name and email. Every hire gets a new row.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and the trigger's fields (`get_trigger_fields`), and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/add-new-hire-rows-to-onboarding-spreadsheet` (it makes a zap project if you aren't in one), then `npx zap-pack deploy add-new-hire-rows-to-onboarding-spreadsheet` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Ashby, Candidate Hired (`ashby`, `candidate_hired`). It has no input fields, so `params` is `{}`. Its `authentication_id` is the user's Ashby connection, an API key with permission to read candidates, jobs and offers.
-2. **Connections** (each alias in the code is the app's slug):
-   - `ashby`: the user's Ashby connection, used by the trigger.
-   - `google-sheets`: the user's Google Sheets connection, for the account that owns the onboarding sheet.
-3. **Constants:**
-   - `SPREADSHEET_ID`: the long ID in the onboarding sheet's URL.
-   - `WORKSHEET_ID`: the tab. The first tab is `"0"`.
-   - `START_DATE_COLUMN`, `TITLE_COLUMN`, `NAME_COLUMN`, `CONTACT_EMAIL_COLUMN`, `MANAGER_NAME_COLUMN`, `MANAGER_EMAIL_COLUMN`: column keys such as `COL$A`, not header names. Map the user's headers to their column letters.
-   - `HIRING_MANAGER_ROLE`: the Ashby hiring team role to treat as the manager. Defaults to `"Hiring Manager"`.
-4. Test with the steps below, then publish and wait until the trigger is active.
+The Zap only writes to the sheet. It does not change anything in Ashby.
 
 ## Ask the user
 
-- Which sheet and tab is the onboarding tracker, and which columns hold start date, title, name, contact email, manager name and manager email? The tab needs a header row.
-- Which Ashby connection should the trigger use? Ashby API keys are scoped, so the key must be allowed to read offers or the start date comes through blank.
-- Is the manager in their Ashby hiring teams labeled `Hiring Manager`, or another role?
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting          | What goes there                                                                                                    |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `SPREADSHEET_ID` | The onboarding tracker sheet. Ask which sheet it is, then look up its ID with the user's Google Sheets connection. |
+
+Also review the defaults with them:
+
+- `WORKSHEET_ID`: the tab, where `"0"` is the first tab. The tab needs a header row.
+- `START_DATE_COLUMN` through `MANAGER_EMAIL_COLUMN`: column keys such as `COL$A`, not header names. Ask which columns hold the start date, title, name, contact email, manager name and manager email, and map them to their column letters.
+- `HIRING_MANAGER_ROLE`: the Ashby hiring team role treated as the manager, `"Hiring Manager"` by default. Ask whether their hiring managers carry that label or another role.
+
+Ask which Ashby connection the trigger should use. Its API key must be allowed to read offers, or the start date comes through blank.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `google-sheets` (the account that owns the onboarding sheet) and `ashby` (the trigger's account, an API key that can read candidates, jobs and offers) to the user's connections. No other app needs a connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/candidate-hired.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
 
 Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing, pointed at a copy of the onboarding sheet:
 
@@ -83,16 +84,12 @@ Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before 
 }
 ```
 
-Confirm one new row appears with `2026-12-01`, `People Operations Specialist`, `Jordan Rivera`, `jordan.rivera@example.com`, `Alex Kim` and `alex.kim@example.com` in the mapped columns. Alex is chosen over Sam because of the role. Delete the test row afterward.
+Confirm one new row appears with `2026-12-01`, `People Operations Specialist`, `Jordan Rivera`, `jordan.rivera@example.com`, `Alex Kim` and `alex.kim@example.com` in the mapped columns. Alex is chosen over Sam because of the role. If run-status tools aren't available, check the result in Google Sheets directly. Ask the user to delete the test row; the agent doesn't delete it.
 
-## Customize
-
-- **Only some hires:** add a filter so the row is written only for exempt or non-exempt hires, read from an offer custom field.
-- **Alert payroll or facilities:** add a Slack message or email after the row is created, with the new hire's name and start date.
+Then publish and confirm the trigger is active.
 
 ## Notes
 
-- If the hire has no accepted offer in Ashby, the start date cell is left blank.
-- Re-marking the same application as hired in Ashby can add a second row for it.
-- The sheet holds new hires' names and emails. Share it only with the people who need onboarding details.
-- Never commit a real spreadsheet ID.
+- If the hire has no accepted offer in Ashby, the start date cell is left blank. Re-marking the same application as hired can add a second row for it.
+- To write rows only for some hires, add a filter on an offer custom field. To alert payroll or facilities, add a Slack message or email after the row is created.
+- The sheet holds new hires' names and emails. Share it only with the people who need onboarding details, and don't commit a real spreadsheet ID to a repository.

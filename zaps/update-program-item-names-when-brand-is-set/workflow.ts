@@ -2,16 +2,15 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { BOARD_ID, BRAND_COLUMN_ID, TITLE_SEPARATOR } from "@/config";
-import monday from "@/connections/monday";
+import {
+  BOARD_ID,
+  BRAND_COLUMN_ID,
+  TITLE_PART_COLUMN_IDS,
+  TITLE_SEPARATOR,
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
-// Column IDs of the dropdowns that come before the Brand value in the title, in order.
-const TITLE_PART_COLUMN_IDS = [
-  "YOUR_TITLE_PART_COLUMN_ID_1",
-  "YOUR_TITLE_PART_COLUMN_ID_2",
-];
 // Start of the update note posted when an item is renamed. The new name is appended.
 const CHANGE_NOTE =
   "Item name updated automatically when Brand was set. New name:";
@@ -25,7 +24,7 @@ const InputSchema = z
 
 type ColumnValue = { id?: string | null; text?: string | null };
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "update-program-item-names-when-brand-is-set",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -41,7 +40,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "monday",
         actionType: "search",
         actionKey: "get_column_values",
-        connection: monday,
+        connection: "monday",
         inputs: {
           board_id: BOARD_ID,
           item_id: itemId,
@@ -68,7 +67,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "monday",
         actionType: "write",
         actionKey: "change_item_name_column_value",
-        connection: monday,
+        connection: "monday",
         inputs: {
           board_id: BOARD_ID,
           item_id: Number(itemId),
@@ -82,7 +81,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "monday",
         actionType: "write",
         actionKey: "create_update",
-        connection: monday,
+        connection: "monday",
         inputs: {
           item_id: Number(itemId),
           body: `${CHANGE_NOTE} ${newName}`,

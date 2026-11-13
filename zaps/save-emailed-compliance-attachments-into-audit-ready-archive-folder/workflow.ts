@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { ARCHIVE_FOLDER_ID, FILENAME_PREFIX } from "@/config";
-import googleDrive from "@/connections/google-drive";
+import { ARCHIVE_FOLDER_ID, FILENAME_PREFIX } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -41,7 +40,7 @@ function buildFileName(input: z.infer<typeof InputSchema>): string {
   );
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "save-emailed-compliance-attachments-into-audit-ready-archive-folder",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -58,7 +57,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-drive",
         actionType: "search",
         actionKey: "file_v2",
-        connection: googleDrive,
+        connection: "google-drive",
         inputs: {
           title: fileName,
           folder: ARCHIVE_FOLDER_ID,
@@ -75,7 +74,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-drive",
         actionType: "write",
         actionKey: "file",
-        connection: googleDrive,
+        connection: "google-drive",
         inputs: {
           file: input.attachment_url,
           folder: ARCHIVE_FOLDER_ID,

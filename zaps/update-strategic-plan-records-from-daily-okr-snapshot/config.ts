@@ -1,8 +1,8 @@
-import { ask } from "zap-pack";
+// This zap's settings. Each "REPLACE_…" value is set per person before deploying; its comment says how to get it.
+// The other values are defaults you can change.
 
-export const OKR_ENDPOINT_URL = ask(
-  "OKR endpoint that returns the goal list as a JSON array (replace with your URL).",
-);
+export const OKR_ENDPOINT_URL = "REPLACE_OKR_ENDPOINT_URL"; // Ask the user for the URL of their OKR endpoint, which returns the goal list as a JSON array.
+
 // Salesforce API name of the Strategic Plan object.
 export const STRATEGIC_PLAN_OBJECT = "Strategic_Plan__c";
 // Salesforce field that stores the external OKR ID used to match records.

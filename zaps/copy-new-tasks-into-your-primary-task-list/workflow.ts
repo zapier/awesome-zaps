@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { PRIMARY_TASK_LIST_ID } from "@/config";
-import googleTasks from "@/connections/google-tasks";
+import { PRIMARY_TASK_LIST_ID } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -17,7 +16,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "copy-new-tasks-into-your-primary-task-list",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -39,7 +38,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-tasks",
         actionType: "search",
         actionKey: "find_task",
-        connection: googleTasks,
+        connection: "google-tasks",
         inputs: {
           list: PRIMARY_TASK_LIST_ID,
           title,
@@ -63,7 +62,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-tasks",
         actionType: "write",
         actionKey: "task",
-        connection: googleTasks,
+        connection: "google-tasks",
         inputs: {
           task_list: PRIMARY_TASK_LIST_ID,
           title,

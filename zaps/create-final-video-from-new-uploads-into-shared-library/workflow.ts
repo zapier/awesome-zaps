@@ -12,8 +12,7 @@ import {
   DEFAULT_VOICE,
   DEFAULT_ASPECT_RATIO,
   LIBRARY_FOLDER_ID,
-} from "@/config";
-import googleDrive from "@/connections/google-drive";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -65,7 +64,7 @@ function stripExtension(name: string): string {
   return dot > 0 ? name.slice(0, dot) : name;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-final-video-from-new-uploads-into-shared-library",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(normalizeInput(rawInput));
@@ -89,7 +88,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-drive",
         actionType: "search",
         actionKey: "file_v2",
-        connection: googleDrive,
+        connection: "google-drive",
         inputs: {
           title: finalName,
           folder: LIBRARY_FOLDER_ID,
@@ -217,7 +216,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-drive",
         actionType: "write",
         actionKey: "file",
-        connection: googleDrive,
+        connection: "google-drive",
         inputs: {
           file: downloadUrl,
           folder: LIBRARY_FOLDER_ID,

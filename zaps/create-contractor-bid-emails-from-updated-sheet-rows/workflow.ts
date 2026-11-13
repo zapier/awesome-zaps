@@ -13,9 +13,7 @@ import {
   DRAFTED_COLUMN,
   DRAFTED_AT_COLUMN,
   DRAFTED_VALUE,
-} from "@/config";
-import gmail from "@/connections/gmail";
-import googleSheets from "@/connections/google-sheets";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -41,7 +39,7 @@ function escapeHtml(text: string): string {
     .replace(/"/g, "&quot;");
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-contractor-bid-emails-from-updated-sheet-rows",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -78,7 +76,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "draft_v2",
-        connection: gmail,
+        connection: "gmail",
         inputs: {
           to: [contractorEmail],
           subject,
@@ -97,7 +95,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "update_row",
-        connection: googleSheets,
+        connection: "google-sheets",
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,

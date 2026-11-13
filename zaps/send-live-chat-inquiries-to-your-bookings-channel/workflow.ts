@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { BOOKINGS_CHANNEL_ID, BOT_NAME, BOT_ICON } from "@/config";
-import slack from "@/connections/slack";
+import { BOOKINGS_CHANNEL_ID, BOT_NAME, BOT_ICON } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -19,7 +18,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "send-live-chat-inquiries-to-your-bookings-channel",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -53,7 +52,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "slack",
           actionType: "write",
           actionKey: "channel_message",
-          connection: slack,
+          connection: "slack",
           inputs: {
             channel: BOOKINGS_CHANNEL_ID,
             text,

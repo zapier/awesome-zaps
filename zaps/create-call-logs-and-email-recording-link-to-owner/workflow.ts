@@ -7,9 +7,7 @@ import {
   WORKSHEET_ID,
   OWNER_EMAIL,
   COMPLETED_STATUS,
-} from "@/config";
-import googleSheets from "@/connections/google-sheets";
-import gmail from "@/connections/gmail";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -39,7 +37,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-call-logs-and-email-recording-link-to-owner",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -67,7 +65,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "add_row",
-        connection: googleSheets,
+        connection: "google-sheets",
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,
@@ -99,7 +97,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: gmail,
+        connection: "gmail",
         inputs: {
           to: [OWNER_EMAIL],
           subject: `Call recording: ${callReference} (agent ${input.agent_id ?? "unknown"})`,

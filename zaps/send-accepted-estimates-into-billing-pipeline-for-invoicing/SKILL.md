@@ -1,6 +1,6 @@
 ---
 name: send-accepted-estimates-into-billing-pipeline-for-invoicing
-description: Build a Zapier Next Gen Zap that sends an accepted QuickBooks Online estimate, with its line items, to your billing workflow so an invoice can be started. Use when estimates are accepted in QuickBooks Online and invoicing is done in a separate system that takes a webhook.
+description: Build a Zap on Zapier that sends an accepted QuickBooks Online estimate, with its line items, to your billing workflow so an invoice can be started. Use when estimates are accepted in QuickBooks Online and invoicing is done in a separate system that takes a webhook.
 license: MIT
 metadata:
   author: zapier
@@ -13,44 +13,40 @@ metadata:
 
 # Send accepted estimates into billing pipeline for invoicing
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/send-accepted-estimates-into-billing-pipeline-for-invoicing. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** an estimate is updated in QuickBooks Online (QuickBooks Online, Updated Estimate).
+1. **Trigger:** an estimate is updated in QuickBooks Online (`quickbooks`, `updated_estimate_v2`).
 2. **Filter:** the run continues only when the estimate's status is the accepted status. Any other status stops the run and sends nothing.
 3. **Formatting:** the line-item descriptions and quantities are joined into two delimited strings, one value per line item.
 4. **Webhooks by Zapier** POSTs a form payload to your billing workflow's catch hook. The payload carries the estimate ID, document number, customer, total, PDF link, acceptance status and time, and the two delimited line-item strings.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**Check the fields first:** with the user's own connections, inspect the trigger and the Webhooks by Zapier POST action (`inspect_zapier_actions`, `get_trigger_fields`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/send-accepted-estimates-into-billing-pipeline-for-invoicing` (it makes a zap project if you aren't in one), then `npx zap-pack deploy send-accepted-estimates-into-billing-pipeline-for-invoicing` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** QuickBooks Online, Updated Estimate (`quickbooks`, action `updated_estimate_v2`). Bind your QuickBooks Online connection to it.
-2. **Connections:**
-   - `quickbooks`: the user's QuickBooks Online connection, for the company file that holds the estimates. Used by the trigger only.
-   - Webhooks by Zapier has no connection. The POST action runs without one.
-3. **Constants:**
-   - `DOWNSTREAM_WEBHOOK_URL`: the catch-hook URL of your billing workflow or system. Anyone with this URL can create billing records, so keep it private.
-   - `ACCEPTED_STATUS`: the QuickBooks Online status that means accepted. Defaults to `"Accepted"`.
-   - `LINE_DELIMITER`: the separator placed between line items in the description and quantity strings. Defaults to `"; "`.
-4. Test with the steps below, then publish, wait until the trigger is active, and give the user the trigger details they need.
-
 ## Ask the user
 
-- Which QuickBooks Online company should the trigger watch?
-- What is the billing system's webhook URL? Is it a catch hook that accepts a form POST?
-- Does the QuickBooks Online status for accepted estimates read as `Accepted` in their company, or do they use a different status?
-- Should the downstream system create a new record for every update to an accepted estimate, or match on the estimate ID? The workflow always sends a new POST, so the receiving side must de-duplicate on `reference` if needed.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                  | What goes there                                                                                                                                                                            |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `DOWNSTREAM_WEBHOOK_URL` | The catch-hook URL of the billing workflow or system that receives each accepted estimate. It must accept a form POST. Anyone with this URL can create billing records, so keep it private |
+
+Also review the defaults with them: `ACCEPTED_STATUS` (`"Accepted"`, the QuickBooks Online status that means accepted; change it if their company reads it differently) and `LINE_DELIMITER` (`"; "`, the separator between line items).
+
+Confirm two things before turning it on:
+
+- The `quickbooks` account is the QuickBooks Online company that holds the estimates.
+- The downstream system can handle repeats. Every accepted update sends a new POST, so it must de-duplicate on `reference` if it should not create a second record.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `quickbooks` (the user's QuickBooks Online connection for the company that holds the estimates) to the user's connection. The trigger uses it, and the workflow itself has no connection. Webhooks by Zapier needs none.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/updated-estimate.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections, and sample the trigger, before the first test run. Fix any key in `workflow.ts` that doesn't match.
+
+## Test it
 
 Run this sample as a draft test run before publishing. Point `DOWNSTREAM_WEBHOOK_URL` at a catch hook you control, not at the live billing system:
 
@@ -71,14 +67,12 @@ Run this sample as a draft test run before publishing. Point `DOWNSTREAM_WEBHOOK
 
 Check that the catch hook receives one form POST with `reference` set to `1042`, `acceptance_status` set to `Accepted`, `line_descriptions` set to `Consulting; Setup`, and `line_quantities` set to `10; 2`. Then send the same sample with `TxnStatus` set to `Pending`, and check that nothing is posted.
 
-## Customize
-
-- **Attach the estimate PDF** to the downstream record for archival: the payload already carries the PDF link in `document_url`; have the receiving system fetch and store it.
-- **Create an invoice draft** back in the accounting system once the downstream system acknowledges the payload: add a QuickBooks Online step after the POST that creates an invoice draft, gated on the acknowledgement.
+If run-status tools aren't available, check the result in the catch hook you control directly. The user deletes any test data; the agent does not.
 
 ## Notes
 
 - Each accepted update produces a POST. If the same estimate is edited again after acceptance, the downstream system receives it again.
 - Line items are sent as text, so the receiving system must split them on `LINE_DELIMITER` to read them back.
-- The estimate PDF comes from QuickBooks as a file; the workflow sends its link. Confirm the link is reachable from the billing system.
+- The estimate PDF comes from QuickBooks as a file; the workflow sends its link as `document_url`. Confirm the link is reachable from the billing system, or have it fetch and store the PDF for archival.
+- To create an invoice draft back in QuickBooks Online, add a step after the POST that is gated on the downstream system's acknowledgement.
 - Never commit a real webhook URL. Anyone with the URL can create billing records.

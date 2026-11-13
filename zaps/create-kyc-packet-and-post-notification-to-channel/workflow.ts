@@ -4,21 +4,21 @@ import { z } from "zod";
 
 import {
   COMPLIANCE_FOLDER,
+  LLC_TEMPLATE_ID,
+  LP_TEMPLATE_ID,
   SLACK_CHANNEL,
   SHARING_PREFERENCE,
   REVIEWER_MENTION,
-} from "@/config";
-import googleDocs from "@/connections/google-docs";
-import slack from "@/connections/slack";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
 // Entity type → Google Docs template document ID (the Paths branch). The key is the entity_type the webhook sends.
 const TEMPLATE_IDS: Record<string, string> = {
   // Template for LLC funds.
-  llc: "YOUR_LLC_TEMPLATE_DOC_ID",
+  llc: LLC_TEMPLATE_ID,
   // Template for limited partnership funds.
-  lp: "YOUR_LP_TEMPLATE_DOC_ID",
+  lp: LP_TEMPLATE_ID,
 };
 // Set to true to @-mention the reviewer group in the Slack message.
 const MENTION_REVIEWERS = false;
@@ -36,7 +36,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-kyc-packet-and-post-notification-to-channel",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -63,7 +63,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "google-docs",
           actionType: "write",
           actionKey: "create_from_template",
-          connection: googleDocs,
+          connection: "google-docs",
           inputs: {
             file: templateId,
             title: `${input.fund_name} KYC packet`,
@@ -81,7 +81,14 @@ const workflow = defineDurable<unknown, unknown>(
         }),
     );
 
-    const packet = document.data[0];
+    // The Google Docs action's output is not typed, so name the fields this workflow reads from it.
+    const packet = document.data[0] as
+      | {
+          id?: string;
+          alternateLink?: string;
+          exportLinks?: Record<string, string>;
+        }
+      | undefined;
     const docLink = packet?.alternateLink ?? "";
     const pdfLink = packet?.exportLinks?.["application/pdf"] ?? "";
     const text = [
@@ -101,7 +108,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "slack",
           actionType: "write",
           actionKey: "channel_message",
-          connection: slack,
+          connection: "slack",
           inputs: {
             channel: SLACK_CHANNEL,
             text,

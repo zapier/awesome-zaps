@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { DEFAULT_MODEL } from "@/config";
-import chatgptConnection from "@/connections/chatgpt";
+import { DEFAULT_MODEL } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -47,7 +46,7 @@ function outputText(body: ResponseBody | undefined): string {
     .trim();
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-ai-response-from-prompt-and-return-result",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -66,7 +65,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "chatgpt",
         actionType: "write",
         actionKey: "conversation_responses_api",
-        connection: chatgptConnection,
+        connection: "chatgpt",
         inputs: { model, instructions, user_message: prompt },
       }),
     );
@@ -86,7 +85,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "chatgpt",
             actionType: "write",
             actionKey: "_zap_raw_request",
-            connection: chatgptConnection,
+            connection: "chatgpt",
             inputs: {
               url: `https://api.openai.com/v1/responses/${responseId}`,
               fail_on_errors: "true",

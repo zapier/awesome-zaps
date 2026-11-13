@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { ITINERARY_BASE_URL, SENDER_ADDRESS } from "@/config";
-import gmail from "@/connections/gmail";
+import { ITINERARY_BASE_URL, SENDER_ADDRESS } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -39,7 +38,7 @@ function escapeHtml(text: string): string {
     .replace(/"/g, "&quot;");
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "send-personalized-itinerary-emails-one-day-before-trips",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -114,7 +113,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: gmail,
+        connection: "gmail",
         inputs: {
           to: [recipient],
           subject,

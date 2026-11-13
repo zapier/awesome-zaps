@@ -1,6 +1,6 @@
 ---
 name: post-ai-triage-suggestion-into-incident-management-channel
-description: Build a Zapier Next Gen Zap that reads each new message in an incident channel, has AI by Zapier suggest the owning team, confidence and rationale, and posts that suggestion as a threaded reply. Use when an IT or incident-response team wants incoming incident reports in Microsoft Teams routed to the right owner without someone reading every message first.
+description: Build a Zap on Zapier that reads each new message in an incident channel, has AI by Zapier suggest the owning team, confidence and rationale, and posts that suggestion as a threaded reply. Use when an IT or incident-response team wants incoming incident reports in Microsoft Teams routed to the right owner without someone reading every message first.
 license: MIT
 metadata:
   author: zapier
@@ -13,60 +13,57 @@ metadata:
 
 # Post AI triage suggestion into incident management channel
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/post-ai-triage-suggestion-into-incident-management-channel. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a new message in the incident channel (Microsoft Teams, "New Channel Message"). Not yet configured in this draft; it needs the team and channel picked from a Teams connection.
-2. **AI by Zapier** reads the message's subject and body against your capability-to-team mapping and returns the matching capability, the owning team or teams, a confidence level (high, medium or low) and one sentence of rationale.
-3. **Microsoft Teams** posts that result as a threaded reply to the original message. Medium confidence is labelled as advisory. Nothing is assigned automatically.
+1. **Trigger:** a new message in the incident channel (`microsoft-teams`, `messageList`). The trigger brings the message ID, subject and body.
+2. **AI by Zapier** reads the message's subject and body against the capability-to-team mapping and returns the matching capability, the owning team or teams, a confidence level (high, medium or low) and one sentence of rationale.
+3. **Microsoft Teams** posts that result as a threaded reply to the original message.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/post-ai-triage-suggestion-into-incident-management-channel` (it makes a zap project if you aren't in one), then `npx zap-pack deploy post-ai-triage-suggestion-into-incident-management-channel` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Microsoft Teams, New Channel Message (`microsoft-teams` / `messageList`). Pick the team and channel from the Teams connection. The Zapier app must be installed in that team.
-2. **Connections** (each alias in the code is the app's slug):
-   - `microsoft-teams`: the user's Microsoft Teams connection, for an account that can post in the incident channel.
-   - `ai`: no connection. It uses Zapier-managed model credentials (`authentication_id: "0"`).
-3. **Constants:**
-   - `INCIDENT_TEAM_ID`: the Teams team that contains the incident channel.
-   - `INCIDENT_CHANNEL_ID`: the incident channel. Only messages from this channel are triaged.
-   - `CAPABILITY_TO_TEAM_MAP`: one line per capability, naming the team that owns it.
-4. Test with the steps below, then publish, wait until the trigger is active, and then point the user at the editor link.
+Medium confidence is labelled as advisory in the reply. Nothing is assigned automatically; a person routes the incident.
 
 ## Ask the user
 
-- Which Teams team and channel are the incident channel?
-- Which capabilities does each team own? Put that in `CAPABILITY_TO_TEAM_MAP`.
+Each `REPLACE_…` value is set per person. Resolve team and channel names to IDs with the user's Microsoft Teams connection; don't ask them to paste an ID you can look up.
+
+| Setting                  | What goes there                                                                                                 |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| `INCIDENT_TEAM_ID`       | The Teams team that contains the incident channel                                                               |
+| `INCIDENT_CHANNEL_ID`    | The incident channel in that team. Only its messages are triaged                                                |
+| `CAPABILITY_TO_TEAM_MAP` | One line per capability, naming the team that owns it, e.g. `Payments: Payments team`. Ask which team owns what |
+
+Prerequisites and questions from the old setup:
+
+- The Zapier app must be installed in that Teams team.
 - Does the trigger's output name the message ID, subject and body differently? `workflow.ts` assumes `id`, `subject` and `body`.
 
-## Test
+## Build it
 
-The sample input to use on the first draft test run, with a real message ID from the incident channel:
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `microsoft-teams` to the user's Microsoft Teams connection, for an account that can post in the incident channel. The trigger and the reply use the same one. `ai` needs no connection; it uses Zapier-managed model credentials.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/message-list.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test with a message the user posted in a test channel. Set `id` to that message's ID, or the reply step fails:
 
 ```json
 {
-  "id": "YOUR_MESSAGE_ID",
+  "id": "1700000000001",
   "subject": "Checkout failing for EU customers",
   "body": "Since 09:40 UTC, card payments return a 500 error for EU-based accounts."
 }
 ```
 
-Check that: the AI step returns `matched_capability`, `owning_teams`, `confidence` and `rationale`; the reply is posted as a thread under the original message; and the reply text has the four lines. Test replies only in a test channel, not in a live incident channel.
-
-## Customize
-
-- **Create a ticket** in your issue tracker on high-confidence matches.
-- **Send a direct message** to an incident coordinator for low-confidence items.
+Check that the AI step returns `matched_capability`, `owning_teams`, `confidence` and `rationale`, that the reply is posted as a thread under that message, and that the reply has the four lines: suggested owner, capability, confidence and why. If run-status tools aren't available, check the reply in Microsoft Teams directly. Then publish, confirm the trigger is active, and ask the user to delete the test messages.
 
 ## Notes
 
-- Medium-confidence suggestions are advisory and are labelled as such in the reply.
+- Medium-confidence suggestions are advisory and labelled as such in the reply.
 - Duplicate deliveries are not filtered. The workflow keeps no record between runs, so a message delivered twice gets two replies.
-- Never commit a real team ID, channel ID or capability mapping that names internal teams.
+- To create a ticket on high-confidence matches, or to direct-message an incident coordinator on low-confidence ones, add a step after the reply in the helpdesk or chat app.
+- Keep real team IDs, channel IDs and capability maps that name internal teams out of commits.

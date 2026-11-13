@@ -7,8 +7,7 @@ import {
   RISK_INDICATORS_FIELD,
   RISK_NOTES_FIELD,
   RISK_SIGNALS_LIST_FIELD,
-} from "@/config";
-import close from "@/connections/close";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -23,7 +22,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "update-deal-risk-profile-from-buyer-intent-feed",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -41,7 +40,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "close",
         actionType: "search",
         actionKey: "search_lead_v6",
-        connection: close,
+        connection: "close",
         inputs: { email },
       }),
     );
@@ -57,7 +56,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "close",
         actionType: "search",
         actionKey: "search_custom_objects",
-        connection: close,
+        connection: "close",
         inputs: {
           search_custom_object_type_id: CUSTOM_OBJECT_TYPE_ID,
           search_lead_id: leadId,
@@ -73,7 +72,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "close",
           actionType: "write",
           actionKey: "new_custom_object_v2",
-          connection: close,
+          connection: "close",
           inputs: {
             lead_id: leadId,
             custom_object_type_id: CUSTOM_OBJECT_TYPE_ID,
@@ -95,7 +94,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "close",
         actionType: "write",
         actionKey: "update_custom_object",
-        connection: close,
+        connection: "close",
         inputs: {
           custom_object_id: customObjectId,
           custom_object_type_id: CUSTOM_OBJECT_TYPE_ID,

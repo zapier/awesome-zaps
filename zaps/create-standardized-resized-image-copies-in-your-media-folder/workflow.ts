@@ -6,12 +6,16 @@ import {
   DESTINATION_FOLDER_ID,
   SIZE_SUFFIX,
   MIME_PREFIX,
-} from "@/config";
-import googleDrive from "@/connections/google-drive";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
 type DriveFile = { id?: string; name?: string; mimeType?: string };
+
+type Outcome =
+  | { status: "copied"; name: string; id: string | null }
+  | { status: "already-exists"; name: string }
+  | { status: "failed"; name: string; error: string };
 
 function sizedName(name: string): string {
   const dot = name.lastIndexOf(".");
@@ -19,7 +23,7 @@ function sizedName(name: string): string {
   return `${name.slice(0, dot)}${SIZE_SUFFIX}${name.slice(dot)}`;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-standardized-resized-image-copies-in-your-media-folder",
   async (ctx) => {
     const listing = await ctx.step("list-source-folder", async () =>
@@ -27,7 +31,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-drive",
         actionType: "write",
         actionKey: "ae_50140_google_drive_get_files_from_folder_custom",
-        connection: googleDrive,
+        connection: "google-drive",
         inputs: { folderId: SOURCE_FOLDER_ID },
       }),
     );
@@ -45,19 +49,19 @@ const workflow = defineDurable<unknown, unknown>(
       return { skipped: true, reason: "no-image-files-in-source-folder" };
     }
 
-    const results = [];
-    for (const [index, file] of images.entries()) {
+    const results: Outcome[] = [];
+    for (const file of images) {
       const newName = sizedName(file.name as string);
 
       const outcome = await ctx.step(
-        `copy-resized-image-${index}`,
-        async () => {
+        `copy-resized-image-${file.id}`,
+        async (): Promise<Outcome> => {
           try {
             const existing = await sdk.runAction({
               appKey: "google-drive",
               actionType: "search",
               actionKey: "file_v2",
-              connection: googleDrive,
+              connection: "google-drive",
               inputs: {
                 title: newName,
                 folder: DESTINATION_FOLDER_ID,
@@ -72,7 +76,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "google-drive",
               actionType: "write",
               actionKey: "copy_file",
-              connection: googleDrive,
+              connection: "google-drive",
               inputs: {
                 file: file.id,
                 new_name: newName,
@@ -83,7 +87,7 @@ const workflow = defineDurable<unknown, unknown>(
             return {
               status: "copied",
               name: newName,
-              id: copy.data?.[0]?.id ?? null,
+              id: (copy.data?.[0] as { id?: string } | undefined)?.id ?? null,
             };
           } catch (error) {
             return { status: "failed", name: newName, error: String(error) };

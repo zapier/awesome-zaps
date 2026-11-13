@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { COMPANY_SIGNATURE_HTML } from "@/config";
-import microsoftOutlook from "@/connections/microsoft-outlook";
+import { COMPANY_SIGNATURE_HTML } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -29,7 +28,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "send-tailored-email-replies-to-new-inbox-messages",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -76,7 +75,9 @@ const workflow = defineDurable<unknown, unknown>(
       }),
     );
 
-    const replyHtml = String(draft.data?.[0]?.html ?? "").trim();
+    const replyHtml = String(
+      (draft.data?.[0] as { html?: unknown } | undefined)?.html ?? "",
+    ).trim();
     if (!replyHtml) {
       return { skipped: true, reason: "empty-reply", senderAddress };
     }
@@ -86,7 +87,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "microsoft-outlook",
         actionType: "write",
         actionKey: "send_email",
-        connection: microsoftOutlook,
+        connection: "microsoft-outlook",
         inputs: {
           recipients: [senderAddress],
           subject: `Re: ${subject || "your message"}`,

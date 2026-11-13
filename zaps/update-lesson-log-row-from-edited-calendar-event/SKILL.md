@@ -1,6 +1,6 @@
 ---
 name: update-lesson-log-row-from-edited-calendar-event
-description: Build a Zapier Next Gen Zap that keeps a lesson log in Google Sheets in step with Google Calendar. When a lesson event is created or edited, its row is updated (date, duration, title, notes), or a new row is added when no row has that event ID. Use when a tutoring, music or education business tracks sessions in a sheet and wants session details and billing to follow the calendar without manual edits.
+description: Build a Zap on Zapier that keeps a lesson log in Google Sheets in step with Google Calendar. When a lesson event is created or edited, its row is updated (date, duration, title, notes), or a new row is added when no row has that event ID. Use when a tutoring, music or education business tracks sessions in a sheet and wants session details and billing to follow the calendar without manual edits.
 license: MIT
 metadata:
   author: zapier
@@ -13,42 +13,44 @@ metadata:
 
 # Update lesson log row from edited calendar event
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/update-lesson-log-row-from-edited-calendar-event. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a lesson event is created or updated on the chosen Google Calendar (cancelled events are skipped by the trigger).
+1. **Trigger:** a lesson event is created or updated on the chosen Google Calendar (`google-calendar`, `event_updated`). Cancelled events are skipped by the trigger.
 2. **Google Sheets** looks for the row whose event ID (column A) matches the event's `id`.
 3. If a row matches, **Google Sheets** updates it: session date (the event's start date), duration in minutes, session summary (the event title) and session notes (the event description). The Amount column is left alone, so its formula recalculates from the new duration.
 4. If no row matches, **Google Sheets** adds one with the same fields and the event ID.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/update-lesson-log-row-from-edited-calendar-event` (it makes a zap project if you aren't in one), then `npx zap-pack deploy update-lesson-log-row-from-edited-calendar-event` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Google Calendar, New or Updated Event (`google-calendar` / `event_updated`), with `calendarid` set to the calendar that holds the lessons, and `expand_recurring` left on. Authenticate it with the user's Google Calendar connection.
-2. **Connections** (each alias in the code is the app's slug):
-   - `google-sheets`: the user's Google Sheets connection, for the account that owns the lesson log.
-3. **Constants:**
-   - `SPREADSHEET_ID`: the long ID in the sheet's URL.
-   - `WORKSHEET_ID`: the tab. The first tab is `"0"`.
-   - `EVENT_ID_COLUMN`, `DATE_COLUMN`, `DURATION_COLUMN`, `SUMMARY_COLUMN`, `NOTES_COLUMN`: column keys such as `COL$A`, not header names. Map the user's headers to their column letters. Column A must hold the event ID.
-4. Test with the steps below, then publish, wait until the trigger is active, and leave the workflow on.
+The Zap never deletes a row.
 
 ## Ask the user
 
-- Which Google Calendar holds the lessons? This goes in the trigger's `calendarid`.
-- Which sheet and tab is the lesson log, and which columns hold the event ID, date, duration, summary, notes and billing amount?
-- Does the sheet already have a billing formula in the amount column? The workflow relies on it. Rows the workflow adds will not have it until it is copied down (see Notes).
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                  | What goes there                                                                       |
+| ------------------------ | ------------------------------------------------------------------------------------- |
+| `REPLACE_SPREADSHEET_ID` | The lesson-log spreadsheet. Find it by name with the user's Google Sheets connection. |
 
-Run these two sample inputs as draft test runs (`run_workflow_draft` in Zapier MCP) against a test spreadsheet and a test calendar event you create for this. Each sample is the trigger payload shape: `id`, `summary`, `description`, `start.dateTime` and `duration_minutes`.
+Also review the defaults with them: `WORKSHEET_ID` (`"0"` is the first tab) and the column letters in `config.ts`, from `EVENT_ID_COLUMN` to `NOTES_COLUMN`. Column A must hold the event ID. Map the user's headers to their column letters.
+
+Ask these before turning it on:
+
+- Which Google Calendar holds the lessons? This is not a `REPLACE_` value: it is set as `calendarid` on the trigger when you build it.
+- Does the sheet already have a billing formula in the amount column? The Zap relies on it. Rows it adds will not have it until it is copied down (see Notes).
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `google-sheets` (the account that owns the lesson log) to the user's Google Sheets connection. The trigger's `google-calendar` account is bound in step 2. No other apps need a connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/event-updated.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. Set the trigger's `calendarid` to the calendar that holds the lessons, and leave `expand_recurring` on. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run these two sample inputs as draft test runs (`run_workflow_draft` in Zapier MCP) against a test spreadsheet and a test calendar event the user creates for this. Each sample is the trigger payload shape: `id`, `summary`, `description`, `start.dateTime` and `duration_minutes`.
 
 Update path: a row already exists with the event's ID.
 
@@ -92,16 +94,12 @@ Add path: no row has the event's ID.
 
 Check that a new row appears at the bottom with the event ID, date `2026-11-03`, duration `30`, the summary and the notes. Its amount cell stays blank.
 
-Then tell the user to delete the test rows and events if they were real data.
-
-## Customize
-
-- **Only some events:** add a filter step so only events on a set calendar, or with a tag, continue.
-- **Billing alerts:** send an internal notification to program coordinators when the billing amount changes by more than a threshold.
+If run-status tools aren't available, check the result in Google Sheets directly. Ask the user to delete the test rows and events; the agent does not delete them. Then publish, confirm the trigger is active, and leave the Zap on.
 
 ## Notes
 
 - The session date is the date part of the event's start, in the event's own timezone.
 - If two rows share an event ID, only the first is updated.
-- The workflow does not write the billing formula. The sheet's formula recalculates when the duration changes. A row the workflow adds has no Amount until the formula is copied down. Adding the formula to the sheet's amount column for every row fixes this without changing the workflow.
+- The Zap does not write the billing formula. A row it adds has no Amount until the formula is copied down. Adding the formula to the amount column for every row fixes this without changing the Zap.
+- To customize: add a filter so only events on a set calendar, or with a tag, continue; or send an internal alert to program coordinators when the billing amount changes by more than a threshold.
 - Never commit a real spreadsheet ID.

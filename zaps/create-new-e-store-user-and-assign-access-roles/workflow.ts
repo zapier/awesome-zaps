@@ -6,20 +6,19 @@ import {
   CUSTOMER_API_URL,
   DEFAULT_QUICK_START_URL,
   ONBOARDING_SUBJECT,
-} from "@/config";
-import microsoftOutlook from "@/connections/microsoft-outlook";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
 // Role label from the intake form → role ID in your customer platform. First match wins.
 const ROLE_IDS: Record<string, string> = {
-  "Store Admin": "YOUR_STORE_ADMIN_ROLE_ID",
-  "Store Staff": "YOUR_STORE_STAFF_ROLE_ID",
+  "Store Admin": "REPLACE_STORE_ADMIN_ROLE_ID", // Ask the user for the customer platform's ID for the Store Admin role.
+  "Store Staff": "REPLACE_STORE_STAFF_ROLE_ID", // Ask the user for the customer platform's ID for the Store Staff role.
 };
 // Quick start link per role label; DEFAULT_QUICK_START_URL is used when a role has no entry.
 const QUICK_START_URLS: Record<string, string> = {
-  "Store Admin": "YOUR_ADMIN_QUICK_START_URL",
-  "Store Staff": "YOUR_STAFF_QUICK_START_URL",
+  "Store Admin": "REPLACE_ADMIN_QUICK_START_URL", // Ask the user for the onboarding guide link for Store Admin.
+  "Store Staff": "REPLACE_STAFF_QUICK_START_URL", // Ask the user for the onboarding guide link for Store Staff.
 };
 // Ask the new user to reset the temporary password at first sign-in.
 const REQUIRE_PASSWORD_RESET = true;
@@ -40,7 +39,7 @@ function generateTemporaryPassword(): string {
     .slice(0, 20);
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-new-e-store-user-and-assign-access-roles",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -107,7 +106,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "microsoft-outlook",
         actionType: "write",
         actionKey: "send_email",
-        connection: microsoftOutlook,
+        connection: "microsoft-outlook",
         inputs: {
           recipients: [email],
           subject: ONBOARDING_SUBJECT,

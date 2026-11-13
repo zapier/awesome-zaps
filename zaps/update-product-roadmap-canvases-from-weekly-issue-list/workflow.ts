@@ -1,8 +1,7 @@
 import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 
-import { ROADMAP_LABEL, LOOKBACK } from "@/config";
-import jiraSoftwareCloud from "@/connections/jira-software-cloud";
+import { ROADMAP_LABEL, LOOKBACK } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -10,8 +9,8 @@ const sdk = createZapierSdk();
 const MAX_ITEMS = 100;
 // Jira project key -> product roadmap canvas ID. Issues from a project with no entry are skipped.
 const CANVAS_ID_BY_PROJECT_KEY: Record<string, string> = {
-  // Replace PROJ and YOUR_CANVAS_ID with your project key and canvas ID.
-  PROJ: "YOUR_CANVAS_ID",
+  // Ask the user which Jira project key maps to which roadmap canvas, then look up that canvas's ID in the canvas app. Add one entry per project.
+  REPLACE_PROJECT_KEY: "REPLACE_CANVAS_ID",
 };
 
 type JiraIssue = {
@@ -63,7 +62,7 @@ function toCanvasUpdate(issue: JiraIssue): CanvasUpdate | null {
   };
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "update-product-roadmap-canvases-from-weekly-issue-list",
   async (ctx) => {
     const search = await ctx.step("find-roadmap-issues", async () =>
@@ -71,7 +70,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "jira-software-cloud",
         actionType: "search",
         actionKey: "issue_jql",
-        connection: jiraSoftwareCloud,
+        connection: "jira-software-cloud",
         inputs: {
           jql: `labels = "${ROADMAP_LABEL}" AND updated >= ${LOOKBACK}`,
           maxResults: MAX_ITEMS,

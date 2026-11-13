@@ -4,35 +4,17 @@ Three days after an invoice is due, the customer gets a friendly reminder in you
 
 **Apps:** QuickBooks Online, Webhooks by Zapier, AI by Zapier, Gmail, SMS by Zapier
 
-## How it works
+## Install
 
-**Starts with:** QuickBooks Online New Invoice or Webhooks by Zapier Catch Hook
+This folder is a Zap template. Paste this into your AI agent:
 
-1. Wait until 3 days after the due date
-2. Check the invoice is still unpaid (Find Invoice in QuickBooks, or the status URL on the webhook path) (QuickBooks Online). Stops if the invoice is paid.
-3. Draft a polite reminder in the owner's voice (AI by Zapier)
-4. Email the customer the reminder (Gmail)
-5. Wait 4 more days (day 7 for an on-time invoice)
-6. Check the invoice again (QuickBooks Online). Stops if the invoice is paid.
-7. Text the owner who still owes what (SMS by Zapier)
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/unpaid-invoice-nudge
 
-## What you need
-
-- Gmail
-- SMS by Zapier
-- QuickBooks Online, when using the QuickBooks Online trigger
-
-## Install it
-
-Paste this into Claude, ChatGPT, Cursor, or any agent with [Zapier MCP](https://zapier.com/mcp) connected:
-
-> Install the Next Gen Zap at https://zapier.sh/zaps/unpaid-invoice-nudge using Zapier MCP.
-
-If you have this repo, the files in this folder are everything the agent needs: it follows `SKILL.md` and deploys `workflow.ts`.
+The agent follows `SKILL.md`: it asks you for your billing tool, your reminder voice and sender name, and which Gmail account sends the reminders, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings, including the optional status-check URL
 - `connections/`: the accounts it uses (`gmail`, `quickbooks`, `sms`)
-- `SKILL.md`: how an agent builds it, what to ask you, and how to test it

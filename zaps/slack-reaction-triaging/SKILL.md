@@ -1,6 +1,6 @@
 ---
 name: slack-reaction-triaging
-description: Build a Zapier Next Gen Zap that posts a Slack message to a triage channel whenever someone reacts to a message with the ticket emoji, with the message text and a link to it. Use when support requests are raised in Slack by reacting to them and someone triages them from one channel. This is the zap zapier.sh shows on its homepage.
+description: Build a Zap on Zapier that posts a Slack message to a triage channel whenever someone reacts to a message with the ticket emoji, with the message text and a link to it. Use when support requests are raised in Slack by reacting to them and someone triages them from one channel.
 license: MIT
 metadata:
   author: zapier
@@ -12,41 +12,36 @@ metadata:
 
 # Slack reaction to triage channel
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/slack-reaction-triaging. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** Slack, New Reaction Added in a Channel (`new_reaction_added_v3`). It fires when someone adds the `ticket` reaction to a message in the watched channel, and attaches the message's raw text and its permalink.
-2. **Slack** posts `Support request: <message text>` and the permalink to the triage channel.
-
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its setting from `config.ts` and its account from `connections/slack.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/slack-reaction-triaging` (it makes a zap project if you aren't in one), then `npx zap-pack deploy slack-reaction-triaging` from that project. Deploy asks for the triage channel, the watched channel and the Slack account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const SLACK_CHANNEL_ID = "value";`), write `connections/slack.ts` as `export default "slack";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/slack.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Slack, New Reaction Added in a Channel (`slack`, action `new_reaction_added_v3`). Set its parameters:
-   - Reaction: `ticket`.
-   - Channel ID: the channel to watch, which the user picks.
-   - Reacted message detail: `content`. Left blank, the trigger sends no message text.
-   - Include additional data: `permalink`.
-2. **Connections** (each alias in the code is the app's slug, as in the reference):
-   - `slack`: the user's Slack connection, the workspace with both channels. The trigger and the action use the same one.
-3. **Settings** (in `config.ts`; an `ask(…)` is asked when each person deploys):
-   - `SLACK_CHANNEL_ID`: the Slack channel ID triage posts go to. Use the ID, not the channel name.
-4. Test with the steps below, then publish and wait until the trigger is active. A Slack trigger needs no webhook URL.
+1. **Trigger:** someone adds the :ticket: reaction to a message in the watched channel (`slack`, `new_reaction_added_v3`). The trigger brings the message text and its permalink.
+2. **Slack** posts "Support request: <message text>" and the permalink to the triage channel.
 
 ## Ask the user
 
-- Which channel should the `ticket` reaction be watched in?
-- Which channel gets the triage posts? Get its channel ID (the `C…` ID in the channel's details).
+Each `REPLACE_…` value is set per person. Resolve channel names to IDs with the user's Slack connection; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                      | Where                                            | What goes there                                      |
+| ---------------------------- | ------------------------------------------------ | ---------------------------------------------------- |
+| `REPLACE_WATCHED_CHANNEL_ID` | `triggers/new-reaction-added.ts`, `conversation` | The channel whose messages get the :ticket: reaction |
+| `SLACK_CHANNEL_ID`           | `config.ts`                                      | The channel that gets the triage posts               |
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP, or `npx zap-pack run slack-reaction-triaging --input '…'`), with a triage channel you control:
+The two must be different channels, or a :ticket: on a triage post posts it again.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `slack` to the user's Slack connection for the workspace with both channels. The trigger and the action use the same one.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/new-reaction-added.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect the Slack action's fields with the user's connection before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test, with the triage channel set to one the user controls:
 
 ```json
 {
@@ -57,14 +52,9 @@ Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP, or `npx
 }
 ```
 
-Confirm the run finishes and one message appears in the triage channel with that text. Then do the real thing once: react to a message in the watched channel with `:ticket:` and check the triage channel. Tell the user to delete the test messages.
-
-## Customize
-
-- **Create a helpdesk ticket** as well: add a step after the post that creates a ticket in the helpdesk app.
-- **Watch every channel:** remove `conversation` from the trigger file.
+Check that one message appears in the triage channel with that text. If run-status tools aren't available, read the triage channel directly. Then publish, confirm the trigger is active, and do the real thing once: react to a message in the watched channel with :ticket: and check the triage channel. Ask the user to delete the test messages.
 
 ## Notes
 
-- Use different channels for watching and triage, or a `:ticket:` on a triage post posts it again.
-- Never commit real channel IDs; `config.ts` carries an `ask(…)`, and each person's answer stays in their `.zap.json`.
+- To watch every channel, remove `conversation` from the trigger. The triage channel is then watched too, so keep :ticket: off triage posts.
+- To also open a helpdesk ticket, add a step after the post that creates one in the helpdesk app.

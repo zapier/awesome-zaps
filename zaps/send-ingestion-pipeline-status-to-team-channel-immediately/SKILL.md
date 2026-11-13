@@ -1,6 +1,6 @@
 ---
 name: send-ingestion-pipeline-status-to-team-channel-immediately
-description: Use when an ingestion pipeline posts its run status to a webhook and the team wants a short success/error summary in a Slack channel right away. Fits data teams who watch loads by hand or want failures surfaced without opening the pipeline's dashboard.
+description: Build a Zap on Zapier that posts a short success or failure summary to a Slack channel whenever an ingestion pipeline posts its run status to a webhook. Use when data teams want loads and failures surfaced in Slack right away, without opening the pipeline's dashboard.
 license: MIT
 metadata:
   author: zapier
@@ -13,41 +13,40 @@ metadata:
 
 # Send ingestion pipeline status to team channel immediately
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/send-ingestion-pipeline-status-to-team-channel-immediately. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a status payload arrives at a Webhooks by Zapier catch-raw hook. The pipeline or its CI step posts to it when a load finishes.
-2. **Code (inline):** reads `status`, `success_count`, `error_count` and, if present, `pipeline` from the body. If the status is not `completed` and there are no errors, it stops and posts nothing.
-3. **Slack** posts one message to the team channel. The headline shows a warning when there are errors and a check mark when there are none. The body shows the status, succeeded count and failed count. No one is mentioned unless you turn that on.
+1. **Trigger:** a status payload arrives at a Webhooks by Zapier catch-raw hook (`webhook`, `hook_raw`). The pipeline or its CI step posts to it when a load finishes.
+2. **Code:** reads `status`, `success_count`, `error_count` and, if present, `pipeline` from the body. If the status is not `completed` and there are no errors, it stops and posts nothing.
+3. **Slack** posts one message to the team channel. The headline shows a warning when there are errors and a check mark when there are none. The body shows the status, succeeded count and failed count. No one is mentioned unless the user turns that on.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/send-ingestion-pipeline-status-to-team-channel-immediately` (it makes a zap project if you aren't in one), then `npx zap-pack deploy send-ingestion-pipeline-status-to-team-channel-immediately` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Webhooks by Zapier, Catch Raw Hook (`webhook`, action `hook_raw`). No connection, so `authentication_id` is `null` and `params` is empty.
-2. **Connections** (each alias in the code is the app's slug):
-   - `slack`: the Slack connection for the workspace that owns the channel.
-3. **Constants:**
-   - `SLACK_CHANNEL`: the channel ID (not the name). Get it from the channel's details in Slack, or from the Slack channel picker in Zapier.
-   - `COMPLETED_STATUS`: the status string that means a run finished. Defaults to `"completed"`.
-   - `MENTION_ON_ERRORS`: `false` by default. Set it to `true` to add `@channel` to error messages.
-4. Test with the steps below, then publish and give the user the trigger's `webhook_url` (shown on the workflow in the editor) to paste into the pipeline's notification step.
+Only the status and counts are posted. The Zap never changes the pipeline or its data.
 
 ## Ask the user
 
-- Which Slack channel should get the summary, and which Slack connection should post it? The build used a placeholder channel ID.
-- What does the pipeline send? The code reads `status`, `success_count`, `error_count` and `pipeline` from the JSON body. If the sender uses other names, change them in `workflow.ts` before installing.
-- Should errors @-mention the channel? It is off by default.
+Each `REPLACE_…` value is set per person. Resolve channel names to IDs with the user's Slack connection; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting         | What goes there                                                                        |
+| --------------- | -------------------------------------------------------------------------------------- |
+| `SLACK_CHANNEL` | The channel that gets the status summaries, looked up with the user's Slack connection |
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing. Use a test channel, not the team's:
+Also review the defaults with them: `COMPLETED_STATUS` (`"completed"`, the status that means a run finished), and `MENTION_ON_ERRORS` in `workflow.ts` (`false`; set it to `true` to add `@channel` to error messages).
+
+Before building, confirm what the pipeline sends. The code reads `status`, `success_count`, `error_count` and `pipeline` from the JSON body. If the sender uses other names, change them in `workflow.ts` first.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `slack` to the user's Slack connection for the workspace that owns the channel. The webhook trigger needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/hook-raw.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect the Slack action's fields with the user's connection before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test, with the channel set to one the user controls:
 
 ```json
 {
@@ -55,15 +54,12 @@ Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before 
 }
 ```
 
-Confirm that one message appears in the channel with the warning headline, `Status: completed · Succeeded: 120 · Failed: 3`, and the pipeline name. This sample was run and the message was read back from Slack.
-
-## Customize
-
-- **Send a direct message to an on-call user** when errors occur: add a second Slack step, behind the same error check, that uses the send-direct-message action.
-- **Write each summary to a logging table or archive** for later audit: add a Google Sheets or Zapier Tables step after the Slack step.
+Check that one message appears in the channel with the warning headline, `Status: completed · Succeeded: 120 · Failed: 3`, and the pipeline name. If run-status tools aren't available, read the channel directly. Then publish, confirm the trigger is active, and ask the user to delete the test message. The user deletes test data, not the agent.
 
 ## Notes
 
-- The message says "completed" when there are no errors and "finished with errors" when there are. It does not check the pipeline's own status vocabulary, so anything other than `completed` with zero errors is skipped.
-- Only one message is posted per payload. If the sender posts several times, each post is a separate message.
-- Never commit a real channel ID or webhook URL. Anyone with the webhook URL can post into the channel.
+- After publishing, give the user the trigger's `webhook_url` (shown on the workflow in the editor) to paste into the pipeline's notification step. Anyone with that URL can post into the channel, so don't share it or commit it.
+- The message says "completed" when there are no errors and "finished with errors" when there are. Anything other than `completed` with zero errors is skipped, whatever the pipeline's own status vocabulary.
+- Each payload posts one message. If the sender posts several times, each post is a separate message.
+- To send a direct message to an on-call user when errors occur, add a second Slack step behind the same error check.
+- To keep an audit trail, add a Google Sheets or Zapier Tables step after the Slack step that writes each summary.

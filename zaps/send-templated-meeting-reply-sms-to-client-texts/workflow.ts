@@ -6,9 +6,7 @@ import {
   BUSINESS_PHONE_NUMBER_ID,
   TEMPLATES_TABLE_ID,
   FALLBACK_REPLY,
-} from "@/config";
-import zapierTables from "@/connections/zapier-tables";
-import quo from "@/connections/quo";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -23,6 +21,9 @@ const InputSchema = z
   })
   .loose();
 type Input = z.infer<typeof InputSchema>;
+
+// A found template's body. Anything else in the record is ignored, and a missing or non-text body falls back.
+const TemplateSchema = z.object({ old__data__f2: z.string().nullish() });
 
 function normalizeInput(rawInput: unknown): unknown {
   if (typeof rawInput === "string") {
@@ -47,7 +48,7 @@ const workflow = defineDurable<Input, unknown>(
         appKey: "zapier-tables",
         actionType: "search",
         actionKey: "find_record",
-        connection: zapierTables,
+        connection: "zapier-tables",
         inputs: {
           table_id: TEMPLATES_TABLE_ID,
           filter_count: "1",
@@ -58,7 +59,7 @@ const workflow = defineDurable<Input, unknown>(
       }),
     );
 
-    const template = lookup.data[0];
+    const template = TemplateSchema.safeParse(lookup.data[0]).data;
     const templateBody =
       typeof template?.old__data__f2 === "string" &&
       template.old__data__f2.trim()
@@ -71,7 +72,7 @@ const workflow = defineDurable<Input, unknown>(
         appKey: "quo",
         actionType: "write",
         actionKey: "send_message",
-        connection: quo,
+        connection: "quo",
         inputs: {
           phone_number_id: BUSINESS_PHONE_NUMBER_ID,
           to: clientNumber,

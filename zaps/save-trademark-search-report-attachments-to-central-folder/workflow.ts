@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { DRIVE_FOLDER_ID } from "@/config";
-import googleDrive from "@/connections/google-drive";
+import { DRIVE_FOLDER_ID } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -27,7 +26,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "save-trademark-search-report-attachments-to-central-folder",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -54,30 +53,34 @@ const workflow = defineDurable<unknown, unknown>(
       .slice(0, 100);
 
     const results = await Promise.all(
-      attachments.map((attachment, index) => {
+      attachments.map((attachment) => {
         const fileName = `${datePart} ${subject} - ${attachment.truncatedFileName ?? "attachment"}`;
-        return ctx.step(`upload-attachment-${index}`, async () => {
-          try {
-            const upload = await sdk.runAction({
-              appKey: "google-drive",
-              actionType: "write",
-              actionKey: "file",
-              connection: googleDrive,
-              inputs: {
-                file: attachment.attachment,
-                folder: DRIVE_FOLDER_ID,
-                new_name: fileName,
-              },
-            });
-            return {
-              ok: true,
-              name: fileName,
-              id: upload.data?.[0]?.id ?? null,
-            };
-          } catch (error) {
-            return { ok: false, name: fileName, error: String(error) };
-          }
-        });
+        return ctx.step(
+          `upload-attachment-${input.message_id ?? "no-message-id"}`,
+          async () => {
+            try {
+              const upload = await sdk.runAction({
+                appKey: "google-drive",
+                actionType: "write",
+                actionKey: "file",
+                connection: "google-drive",
+                inputs: {
+                  file: attachment.attachment,
+                  folder: DRIVE_FOLDER_ID,
+                  new_name: fileName,
+                },
+              });
+              return {
+                ok: true,
+                name: fileName,
+                id:
+                  (upload.data?.[0] as { id?: string } | undefined)?.id ?? null,
+              };
+            } catch (error) {
+              return { ok: false, name: fileName, error: String(error) };
+            }
+          },
+        );
       }),
     );
 

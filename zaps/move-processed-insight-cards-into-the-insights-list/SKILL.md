@@ -1,6 +1,6 @@
 ---
 name: move-processed-insight-cards-into-the-insights-list
-description: Build a Zapier Next Gen Zap that takes a list of processed insight items by webhook and moves each referenced Trello card into the product insights list, one card at a time. Use when a product or research team triages insights as Trello cards and wants processed ones moved into the insights list without manual drags.
+description: Build a Zap on Zapier that takes a list of processed insight items by webhook and moves each referenced Trello card into the product insights list, one card at a time. Use when a product or research team triages insights as Trello cards and wants processed ones moved into the insights list without manual drags.
 license: MIT
 metadata:
   author: zapier
@@ -13,59 +13,52 @@ metadata:
 
 # Move processed insight cards into the insights list
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/move-processed-insight-cards-into-the-insights-list. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a list of insight IDs arrives at a Webhooks by Zapier catch hook. The sender posts either a JSON array or an object with an `insights` array.
-2. **Parse:** the workflow reads the list and turns each item into a card ID. If the list is empty, the run stops and moves nothing.
-3. **Trello** moves each card to the insights list on the board. The moves run one at a time, with a pause between them, and a card that fails is counted and does not stop the rest.
-
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/move-processed-insight-cards-into-the-insights-list` (it makes a zap project if you aren't in one), then `npx zap-pack deploy move-processed-insight-cards-into-the-insights-list` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Webhooks by Zapier, Catch Hook (`webhook`, `hook_v2`). It needs no connection, so its `authentication_id` is `null`.
-2. **Connections** (each alias in the code is the app's slug):
-   - `trello`: the user's Trello connection, for the account that owns the insight board.
-3. **Constants:**
-   - `TRELLO_BOARD_ID`: the board that holds the insight cards. It is the ID in the board's URL.
-   - `TRELLO_INSIGHTS_LIST_ID`: the list the cards move into.
-   - `SECONDS_BETWEEN_MOVES`: the pause between card moves. Defaults to `60`.
-4. Test with the steps below, then publish, wait until the trigger is active, and give the user their webhook URL to point their sending system at.
+1. **Trigger:** a list of insight IDs arrives at a Webhooks by Zapier catch hook (`webhook`, `hook_v2`). The sender posts either a JSON array or an object with an `insights` array. If the list is empty, the run stops and moves nothing.
+2. **Parse:** each item becomes a card ID. An item that is neither a string, a number nor an object with an `id` is counted as unreadable and skipped.
+3. **Trello** moves each card to the insights list on the board, one at a time, with a pause between moves. A card that fails is counted and does not stop the rest. The Zap only moves cards; it never creates, edits or deletes them.
 
 ## Ask the user
 
-- Which Trello board holds the insight cards, and which list is the insights list?
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
+
+| Setting                   | What goes there                                                                                  |
+| ------------------------- | ------------------------------------------------------------------------------------------------ |
+| `TRELLO_BOARD_ID`         | The Trello board that holds the insight cards. Find it by name with the user's Trello connection |
+| `TRELLO_INSIGHTS_LIST_ID` | The list on that board the cards move into. Find it by name on that board                        |
+
+Also review with them:
+
+- `SECONDS_BETWEEN_MOVES` in `workflow.ts`: the pause between moves, 60 seconds by default to avoid rate limits. 10 seconds suits small batches.
 - What does the sending system post? The workflow accepts a JSON array or `{ "insights": [...] }`, and each item is either a card ID or an object with an `id`. If the sender uses another field name, change the code before installing.
-- Are the insight IDs Trello card IDs? If they are something else, the lookup for the card must be added before the move.
-- Should the pause between moves be shorter for small batches? The spec's Customize option uses 10 seconds.
+- Are the insight IDs Trello card IDs? If they are something else, a lookup for the card must be added before the move.
 
-## Test
+## Build it
 
-Run this sample as a draft test run before publishing, with two card IDs that exist on the board:
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `trello` to the user's Trello connection for the account that owns the insight board. Webhooks by Zapier needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/hook.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect the Trello action's fields with the user's connection before the first test run, and fix any key in `workflow.ts` that doesn't match. Then give the user the webhook URL to point their sending system at.
+
+## Test it
+
+Run it once as a draft test with two cards the user controls on the board:
 
 ```json
 {
-  "insights": ["YOUR_TRELLO_CARD_ID_1", "YOUR_TRELLO_CARD_ID_2"]
+  "insights": ["5f1a2b3c4d5e6f7a8b9c0d01", "5f1a2b3c4d5e6f7a8b9c0d02"]
 }
 ```
 
-Confirm that both cards are now in the insights list and that the run reports `moved: 2, failed: 0`. The second move should start about a minute after the first. Then move the cards back if they were real data.
-
-## Customize
-
-- **Faster moves for small batches:** lower `SECONDS_BETWEEN_MOVES` to `10`.
-- **Label or owner after the move:** add a Formatter step that sets a card label or owner after each move.
+Check that both cards are now in the insights list and that the run reports `moved: 2, failed: 0`. The second move should start about a minute after the first. If run-status tools aren't available, check the cards in Trello directly. Then ask the user to move the test cards back or delete them; the user deletes test data, not the agent.
 
 ## Notes
 
-- A card ID that Trello does not recognise counts as a failed move. Nothing is created for it.
-- Items that are neither a string, a number nor an object with an `id` are counted as `unreadable` and skipped.
-- Anyone who can post to the webhook URL can move cards on the board. Keep the URL private.
-- Never commit a real board ID or webhook URL.
+- A card ID that Trello does not recognise counts as a failed move, and nothing is created for it.
+- Anyone who can post to the webhook URL can move cards on the board. Keep the URL private, and never commit a real board ID or webhook URL.
+- To set a label or owner after each move, add a Formatter step that does it after the Trello step.

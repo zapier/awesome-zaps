@@ -1,6 +1,6 @@
 ---
 name: create-payment-intents-from-new-billing-records-daily
-description: Build a Zapier Next Gen Zap that creates a Stripe payment intent whenever a billing record with an amount and currency is added or updated in a Zapier Tables table, matching or creating the Stripe customer by email, then writes the intent ID and status back to the record and marks it processed. Use when a finance or billing team logs charges in a table and wants payment intents raised in Stripe without manual entry.
+description: Build a Zap on Zapier that creates a Stripe payment intent whenever a billing record with an amount and currency is added or updated in a Zapier Tables table, matching or creating the Stripe customer by email, then writes the intent ID and status back to the record and marks it processed. Use when a finance or billing team logs charges in a table and wants payment intents raised in Stripe without manual entry.
 license: MIT
 metadata:
   author: zapier
@@ -13,52 +13,61 @@ metadata:
 
 # Create payment intents from new billing records
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/create-payment-intents-from-new-billing-records-daily. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a record is added or updated in the billing table (Zapier Tables, New or Updated Record).
+1. **Trigger:** a record is added or updated in the billing table (`zapier-tables`, `new_or_updated_record`).
 2. The run skips the record if it is already processed (the processed checkbox is ticked or a payment intent ID is present), or if it has no positive numeric amount or no three-letter currency.
 3. The amount is converted to Stripe's smallest currency unit (×100 for most currencies, ×1 for zero-decimal ones such as JPY, ×1000 for three-decimal ones such as KWD).
 4. **Stripe** looks up the customer by the record's customer email. If there is no match, it creates a customer with that email. A record with no customer email gets an intent with no customer.
 5. **Zapier Tables** updates the same record with the payment intent ID and status and ticks the processed checkbox. That update fires the trigger again, and the run skips it as already processed.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-payment-intents-from-new-billing-records-daily` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-payment-intents-from-new-billing-records-daily` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Zapier Tables, New or Updated Record (`zapier-tables`, `new_or_updated_record`), with `params: { table_id: <TABLE_ID> }` and the Zapier Tables connection as its `authentication_id`.
-2. **Connections** (each alias in the code is the app's slug):
-   - `zapier-tables`: the user's Zapier Tables connection, for the account that owns the billing table.
-   - `stripe`: the user's Stripe connection. Use a test-mode account first.
-3. **Constants:**
-   - `TABLE_ID`: the billing table's ID, from its URL.
-   - `CUSTOMER_REF_FIELD`, `AMOUNT_FIELD`, `CURRENCY_FIELD`, `DESCRIPTION_FIELD`, `PAYMENT_INTENT_ID_FIELD`, `PAYMENT_STATUS_FIELD`, `PROCESSED_FIELD`: Tables field keys such as `f1`, not field names. Read them from the trigger's sample record (`new.data`) or from the Update Record action's `new__data__fN` inputs. The processed field must be a checkbox.
-   - `CONFIRM_PAYMENT`: `false` creates intents only. `true` makes Stripe try to charge immediately, so only set it on the user's explicit say-so.
-4. Test with the steps below, then publish and wait until the trigger is active.
+The Zap creates intents only and never charges a customer unless the user explicitly asks for it.
 
 ## Ask the user
 
-- Which table holds the billing records, and which fields hold the customer email, amount, currency and description? If they don't have the write-back fields (payment intent ID, payment status, processed checkbox), offer to add them.
-- Is the amount stored in major units (49.99) or already in cents? The code assumes major units.
-- Should intents be confirmed (charged) immediately? The default is no.
-- Is the customer reference an email address? The code matches Stripe customers by email; a Stripe customer ID needs `selection: "id"` instead.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting            | Where                                                                        | What goes there                                                                                                                           |
+| ------------------ | ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `REPLACE_TABLE_ID` | `config.ts` (`TABLE_ID`) and `triggers/new-or-updated-record.ts`, `table_id` | The Zapier Tables table that holds the billing records. Look it up with the user's Zapier Tables connection; one answer fills both places |
 
-Use a **test-mode** Stripe connection. Add a record to the table and run it as a draft test run (`run_workflow_draft` in Zapier MCP) with the trigger's record, shaped like this:
+Also review the defaults with them:
+
+- `CUSTOMER_REF_FIELD` (`f1`): the customer's email. The Zap matches Stripe customers by email.
+- `AMOUNT_FIELD` (`f2`): the amount in major units (49.99). The code assumes major units, not cents.
+- `CURRENCY_FIELD` (`f3`), `DESCRIPTION_FIELD` (`f4`): the three-letter currency code and an optional description.
+- `PAYMENT_INTENT_ID_FIELD` (`f5`), `PAYMENT_STATUS_FIELD` (`f6`), `PROCESSED_FIELD` (`f7`): where the write-back goes. `PROCESSED_FIELD` must be a checkbox.
+- `CONFIRM_PAYMENT` (`false`): `false` creates intents only.
+
+The `f1` to `f7` values are Tables field keys, not field names. Read the real keys from the trigger's sample record (`new.data`) or from the Update Record action's `new__data__fN` inputs.
+
+Before turning it on, confirm with the user:
+
+- The billing table has the write-back fields (payment intent ID, payment status, processed checkbox). If it doesn't, offer to add them.
+- Use a test-mode Stripe account first.
+- Intents should be created but not charged. Set `CONFIRM_PAYMENT` to `true` only on the user's explicit say-so.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `stripe` (use a test-mode account first) and `zapier-tables` (the account that owns the billing table) to the user's connections. The Stripe and Zapier Tables actions use them. No other apps need a connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/new-or-updated-record.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections (and sample the trigger, if it has one) before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Use a **test-mode** Stripe connection. Run it once as a draft test run (`run_workflow_draft` in Zapier MCP) with a test record shaped like this:
 
 ```json
 {
-  "record_id": "YOUR_RECORD_ID",
-  "table_id": "YOUR_TABLE_ID",
+  "record_id": "test-record-0001",
+  "table_id": "test-table-0001",
   "new": {
-    "id": "YOUR_RECORD_ID",
+    "id": "test-record-0001",
     "data": {
       "f1": "customer@example.com",
       "f2": 12.5,
@@ -72,17 +81,15 @@ Use a **test-mode** Stripe connection. Add a record to the table and run it as a
 }
 ```
 
-Check that a payment intent for 1250 (USD) appears in the Stripe test dashboard with status `requires_payment_method`, and that the record now has its ID, its status and the processed box ticked. Then run the same input again: it must skip as `already-processed`. A record with an empty amount must skip as `missing-amount-or-currency`.
+Check that a payment intent for 1250 (USD) appears in the Stripe test dashboard with status `requires_payment_method`, and that the test record now has its ID, its status and the processed box ticked. Run the same input again: it must skip as `already-processed`. A record with an empty amount must skip as `missing-amount-or-currency`.
 
-## Customize
-
-- **Minimum amount and required customer:** skip records below a minimum amount or with no customer reference.
-- **Alert on failure:** when intent creation fails, send a notification or create a task so billing staff can follow up.
+If run-status tools aren't available, check the result in Stripe and Zapier Tables directly. Ask the user to delete the test intent and test record, since the agent doesn't delete test data. Then publish and confirm the trigger is active.
 
 ## Notes
 
-- Despite "daily" in the name, the spec's trigger is New or Updated Record, so each record is processed as it changes, not in a daily batch.
-- If Stripe fails, the run fails and nothing is written back, so the record stays unprocessed and will be picked up on its next edit.
+- Despite "daily" in the name, the trigger is New or Updated Record, so each record is processed as it changes, not in a daily batch.
+- If Stripe fails, the run fails and nothing is written back, so the record stays unprocessed and is picked up on its next edit.
 - Editing a processed record does nothing; clear the payment intent ID and untick processed to raise a new intent.
 - The amount is rounded to the nearest smallest unit; Stripe's minimum charge (about $0.50) still applies.
+- To customize: skip records below a minimum amount or with no customer reference, or send a notification or create a task when intent creation fails so billing staff can follow up.
 - Never commit a real table ID. A live Stripe connection creates real customers and intents.

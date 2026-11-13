@@ -6,16 +6,18 @@ When a lesson on your calendar is created or edited, its row in your lesson-log 
 
 **Based on:** [Update lesson log row from edited calendar event](https://zapier.com/automations/business-owners/education-operations/attendance-tracking/update-lesson-log-row-from-edited-calendar-event) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/update-lesson-log-row-from-edited-calendar-event/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/update-lesson-log-row-from-edited-calendar-event
+
+The agent follows `SKILL.md`: it asks you for your lesson calendar and lesson-log sheet, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
 - `connections/`: the accounts it uses (`google-calendar`, `google-sheets`)
 - `triggers/`: what starts it

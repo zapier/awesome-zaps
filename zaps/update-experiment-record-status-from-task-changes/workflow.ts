@@ -9,8 +9,7 @@ import {
   STATUS_FIELD,
   TITLE_FIELD,
   OWNER_FIELD,
-} from "@/config";
-import airtable from "@/connections/airtable";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -29,7 +28,7 @@ const RecordSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "update-experiment-record-status-from-task-changes",
   async (ctx, rawInput) => {
     const task = TaskSchema.parse(
@@ -48,7 +47,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "airtable",
         actionType: "search",
         actionKey: "findRecord",
-        connection: airtable,
+        connection: "airtable",
         inputs: {
           applicationId: AIRTABLE_BASE_ID,
           tableName: AIRTABLE_TABLE_NAME,
@@ -66,7 +65,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "airtable",
           actionType: "write",
           actionKey: "createRecord",
-          connection: airtable,
+          connection: "airtable",
           inputs: {
             applicationId: AIRTABLE_BASE_ID,
             tableName: AIRTABLE_TABLE_NAME,
@@ -91,7 +90,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "airtable",
         actionType: "write",
         actionKey: "updateRecord",
-        connection: airtable,
+        connection: "airtable",
         inputs: {
           rowId: record.id,
           applicationId: AIRTABLE_BASE_ID,

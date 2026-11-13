@@ -1,19 +1,14 @@
 import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 
-import sms from "@/connections/sms";
-import gmail from "@/connections/gmail";
-import googleSheets from "@/connections/google-sheets";
+import {
+  OWNER_EMAIL,
+  OWNER_VOICE,
+  TESTIMONIAL_SHEET_ID,
+  TESTIMONIAL_WORKSHEET_ID,
+} from "./config.ts";
 
 const sdk = createZapierSdk();
-
-// Who gets the reply drafts, and where 5-star reviews are collected.
-const OWNER_EMAIL = "you@example.com"; // ask the user
-const TESTIMONIAL_SHEET_ID = "YOUR_SPREADSHEET_ID"; // the "Testimonial Tuesday" sheet
-const TESTIMONIAL_WORKSHEET_ID = "0"; // the tab inside that sheet; "0" is the first tab
-// How replies should sound. Edit this to match the owner.
-const OWNER_VOICE =
-  "Warm, plain-spoken small business owner. First person. Short sentences. Grateful but not gushing. No corporate phrases.";
 
 // Triggers: Webhooks by Zapier Catch Hook (any review site or form can POST to it),
 // plus Google Business Profile "New Review" (Google Business Profile new_review_v3, authenticated with the
@@ -55,13 +50,11 @@ function parseStars(review: Record<string, unknown>): number | null {
   return null;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "google-review-reply-draft",
   async (ctx, rawInput) => {
-    if (OWNER_EMAIL === "you@example.com")
-      throw new Error(
-        "Set OWNER_EMAIL at the top of workflow.ts before deploying",
-      );
+    if (OWNER_EMAIL === "REPLACE_OWNER_EMAIL")
+      throw new Error("Set OWNER_EMAIL in config.ts before deploying");
     const review = normalizeInput(rawInput);
     const reviewJson = JSON.stringify(review);
 
@@ -123,7 +116,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "sms",
           actionType: "write",
           actionKey: "send_v2",
-          connection: sms,
+          connection: "sms",
           inputs: { message: smsText },
         }),
       );
@@ -151,7 +144,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: gmail,
+        connection: "gmail",
         inputs: { to: [OWNER_EMAIL], subject, body, body_type: "plain" },
       }),
     );
@@ -159,9 +152,9 @@ const workflow = defineDurable<unknown, unknown>(
     // 5 stars: add a row to the Testimonial Tuesday sheet.
     let testimonial: unknown = null;
     if (stars === 5) {
-      if (TESTIMONIAL_SHEET_ID === "YOUR_SPREADSHEET_ID")
+      if (TESTIMONIAL_SHEET_ID === "REPLACE_TESTIMONIAL_SHEET_ID")
         throw new Error(
-          "Set TESTIMONIAL_SHEET_ID at the top of workflow.ts before deploying",
+          "Set TESTIMONIAL_SHEET_ID in config.ts before deploying",
         );
       const addedAt = await ctx.step("capture-review-date", async () =>
         new Date().toISOString().slice(0, 10),
@@ -171,7 +164,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "google-sheets",
           actionType: "write",
           actionKey: "add_row",
-          connection: googleSheets,
+          connection: "google-sheets",
           inputs: {
             spreadsheet: TESTIMONIAL_SHEET_ID,
             worksheet: TESTIMONIAL_WORKSHEET_ID,

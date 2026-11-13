@@ -6,9 +6,7 @@ import {
   SLACK_CHANNEL_ID,
   MEETINGS_TABLE_ID,
   ACTION_ITEMS_MARKER,
-} from "@/config";
-import zapierTables from "@/connections/zapier-tables";
-import slack from "@/connections/slack";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -53,7 +51,7 @@ function extractActionItems(transcript: string): string[] {
     .slice(0, MAX_ACTION_ITEMS);
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "post-meeting-notes-and-action-items-to-team",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -76,7 +74,9 @@ const workflow = defineDurable<unknown, unknown>(
         actionKey: "get",
         inputs: { url: textUrl, as_json: "no" },
       });
-      return String(response.data[0]?.text ?? "");
+      return String(
+        (response.data[0] as { text?: string } | undefined)?.text ?? "",
+      );
     });
 
     const actionItems = extractActionItems(transcript);
@@ -90,7 +90,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "create_record",
-        connection: zapierTables,
+        connection: "zapier-tables",
         inputs: {
           table_id: MEETINGS_TABLE_ID,
           new__data__f1: title,
@@ -108,7 +108,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "channel_message",
-        connection: slack,
+        connection: "slack",
         inputs: {
           channel: SLACK_CHANNEL_ID,
           text: message,

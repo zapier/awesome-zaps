@@ -9,7 +9,7 @@ import {
   TITLE_FIELD,
   DESCRIPTION_FIELD,
   CONSENT_FIELD,
-} from "@/config";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -25,7 +25,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-backlog-items-from-product-wish-form-submissions",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(

@@ -1,6 +1,6 @@
 ---
 name: send-meeting-notes-email-to-advisor-operations-team
-description: Build a Zapier Next Gen Zap that turns an incoming call event (posted to a webhook) into an HTML meeting-notes email from Microsoft Outlook to advisors, with operations coordinators copied, and ignores duplicate webhook retries. Use when an advisory, wealth or client-services team wants call context in everyone's inbox for same-day follow-up without writing recap emails by hand.
+description: Build a Zap on Zapier that turns an incoming call event (posted to a webhook) into an HTML meeting-notes email from Microsoft Outlook to advisors, with operations coordinators copied, and ignores duplicate webhook retries. Use when an advisory, wealth or client-services team wants call context in everyone's inbox for same-day follow-up without writing recap emails by hand.
 license: MIT
 metadata:
   author: zapier
@@ -13,44 +13,44 @@ metadata:
 
 # Send meeting notes email to advisor operations team
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/send-meeting-notes-email-to-advisor-operations-team. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a call event arrives at a Webhooks by Zapier catch hook (a call recorder, dialer, CRM or script posts to it).
+1. **Trigger:** a call event arrives at a Webhooks by Zapier catch hook (`webhook`, `hook_v2`). A call recorder, dialer, CRM or script posts to it.
 2. **Microsoft Outlook** searches the mailbox for the event ID. If an email whose subject carries `(Ref <event_id>)` is already there, the run stops: it is a webhook retry.
 3. The workflow builds the email in code: subject from the call title, a participant list, a bullet list of discussion topics and the meeting link, escaped as HTML.
-4. **Microsoft Outlook** sends it to the advisor list, CCs the ops coordinators and sets Reply-To to the team mailbox.
-
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/send-meeting-notes-email-to-advisor-operations-team` (it makes a zap project if you aren't in one), then `npx zap-pack deploy send-meeting-notes-email-to-advisor-operations-team` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Webhooks by Zapier, Catch Hook (`webhook`, `hook_v2`). It needs no connection, so its `authentication_id` is `null`, and its `params` are empty.
-2. **Connections** (each alias in the code is the app's slug):
-   - `microsoft-outlook`: the user's Outlook connection for the mailbox that sends the notes. Both the dedupe search and the send use it.
-3. **Constants:**
-   - `ADVISOR_EMAILS`: list of advisor addresses (To).
-   - `OPS_CC_EMAILS`: list of ops coordinator addresses (CC). `[]` for none.
-   - `REPLY_TO_EMAIL`: team mailbox for replies. `""` to reply to the sender.
-   - `SUBJECT_PREFIX`: text before the call title. The tested value is `"[install-test] Meeting notes: "`; change it to something like `"Meeting notes: "` for real use.
-4. Test with the steps below, then publish, wait until the trigger is active, and give the user their webhook URL to point their call system at.
+4. **Microsoft Outlook** sends it to the advisor list, copies the ops coordinators and sets Reply-To to the team mailbox.
 
 ## Ask the user
 
-- Who are the advisors (To) and the ops coordinators (CC)? A distribution list address works as one entry.
-- Which team mailbox should replies go to?
-- Which Outlook account sends the notes?
-- What does their call system post? The code reads `event_id` (or `submission_id`), `call_title`, `participants` (a list of names, of `{ name, email }` objects, or a comma/newline-separated string), `topics` (a list or a comma/newline-separated string) and `meeting_link`. If their field names differ, tell them before installing; missing fields fall back to "Client call", "Not provided" or "None recorded" rather than failing.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                          | What goes there                                                                                               |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `REPLACE_ADVISOR_EMAILS`         | The advisor addresses that get the notes (To), one per entry. A distribution list address works as one entry. |
+| `REPLACE_OPS_COORDINATOR_EMAILS` | The ops coordinator addresses copied on every email (CC), one per entry. Use an empty list for no CC.         |
+| `REPLACE_REPLY_TO_EMAIL`         | The team mailbox replies should go to (Reply-To). Use `""` to reply to the sender.                            |
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing, with every address constant set to the connected Outlook account's own address:
+Also review the default `SUBJECT_PREFIX` in `config.ts`. It is the test value `[install-test] Meeting notes: `; change it to something like `Meeting notes: ` for real use.
+
+Before building, confirm:
+
+- Which Outlook account sends the notes? It is bound under Accounts below.
+- What does their call system post? The code reads `event_id` (or `submission_id`), `call_title`, `participants` (a list of names, of `{ name, email }` objects, or a comma or newline separated string), `topics` (a list or a comma or newline separated string) and `meeting_link`. If their field names differ, tell them before installing. Missing fields fall back to "Client call", "Not provided" or "None recorded" rather than failing.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `microsoft-outlook` to the user's Outlook connection for the mailbox that sends the notes. The dedupe search and the send both use it. Webhooks by Zapier needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/hook.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it. The webhook trigger has no connection, so its `authentication_id` is `null`.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger, if it has one, before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run this sample as a draft test run before publishing, with every address set to the connected Outlook account's own address:
 
 ```json
 {
@@ -71,14 +71,12 @@ Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before 
 
 Check that one email arrived with the subject `… Quarterly review with Jordan Lee (Ref installtest20261029opus)`, both participants listed, three topic bullets, a clickable link, and the CC and Reply-To set. To test dedupe, wait a minute and run the same payload again: it should return `{ skipped: true, reason: "duplicate-event" }` and send nothing. Use a fresh `event_id` for each new send test.
 
-## Customize
-
-- **VIP routing:** send high-priority calls to a lead advisor when the payload has a VIP flag.
-- **Attachments:** when the webhook includes a recording or transcript link, attach it (the Outlook Send Email action accepts file URLs).
+If run-status tools aren't available, check the result in Microsoft Outlook directly. Ask the user to delete the test emails; the agent should not delete them. Then publish, confirm the trigger is active, and give the user their webhook URL to point their call system at.
 
 ## Notes
 
-- Dedupe relies on Outlook's mailbox search, which can lag a few seconds behind a send. A retry that lands within that window may send a second email. Payloads without `event_id` or `submission_id` are never deduped.
-- The event ID appears in the subject as `(Ref …)`; removing it from the subject breaks dedupe.
-- Outlook ignores HTML styling it doesn't support, so the email is kept to plain headings, paragraphs and a list.
-- Never commit real addresses or the webhook URL. Anyone with the webhook URL can send emails to the advisor list.
+- Dedupe relies on Outlook's mailbox search, which can lag a few seconds behind a send, so a retry inside that window may send a second email. Payloads without `event_id` or `submission_id` are never deduped.
+- Keep `(Ref …)` in the subject. Removing it breaks dedupe.
+- Outlook ignores HTML styling it doesn't support, so the email uses plain headings, paragraphs and a list.
+- Anyone with the webhook URL can send email to the advisor list. Keep the URL private and never commit real addresses.
+- To extend it, route high-priority calls to a lead advisor when the payload carries a VIP flag, or attach the recording or transcript link when the webhook includes one.

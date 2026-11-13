@@ -1,12 +1,13 @@
-import { ask } from "zap-pack";
+// This zap's settings. Each "REPLACE_…" value is set per person before deploying; its comment says how to get it.
+// The other values are defaults you can change.
+
+export const SPREADSHEET_ID = "REPLACE_SPREADSHEET_ID"; // Ask the user which sheet is the environment registry, then look up its ID with their Google Sheets connection. It holds both tabs below.
+export const LOG_WORKSHEET_ID = "REPLACE_LOG_WORKSHEET_ID"; // Ask the user which tab of that sheet is the usage log, then look up its worksheet ID (the number after #gid= in the tab's URL) with their Google Sheets connection.
 
 // Reaction that marks a deploy (emoji name without colons). Also set as the trigger's Reaction filter.
 export const DEPLOY_REACTION = "rocket";
 // Text the reacted message must contain (case-insensitive) to count as a deploy message.
 export const DEPLOY_MARKER = "deploy";
-export const SPREADSHEET_ID = ask(
-  "Google Sheets spreadsheet ID (the long ID in the sheet's URL) holding both tabs below.",
-);
 // Worksheet (tab) ID of the environment registry; the first tab is "0".
 export const REGISTRY_WORKSHEET_ID = "0";
 // Registry column holding the environment name to match on (COL$A = column A).
@@ -19,9 +20,6 @@ export const LAST_USED_COLUMN = "COL$C";
 export const LAST_USED_BY_COLUMN = "COL$D";
 // Status written to the matching registry row.
 export const IN_USE_STATUS = "In use";
-export const LOG_WORKSHEET_ID = ask(
-  "Worksheet (tab) ID of the usage log (the number after #gid= in the tab's URL).",
-);
 // Usage-log columns: timestamp, environment, previous status, new status, reacting user, message link.
 export const LOG_TIMESTAMP_COLUMN = "COL$A";
 export const LOG_ENV_COLUMN = "COL$B";

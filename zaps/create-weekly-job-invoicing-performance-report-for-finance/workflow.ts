@@ -6,9 +6,7 @@ import {
   CLOSED_DATE_FIELD,
   LOOKUP_VALUE_FIELD,
   NOTION_DATA_SOURCE_ID,
-} from "@/config";
-import zapierTables from "@/connections/zapier-tables";
-import notion from "@/connections/notion";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -22,7 +20,11 @@ function formatMMDDYY(date: Date): string {
   return `${mm}/${dd}/${yy}`;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+type DayResult =
+  | { day: string; recordIds: unknown[] }
+  | { day: string; failed: true; reason: string };
+
+const workflow = defineDurable(
   "create-weekly-job-invoicing-performance-report-for-finance",
   async (ctx) => {
     const reportDate = await ctx.step("capture-report-date", async () =>
@@ -39,27 +41,31 @@ const workflow = defineDurable<unknown, unknown>(
     const periodEnd = days[0];
 
     const dayResults = await Promise.all(
-      days.map((day, index) =>
-        ctx.step(`find-closed-jobs-${index}`, async () => {
-          try {
-            const result = await sdk.runAction({
-              appKey: "zapier-tables",
-              actionType: "search",
-              actionKey: "find_record",
-              connection: zapierTables,
-              inputs: {
-                table_id: TABLE_ID,
-                filter_count: "1",
-                use_stored_order: false,
-                field_data_key: CLOSED_DATE_FIELD,
-                [LOOKUP_VALUE_FIELD]: day,
-              },
-            });
-            return { day, recordIds: result.data.map((row) => row.record_id) };
-          } catch (error) {
-            return { day, failed: true, reason: String(error) };
-          }
-        }),
+      days.map((day) =>
+        ctx.step(
+          `find-closed-jobs-${day.replaceAll("/", "-")}`,
+          async (): Promise<DayResult> => {
+            try {
+              const result = await sdk.runAction({
+                appKey: "zapier-tables",
+                actionType: "search",
+                actionKey: "find_record",
+                connection: "zapier-tables",
+                inputs: {
+                  table_id: TABLE_ID,
+                  filter_count: "1",
+                  use_stored_order: false,
+                  field_data_key: CLOSED_DATE_FIELD,
+                  [LOOKUP_VALUE_FIELD]: day,
+                },
+              });
+              const rows = result.data as { record_id: unknown }[];
+              return { day, recordIds: rows.map((row) => row.record_id) };
+            } catch (error) {
+              return { day, failed: true, reason: String(error) };
+            }
+          },
+        ),
       ),
     );
 
@@ -79,7 +85,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "notion",
         actionType: "write",
         actionKey: "create_database_item",
-        connection: notion,
+        connection: "notion",
         inputs: {
           datasource: NOTION_DATA_SOURCE_ID,
           content: summary,

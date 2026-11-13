@@ -7,8 +7,7 @@ import {
   COMPANY_ID_FIELD,
   ENGAGEMENT_COUNT_FIELD,
   INCREMENT_AMOUNT,
-} from "@/config";
-import zapierTables from "@/connections/zapier-tables";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -28,7 +27,7 @@ type EngagementResult = {
   error?: string;
 };
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "increment-company-engagement-totals-from-incoming-marketing-emails",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -47,33 +46,35 @@ const workflow = defineDurable<unknown, unknown>(
     }
 
     const results: EngagementResult[] = [];
-    for (const [index, companyId] of companyIds.entries()) {
+    for (const companyId of companyIds) {
       try {
-        const lookup = await ctx.step(`find-company-row-${index}`, async () =>
-          sdk.runAction({
-            appKey: "zapier-tables",
-            actionType: "search",
-            actionKey: "find_record",
-            connection: zapierTables,
-            inputs: {
-              table_id: TABLE_ID,
-              filter_count: "1",
-              field_data_key: COMPANY_ID_FIELD,
-              operator: "exact",
-              lookup_value: companyId,
-            },
-          }),
+        const lookup = await ctx.step(
+          `find-company-row-${companyId}`,
+          async () =>
+            sdk.runAction({
+              appKey: "zapier-tables",
+              actionType: "search",
+              actionKey: "find_record",
+              connection: "zapier-tables",
+              inputs: {
+                table_id: TABLE_ID,
+                filter_count: "1",
+                field_data_key: COMPANY_ID_FIELD,
+                operator: "exact",
+                lookup_value: companyId,
+              },
+            }),
         );
 
         const row = lookup.data?.[0] as { record_id?: string } | undefined;
         if (row?.record_id) {
           const recordId = row.record_id;
-          await ctx.step(`increment-company-row-${index}`, async () =>
+          await ctx.step(`increment-company-row-${companyId}`, async () =>
             sdk.runAction({
               appKey: "zapier-tables",
               actionType: "write",
               actionKey: "increment_value",
-              connection: zapierTables,
+              connection: "zapier-tables",
               inputs: {
                 table_id: TABLE_ID,
                 record_id: recordId,
@@ -85,13 +86,13 @@ const workflow = defineDurable<unknown, unknown>(
           results.push({ companyId, action: "incremented", recordId });
         } else {
           const created = await ctx.step(
-            `create-company-row-${index}`,
+            `create-company-row-${companyId}`,
             async () =>
               sdk.runAction({
                 appKey: "zapier-tables",
                 actionType: "write",
                 actionKey: "create_record",
-                connection: zapierTables,
+                connection: "zapier-tables",
                 inputs: {
                   table_id: TABLE_ID,
                   new__data__f1: companyId,

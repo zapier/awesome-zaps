@@ -2,7 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { ORDERS_WEBHOOK_URL, ORDER_LINES_WEBHOOK_URL } from "@/config";
+import { ORDERS_WEBHOOK_URL, ORDER_LINES_WEBHOOK_URL } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -97,7 +97,7 @@ function moneyAmount(set: MoneySet): number {
   return Number(set?.shopMoney?.amount ?? 0);
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-sales-orders-and-line-items-from-purchases",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(normalizeInput(rawInput));
@@ -146,7 +146,7 @@ const workflow = defineDurable<unknown, unknown>(
     // One step per line item; a failed line is recorded and does not stop the others.
     const lineResults = await Promise.all(
       lines.map((line) =>
-        ctx.step(`create-sales-order-line-${line.index}`, async () => {
+        ctx.step(`create-sales-order-line-${line.external_id}`, async () => {
           try {
             await sdk.runAction({
               appKey: "webhook",

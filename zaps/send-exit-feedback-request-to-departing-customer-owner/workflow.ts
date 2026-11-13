@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { FEEDBACK_FORM_URL, RETENTION_INBOX_CC } from "@/config";
-import microsoftOutlook from "@/connections/microsoft-outlook";
+import { FEEDBACK_FORM_URL, RETENTION_INBOX_CC } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -19,7 +18,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "send-exit-feedback-request-to-departing-customer-owner",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -64,7 +63,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "microsoft-outlook",
         actionType: "write",
         actionKey: "send_email",
-        connection: microsoftOutlook,
+        connection: "microsoft-outlook",
         inputs: {
           recipients: [email],
           subject,

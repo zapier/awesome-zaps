@@ -12,9 +12,7 @@ import {
   AIRTABLE_ORIGIN_FIELD,
   SLACK_CHANNEL_ID,
   RESOURCE_PREFIX,
-} from "@/config";
-import airtable from "@/connections/airtable";
-import slack from "@/connections/slack";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -32,7 +30,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "send-brand-color-palette-to-requesting-user-and-log-it",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -51,7 +49,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "airtable",
           actionType: "search",
           actionKey: "findRecord",
-          connection: airtable,
+          connection: "airtable",
           inputs: {
             applicationId: AIRTABLE_BASE_ID,
             tableName: AIRTABLE_TABLE_NAME,
@@ -68,7 +66,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "airtable",
           actionType: "write",
           actionKey: "createRecord",
-          connection: airtable,
+          connection: "airtable",
           inputs: {
             applicationId: AIRTABLE_BASE_ID,
             tableName: AIRTABLE_TABLE_NAME,
@@ -94,7 +92,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "channel_message",
-        connection: slack,
+        connection: "slack",
         inputs: {
           channel: SLACK_CHANNEL_ID,
           text,

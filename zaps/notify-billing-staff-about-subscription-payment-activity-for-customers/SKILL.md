@@ -1,6 +1,6 @@
 ---
 name: notify-billing-staff-about-subscription-payment-activity-for-customers
-description: Build a Zapier Next Gen Zap that emails billing staff a short alert whenever a Stripe customer subscription changes, so finance can reconcile and respond the same day. Use when a finance or billing team needs to hear about subscription and payment activity as it happens instead of checking Stripe by hand.
+description: Build a Zap on Zapier that emails billing staff a short alert whenever a Stripe customer subscription changes, so finance can reconcile and respond the same day. Use when a finance or billing team needs to hear about subscription and payment activity as it happens instead of checking Stripe by hand.
 license: MIT
 metadata:
   author: zapier
@@ -13,40 +13,45 @@ metadata:
 
 # Notify billing staff about subscription payment activity
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/notify-billing-staff-about-subscription-payment-activity-for-customers. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a customer subscription is updated in Stripe (Stripe, Updated Subscription).
+1. **Trigger:** a customer subscription is updated in `stripe` (`updated_customer_subscription`).
 2. **Code** checks that the update has a subscription ID. If not, the run stops and sends nothing.
 3. **Code** builds a one-line subject (customer name and subscription status) and a short body: the subscription ID, status, latest invoice, current period end, and a link to the subscription record.
 4. **Gmail** sends that email to the billing inbox.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/notify-billing-staff-about-subscription-payment-activity-for-customers` (it makes a zap project if you aren't in one), then `npx zap-pack deploy notify-billing-staff-about-subscription-payment-activity-for-customers` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Stripe, Updated Subscription (`stripe`, `updated_customer_subscription`). It needs the user's Stripe connection, so its `authentication_id` is that connection's ID.
-2. **Connections** (each alias in the code is the app's slug):
-   - `gmail`: the user's Gmail connection, for the account that sends the alert.
-3. **Constants:**
-   - `BILLING_EMAIL`: the inbox that receives the alert. It must be the address of the connected Gmail account.
-   - `SUBSCRIPTION_LINK_BASE`: the start of the link to a subscription record. The default is the Stripe dashboard; change it if your team uses another page.
+The Zap only sends email. It never changes the subscription or the invoice.
 
 ## Ask the user
 
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
+
+| Setting                 | What goes there                                                                                   |
+| ----------------------- | ------------------------------------------------------------------------------------------------- |
+| `REPLACE_BILLING_EMAIL` | The billing inbox that receives the alert. It must be the address of the connected Gmail account. |
+
+Also review the defaults with them: `SUBSCRIPTION_LINK_BASE` is the Stripe dashboard link to a subscription record. Change it if the team uses another page.
+
+Questions to settle before building:
+
 - Which inbox should receive the billing alert? It has to be the connected Gmail address.
 - Which Stripe account should the trigger watch? Use a test-mode connection for the first test.
-- Should the alert skip some updates, such as ones with no status change or no invoice? The trigger payload does not say what changed, so the template sends every update unless you add a filter.
+- Should the alert skip some updates, such as ones with no status change or no invoice? The trigger payload does not say what changed, so the Zap sends every update unless a filter is added.
 
-## Test
+## Build it
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing. Use a test-mode Stripe connection, and a subscription that exists in that account:
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `gmail` to the user's Gmail connection for the account that sends the alert. The trigger watches `stripe`, so bind that to the user's Stripe connection too. Use a test-mode Stripe connection for the first test.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/updated-customer-subscription.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test with a test-mode Stripe connection and a subscription that exists in that account:
 
 ```json
 {
@@ -62,16 +67,12 @@ Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before 
 }
 ```
 
-Confirm that one email reached the billing inbox with the subject `Test Customer: subscription past_due`, the body lists the subscription and invoice, and the link opens the matching Stripe record. Then tell the user to cancel the test subscription if it was not real data.
-
-## Customize
-
-- **Format amounts:** add a Formatter by Zapier step (or plain code) to show the invoice amount in your currency format. The trigger payload does not include an amount field, so the amount has to come from a Stripe invoice lookup first.
-- **Urgent failures:** add a Slack message in parallel for failed payments, so the on-call person sees them right away.
+Check that one email reached the billing inbox with the subject `Test Customer: subscription past_due`, that the body lists the subscription and invoice, and that the link opens the matching Stripe record. If run-status tools aren't available, check the billing inbox in Gmail directly. Then publish, confirm the trigger is active, and do the real thing once. The user deletes the test email and cancels the test subscription if it was not real data; the agent doesn't delete either.
 
 ## Notes
 
-- The email goes to one address. For more than one recipient, change `BILLING_EMAIL` to a Gmail group address.
-- Each subscription update sends one email. A busy account will send many, so add a filter if the inbox fills up.
-- The subject and body show the Stripe subscription ID and invoice ID, not the amount.
+- The email goes to one address. For more than one recipient, set `BILLING_EMAIL` to a Gmail group address.
+- Each subscription update sends one email, so a busy account sends many. Add a filter if the inbox fills up.
+- The subject and body show the subscription ID and invoice ID, not the amount. To show the amount, look up the invoice in Stripe first, then format it with Formatter by Zapier or plain code.
+- For urgent failed payments, add a Slack message in parallel so the on-call person sees them right away.
 - Never commit a real billing email address or a Stripe connection ID to the workflow source.

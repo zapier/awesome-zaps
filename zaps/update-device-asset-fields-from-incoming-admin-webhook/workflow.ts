@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { ASSET_LABEL, MODEL_LABEL, CONTENT_FORMAT } from "@/config";
-import notion from "@/connections/notion";
+import { ASSET_LABEL, MODEL_LABEL, CONTENT_FORMAT } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -21,7 +20,7 @@ function extractValue(text: string, label: string): string | null {
   return match ? match[1] : null;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "update-device-asset-fields-from-incoming-admin-webhook",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -51,7 +50,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "notion",
         actionType: "write",
         actionKey: "update_database_item",
-        connection: notion,
+        connection: "notion",
         inputs: {
           page: input.page_id,
           content,

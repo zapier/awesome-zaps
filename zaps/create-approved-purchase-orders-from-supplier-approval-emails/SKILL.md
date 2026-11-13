@@ -1,6 +1,6 @@
 ---
 name: create-approved-purchase-orders-from-supplier-approval-emails
-description: Build a Zapier Next Gen Zap that reads supplier or approver replies to purchase order alert emails, finds the matching PO in a Zapier Tables register, creates the purchase order in QuickBooks Online, and replies in the same thread. Use when a procurement or finance team approves POs by email and wants approved orders created in the accounting system without retyping them.
+description: Build a Zap on Zapier that reads supplier or approver replies to purchase order alert emails, finds the matching PO in a Zapier Tables register, creates the purchase order in QuickBooks Online, and replies in the same thread. Use when a procurement or finance team approves POs by email and wants approved orders created in the accounting system without retyping them.
 license: MIT
 metadata:
   author: zapier
@@ -13,48 +13,46 @@ metadata:
 
 # Create approved purchase orders from supplier approval emails
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/create-approved-purchase-orders-from-supplier-approval-emails. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a new Outlook email matching the PO alert search arrives in the inbox (for example, a subject line containing "PO approval").
-2. **AI by Zapier** reads the email and returns the status (approved, denied or changed), the PO number, the approver's name and, for a change, the revised material list. A denied reply stops here.
+1. **Trigger:** a new Outlook email matching the PO alert search arrives in the inbox (`microsoft-outlook`, `new_email_search`). The search is set to the PO alert emails only, for example a subject containing "PO approval".
+2. **AI by Zapier** reads the email and returns the status (approved, denied or changed), the PO number, the approver's name and, for a change, the revised material list. A denied reply, or one with no PO number, stops here.
 3. **Zapier Tables** looks up the PO number in the PO register. If no row matches, the run stops and procurement gets an email.
 4. **QuickBooks Online** finds the vendor named on the PO row. If there is no vendor, the run stops and procurement gets an email. Otherwise it creates an open purchase order with the PO number, the run date, the amount and the description. A changed status puts the revised materials into the description.
 5. **Zapier Tables** marks the PO row as approved (or changed).
 6. **Microsoft Outlook** replies in the original thread, naming the approver, the PO number and where to send receipts.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-approved-purchase-orders-from-supplier-approval-emails` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-approved-purchase-orders-from-supplier-approval-emails` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Microsoft Outlook, New Email Matching Search (`microsoft-outlook`, `new_email_search`). Set its `search` parameter to an Outlook advanced query that matches the PO alert emails only.
-2. **Connections** (each alias in the code is the app's slug):
-   - `microsoft-outlook`: the Outlook account whose inbox receives the replies, and that sends the thread reply.
-   - `zapier-tables`: the Zapier Tables account that holds the PO register.
-   - `ai`: AI by Zapier. It needs no outside account; the `authentication_id` of `"0"` uses Zapier's managed model credentials.
-   - `quickbooks`: the QuickBooks Online account that holds vendors and purchase orders.
-3. **Constants:**
-   - `PO_TABLE_ID`: the Zapier Tables table ID of the PO register.
-   - `PO_NUMBER_FIELD`, `VENDOR_NAME_FIELD`, `AMOUNT_FIELD`, `DESCRIPTION_FIELD`, `STATUS_FIELD`: column keys of that table, such as `f1`. Map the user's column headers to their keys.
-   - `QBO_ITEM_ID`: the QuickBooks product or service that each purchase order line is booked against.
-   - `PROCUREMENT_EMAIL`: the address that receives the no-match and no-vendor notes, and that suppliers are told to send receipts to.
+Nothing is created in QuickBooks without a matching register row and a matching vendor.
 
 ## Ask the user
 
-- Which Zapier Tables table is the PO register, and which columns hold the PO number, vendor name, amount, description and status?
-- Which Outlook search matches the PO alert emails and nothing else? (The trigger's search terms.)
-- Which QuickBooks product or service should each PO line use? (`QBO_ITEM_ID`.)
-- Which address should procurement get notes on, and where should suppliers send receipts?
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting             | What goes there                                                                                                |
+| ------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `PO_TABLE_ID`       | The Zapier Tables table that is the PO register. Look it up from the table the user names                      |
+| `QBO_ITEM_ID`       | The QuickBooks product or service each PO line is booked against. Look it up from the item the user names      |
+| `PROCUREMENT_EMAIL` | The mailbox that gets a note when no PO row or vendor matches, and that suppliers are told to send receipts to |
 
-Send a sample reply to the PO alert thread, from an address that is allowed to receive mail from the connected Outlook account, and use a PO number that exists in the register. Use this sample email as the input:
+Also ask:
+
+- Which Outlook search matches the PO alert emails and nothing else? Set it as the search parameter of the trigger in `triggers/new-email-search.ts`.
+- Which columns of the PO register hold the PO number, vendor name, amount, description and status? Map them to `PO_NUMBER_FIELD`, `VENDOR_NAME_FIELD`, `AMOUNT_FIELD`, `DESCRIPTION_FIELD` and `STATUS_FIELD` (the defaults are `f1` to `f5`, in that order).
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `microsoft-outlook` (the Outlook account whose inbox receives the replies and sends the thread reply), `zapier-tables` (the account that holds the PO register) and `quickbooks` (the QuickBooks Online account that holds vendors and purchase orders) to the user's connections. AI by Zapier, `ai`, needs no connection of its own.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/new-email-search.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections (and sample the trigger, if it has one) before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test with a sample reply to a PO alert thread, from an address the connected Outlook account accepts mail from, and with a PO number that exists in the register. Use this sample email as the input:
 
 ```json
 {
@@ -66,16 +64,11 @@ Send a sample reply to the PO alert thread, from an address that is allowed to r
 }
 ```
 
-Confirm that: the register row for PO-1042 now shows its status as approved; a purchase order with number PO-1042 exists in QuickBooks under the right vendor, with the amount from the row; and the reply appears in the same Outlook thread. Then tell the user to revert the test row and delete the test purchase order if it was real data.
-
-## Customize
-
-- **Route high-value POs to a senior approver:** add a check on the amount before the purchase order step, and send an approval request to the senior approver when it is above the threshold.
-- **Create a procurement task when the status is changed:** add a parallel branch that creates a task in the user's task app when the status is `changed`.
+Check that the register row for PO-1042 now shows its status as approved, that a purchase order numbered PO-1042 exists in QuickBooks under the right vendor with the amount from the row, and that the reply appears in the same Outlook thread. If run-status tools aren't available, check the result in QuickBooks directly. Then ask the user to delete the test data, not the agent: the test purchase order and the test row's status. Publish only after the test passes, and confirm the trigger is active.
 
 ## Notes
 
-- A PO number that the AI cannot read stops the run without writing anything.
-- A denied reply writes nothing and sends no reply.
-- If two PO rows share a number, only the most recently created row is used.
-- Never commit a real table ID, email address or account ID. Replace the placeholders in `workflow.ts` before deploying.
+- A reply the AI cannot read a PO number from, or a denied reply, stops the run without writing anything or sending a reply.
+- If two register rows share a PO number, only the most recently created row is used.
+- To extend it: route high-value POs to a senior approver above an amount threshold, or create a task in the user's task app when the status is `changed`.
+- Never commit a real table ID, email address or account ID. Replace the placeholders in `workflow.ts` and `config.ts` before deploying.

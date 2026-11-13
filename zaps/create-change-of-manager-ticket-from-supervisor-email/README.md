@@ -6,16 +6,18 @@ When a supervisor emails your Outlook HR folder about a change of manager, an HR
 
 **Based on:** [Create change of manager ticket from supervisor email](https://zapier.com/automations/human-resources-hr/hr-operations/hr-case-management/create-change-of-manager-ticket-from-supervisor-email) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/create-change-of-manager-ticket-from-supervisor-email/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/create-change-of-manager-ticket-from-supervisor-email
+
+The agent follows `SKILL.md`: it asks you which Outlook folder gets the supervisor emails, which address tickets are filed under and which Freshservice department is HR, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
 - `connections/`: the accounts it uses (`ai`, `freshservice`, `microsoft-outlook`)
 - `triggers/`: what starts it

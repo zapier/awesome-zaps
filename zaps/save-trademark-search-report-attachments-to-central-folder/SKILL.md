@@ -1,6 +1,6 @@
 ---
 name: save-trademark-search-report-attachments-to-central-folder
-description: Use when trademark search report emails arrive in Gmail with attachments and legal wants each attachment saved into one central Google Drive folder, named by date and subject, for review. Use for IP or trademark teams that file search reports by hand.
+description: Build a Zap on Zapier that saves each trademark search report attachment from incoming Gmail emails into one central Google Drive folder, named by date and subject, for legal to review. Use when trademark search report emails arrive in Gmail with attachments and legal wants them in one place. Use for IP or trademark teams that file search reports by hand.
 license: MIT
 metadata:
   author: zapier
@@ -13,42 +13,41 @@ metadata:
 
 # Save trademark search report attachments to central folder
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/save-trademark-search-report-attachments-to-central-folder. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a new Gmail email matching the search (`subject:(trademark search report) has:attachment`) arrives. Gmail's trigger returns each message with its `attachmentsArray`.
+1. **Trigger:** a new Gmail email matching the search (`gmail`, `search`) arrives. The search is `subject:(trademark search report) has:attachment`, and the trigger returns each message with its attachments.
 2. The run stops if the email has no attachments.
-3. **Formatting** (plain code, with the date conversion in one durable step): the email's date becomes `YYYY-MM-DD`, and the subject is cleaned of characters Drive does not allow in file names.
+3. The email's date becomes `YYYY-MM-DD`, and the subject is cleaned of characters Drive does not allow in file names.
 4. **Google Drive** uploads each attachment to the central folder as `<date> <subject> - <original file name>`. Uploads run in parallel, one step per attachment. A failed upload is recorded in the result and does not stop the others.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/save-trademark-search-report-attachments-to-central-folder` (it makes a zap project if you aren't in one), then `npx zap-pack deploy save-trademark-search-report-attachments-to-central-folder` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Gmail, New Email Matching Search (`gmail`, action `search`). Set its search keywords to the value of `SEARCH_QUERY`, and connect the Gmail account that receives the reports.
-2. **Connections** (each alias in the code is the app's slug):
-   - `gmail`: the Gmail connection for the mailbox that receives the reports.
-   - `google-drive`: the Google Drive connection for the account that owns the central folder. That account needs edit access to the folder.
-3. **Constants:**
-   - `SEARCH_QUERY`: the Gmail search string. The code does not read it; it is copied into the trigger's search keywords. Keep the two in sync.
-   - `DRIVE_FOLDER_ID`: the long ID at the end of the central folder's URL.
-4. Test with the steps below, then publish, wait until the trigger is active, and tell the user that nothing runs until a matching email arrives.
+The Zap only uploads. It never edits, moves or deletes files already in the folder.
 
 ## Ask the user
 
-- Which Gmail search finds the trademark search reports? The default matches a subject containing "trademark search report" that has an attachment.
-- Which Drive folder is the central folder? Its ID goes in `DRIVE_FOLDER_ID`. The folder must already exist; the workflow does not create it.
-- Which Google account owns that folder, and should its connection be the one the Drive step uses?
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting           | What goes there                                                                                                                                                                     |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DRIVE_FOLDER_ID` | The central Drive folder, which must already exist: look it up from the folder the user names, with their Google Drive connection. It is the long ID at the end of the folder's URL |
 
-Send a test email to the mailbox the trigger watches, with a subject that matches the search (for example `Trademark search report [test]`) and one small PDF attached. Use a folder you can throw away. Then run the workflow on that email's trigger payload. A sample payload:
+Also review the defaults with them: `SEARCH_QUERY` is the Gmail search that finds the reports (by default, a subject containing "trademark search report" with an attachment). It is copied into the trigger's search keywords, so keep the two in sync.
+
+Also ask which Google account owns the central folder. Its Google Drive connection needs edit access to that folder.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `google-drive` (the account that owns the central folder, with edit access to it) and `gmail` (the mailbox that receives the reports, for the trigger) to the user's connections.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/search.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them, and set the trigger's search keywords to the value of `SEARCH_QUERY`. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test with this sample input. Use a folder the user can throw away.
 
 ```json
 {
@@ -65,23 +64,11 @@ Send a test email to the mailbox the trigger watches, with a subject that matche
 }
 ```
 
-Check that:
-
-- The run returns `uploaded: 1` and `failed: 0`.
-- The folder has one new file named like `2026-10-29 Trademark search report [test] - report.pdf`, with the same content as the attachment.
-- An email with no attachment starts no upload (the run returns `skipped: true`).
-
-Delete the test file and the test email afterwards.
-
-## Customize
-
-- **Message-ID duplicates:** skip attachments from a message that was already filed, by storing each message ID in a sheet or table.
-- **Create the folder on no match:** if no folder exists with the expected name, create it before uploading.
-- **Route into sender-domain subfolders:** put each upload in a subfolder named after the sender's domain.
-- **Label the email:** add an inbox label to each matched message so reviewers can find it.
+Check that the run returns `uploaded: 1` and `failed: 0`, and that the folder has one new file named `2026-10-29 Trademark search report [test] - report.pdf`. Then run it once more with an input that has no attachments: it should return `skipped: true` and upload nothing. If run-status tools aren't available, check the result in Google Drive directly. The user deletes the test file afterwards, not the agent. Then publish, confirm the trigger is active, and tell the user that nothing runs until a matching email arrives.
 
 ## Notes
 
 - The Gmail trigger reads all folders, including sent mail, unless the search says otherwise. Add `in:inbox` to the search to limit it.
 - Drive keeps both copies if a file with the same name is already in the folder.
+- To extend it: skip mail already filed by storing each message ID in a sheet, create the folder if it is missing, sort uploads into sender-domain subfolders, or label each matched email so reviewers can find it.
 - Never commit a real folder ID or email address to a shared copy of `workflow.ts`.

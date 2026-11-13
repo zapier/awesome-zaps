@@ -1,11 +1,9 @@
-import { ask } from "zap-pack";
+// This zap's settings. Each "REPLACE_…" value is set per person before deploying; its comment says how to get it.
+// The other values are defaults you can change.
 
-export const CLAIMS_TABLE_ID = ask(
-  "Zapier Tables table ID that holds the motor claims (the trigger's table).",
-);
-export const CLAIMS_INBOX = ask(
-  "Address that receives each notification. Use the connected Outlook account's own address for tests.",
-);
+export const CLAIMS_TABLE_ID = "REPLACE_CLAIMS_TABLE_ID"; // Ask the user which Zapier Table holds the motor claims, then look up its ID with their Zapier Tables connection. This is the trigger's table.
+export const CLAIMS_INBOX = "REPLACE_CLAIMS_INBOX"; // Ask the user which address receives each notification. For tests, use the connected Outlook account's own address.
+
 // Time zone (IANA name) used when printing dates.
 export const TIME_ZONE = "UTC";
 // Field holding the claimant's name.

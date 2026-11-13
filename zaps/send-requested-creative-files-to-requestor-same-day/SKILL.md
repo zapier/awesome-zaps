@@ -1,6 +1,6 @@
 ---
 name: send-requested-creative-files-to-requestor-same-day
-description: Build a Zapier Next Gen Zap that emails the finished creative and its file link to the requestor, with the design owner on CC, as soon as a design request row in a Google Sheets tracker is marked Completed. Use when a design or creative team keeps requests in a sheet and wants finished files delivered without manual emails.
+description: Build a Zap on Zapier that emails the finished creative and its file link to the requestor, with the design owner on CC, as soon as a design request row in a Google Sheets tracker is marked Completed. Use when a design or creative team keeps requests in a sheet and wants finished files delivered without manual emails.
 license: MIT
 metadata:
   author: zapier
@@ -13,46 +13,43 @@ metadata:
 
 # Send requested creative files to requestor same day
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/send-requested-creative-files-to-requestor-same-day. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a row in the request sheet is updated (Google Sheets, Updated Spreadsheet Row).
+1. **Trigger:** a row in the request sheet is updated (`google-sheets`, `updated_row_only`).
 2. **Filter:** if the status column is not exactly `Completed`, the run stops and sends nothing.
-3. **Gmail:** sends one email to the requestor's address from the request row, CC'd to the design owner, with the request's subject, the message text and a `Files:` line holding the file link.
+3. **Gmail** sends one email to the requestor's address from the request row, CC'd to the design owner, with the request's subject, the message text and a `Files:` line holding the file link.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/send-requested-creative-files-to-requestor-same-day` (it makes a zap project if you aren't in one), then `npx zap-pack deploy send-requested-creative-files-to-requestor-same-day` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Google Sheets, Updated Spreadsheet Row (`google-sheets`, action `updated_row_only`). Set its `spreadsheet` to the request sheet and `worksheet` to the tab, the same values as the constants. It uses the Google Sheets connection for the account that owns the sheet.
-2. **Connections** (each alias in the code is the app's slug):
-   - `gmail`: the Gmail account that sends the emails.
-3. **Constants:**
-   - `SPREADSHEET_ID`: the long ID in the request sheet's URL.
-   - `WORKSHEET_ID`: the tab. The first tab is `"0"`.
-   - `REQUESTOR_EMAIL_COLUMN`, `SUBJECT_COLUMN`, `MESSAGE_COLUMN`, `FILE_LINK_COLUMN`, `STATUS_COLUMN`: column keys such as `COL$A`, not header names. Map the sheet's headers to their column letters.
-   - `COMPLETED_VALUE`: the status that means ready. Defaults to `"Completed"`. The match is exact after trimming spaces.
-   - `CC_ADDRESSES`: the design owner(s) to copy. The default is the placeholder `YOUR_DESIGN_OWNER_EMAIL`.
-4. Test with the steps below, then publish, confirm the trigger is active, and leave the workflow enabled.
+Only a row whose status is exactly `Completed` sends an email.
 
 ## Ask the user
 
-- Which sheet and tab hold the requests, and which columns hold the requestor's email, subject, message, file link and status?
-- What status text means the files are ready? The default is `Completed`.
-- Who should be CC'd? Replace the placeholder in `CC_ADDRESSES`.
-- Which Gmail account sends? It must be a connected Gmail account; the workflow cannot send from a separate shared address (see Notes).
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                      | Where                                           | What goes there                                           |
+| ---------------------------- | ----------------------------------------------- | --------------------------------------------------------- |
+| `REPLACE_SPREADSHEET_ID`     | `config.ts`, and `triggers/updated-row-only.ts` | The sheet that holds the design requests                  |
+| `REPLACE_DESIGN_OWNER_EMAIL` | `workflow.ts`, `CC_ADDRESSES`                   | The design owner's email address, copied on each delivery |
 
-Run these as draft test runs (`run_workflow_draft` in Zapier MCP) before publishing. Use a requestor address you control, since the email goes there.
+Also review the defaults with them: `WORKSHEET_ID` (`"0"` is the first tab), the column keys `REQUESTOR_EMAIL_COLUMN` (`COL$A`), `SUBJECT_COLUMN` (`COL$B`), `MESSAGE_COLUMN` (`COL$C`), `FILE_LINK_COLUMN` (`COL$D`) and `STATUS_COLUMN` (`COL$E`), which must be mapped from the sheet's headers to their column letters, and `COMPLETED_VALUE` (`"Completed"`, matched exactly after trimming spaces).
 
-Completed row (sends):
+Which Gmail account sends? It must be a connected Gmail account, not a shared address (see Notes).
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `gmail` (the Gmail account that sends the emails) and `google-sheets` (the account that owns the request sheet) to the user's connections.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/updated-row-only.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run these as draft test runs (`run_workflow_draft`) before publishing. Use a requestor address you control, since the email goes there.
+
+A completed row, which should send:
 
 ```json
 {
@@ -66,20 +63,14 @@ Completed row (sends):
 }
 ```
 
-Confirm one email arrives at the requestor address with the subject, the message and the `Files:` link in the body, and that the CC address gets a copy.
+Check that one email arrives at the requestor address with the subject, the message and the `Files:` link in the body, and that the CC address gets a copy. The same row with `"COL$E": "Pending"` should skip: the run returns `status-not-completed` and no email is sent.
 
-Same row with `"COL$E": "Pending"` (should skip): confirm the run returns `status-not-completed` and that no email is sent.
-
-Then delete the test row, and delete any test email.
-
-## Customize
-
-- **Attach the files** instead of linking them: add a Formatter step that turns the link into an attachment before the Gmail step.
-- **Post to Slack** when an email is sent: add a Slack message to the design channel after the Gmail step, so the team sees each delivery.
+If run-status tools aren't available, check the result in Gmail directly. The user deletes the test row and any test email, not the agent.
 
 ## Notes
 
-- Gmail sends from the connected account. The original spec asks for a shared marketing "from" address; that needs a send-as alias on the connected account, and the workflow does not set `from`.
+- Gmail sends from the connected account. A shared marketing "from" address needs a send-as alias on that account; the workflow does not set `from`.
 - The trigger fires on any update to a row. The status check is what stops non-completed rows, so only a change to `Completed` sends.
 - Anyone who can edit the request sheet can cause an email by setting `Completed`. Keep edit access to the sheet limited.
-- Never commit a real spreadsheet ID or email address into a shared copy of this file.
+- To attach the files instead of linking them, add a Formatter step before the Gmail step that turns the link into an attachment. To post to Slack when an email goes out, add a Slack message after the Gmail step.
+- Don't commit a real spreadsheet ID or email address into this folder.

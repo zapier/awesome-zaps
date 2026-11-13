@@ -1,5 +1,3 @@
-import type { Trigger } from "zap-pack";
-
 export default {
   app: "schedule",
   event: "everyMonth",
@@ -8,4 +6,4 @@ export default {
     hod: "12:00 PM",
     timezone_override: "America/New_York",
   },
-} satisfies Trigger;
+};

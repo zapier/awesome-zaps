@@ -6,16 +6,18 @@ On the first of each month, a release notes task is created in Asana from your t
 
 **Based on:** [Create monthly release notes task and launch checklist](https://zapier.com/automations/product/digital-product-operations/release-notes-management/create-monthly-release-notes-task-and-launch-checklist) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/create-monthly-release-notes-task-and-launch-checklist/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/create-monthly-release-notes-task-and-launch-checklist
+
+The agent follows `SKILL.md`: it asks you for your Asana workspace, project, task template, recurring emails section and send-date owner, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
-- `connections/`: the accounts it uses (`asana`)
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
+- `connections/`: the account it uses (`asana`)
 - `triggers/`: what starts it

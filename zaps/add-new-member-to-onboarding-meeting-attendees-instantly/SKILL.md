@@ -1,6 +1,6 @@
 ---
 name: add-new-member-to-onboarding-meeting-attendees-instantly
-description: Build a Zapier Next Gen Zap that adds a new member as an attendee on a configured Outlook onboarding meeting when their details arrive by webhook, so they receive the calendar invite. Use when a team onboards people into a fixed Outlook meeting and wants new members added without anyone editing the invite by hand.
+description: Build a Zap on Zapier that adds a new member as an attendee on a configured Outlook onboarding meeting when their details arrive by webhook, so they receive the calendar invite. Use when a team onboards people into a fixed Outlook meeting and wants new members added without anyone editing the invite by hand.
 license: MIT
 metadata:
   author: zapier
@@ -13,57 +13,56 @@ metadata:
 
 # Add new member to onboarding meeting attendees instantly
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/add-new-member-to-onboarding-meeting-attendees-instantly. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a new member payload arrives at a Webhooks by Zapier catch hook. The workflow reads `email` and `name` from it. Without an email it stops.
+1. **Trigger:** a new member payload arrives at a Webhooks by Zapier catch hook (`webhook`, `hook_v2`). The workflow reads `email` and `name` from it. Without an email it stops.
 2. **Microsoft Outlook** searches the calendar window for the onboarding meeting, matching the event title exactly. If none matches, the run stops and changes nothing.
-3. **Microsoft Outlook** adds the member's email as an attendee of that event, merging with existing attendees. If the address is already on the event, nothing is added.
+3. **Microsoft Outlook** adds the member's email as an attendee of that event. Existing attendees are kept, and if the address is already on the event, nothing is added.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/add-new-member-to-onboarding-meeting-attendees-instantly` (it makes a zap project if you aren't in one), then `npx zap-pack deploy add-new-member-to-onboarding-meeting-attendees-instantly` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Webhooks by Zapier, Catch Hook (`webhook`, `hook_v2`). It needs no connection, so its `authentication_id` is `null`.
-2. **Connections** (each alias in the code is the app's slug):
-   - `microsoft-outlook`: the user's Microsoft Outlook connection, for the account whose calendar holds the onboarding meeting. The account must be able to edit that event.
-3. **Constants:**
-   - `ONBOARDING_EVENT_TITLE`: the meeting's title, exactly as shown in Outlook.
-   - `ONBOARDING_WINDOW_START` and `ONBOARDING_WINDOW_END`: the time window to search, as ISO 8601 with an offset. Widen it to cover the meeting's date.
-   - `CALENDAR_ID`: the calendar to search. Leave it empty for the default calendar.
+The Zap only adds the new member. It never removes anyone or changes the meeting's other details.
 
 ## Ask the user
 
-- What is the exact title of the onboarding meeting, and on which date or window does it fall?
-- Which Outlook calendar holds it? Leave blank for the default.
-- What keys does the intake webhook send for the member's email and name? The workflow reads `email` and `name`; if the sender uses other keys, change them before installing.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                           | What goes there                                                                                 |
+| --------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `REPLACE_ONBOARDING_EVENT_TITLE`  | The onboarding meeting's title, exactly as Outlook shows it                                     |
+| `REPLACE_ONBOARDING_WINDOW_START` | The start of a window that covers the meeting's date, as ISO 8601 with an offset                |
+| `REPLACE_ONBOARDING_WINDOW_END`   | The end of that window, as ISO 8601 with an offset. Widen it if the meeting's date is uncertain |
 
-Once an Outlook connection exists, run this sample as a draft test run (`run_workflow_draft`) before publishing. Use the connected Outlook account's own address as `email`, so the invite goes only to that account:
+Also review the default with them: `CALENDAR_ID` is blank, which searches the connected account's default calendar. Ask whether the meeting is on a different Outlook calendar, and set its ID if so.
+
+Ask what keys the intake webhook sends for the member's email and name. The workflow reads `email` and `name`; if the sender uses other keys, change them before building.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `microsoft-outlook` to the user's Microsoft Outlook connection for the account whose calendar holds the onboarding meeting. The account must be able to edit that event. Webhooks by Zapier needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/hook.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test with the connected Outlook account's own address as `email`, so the invite goes only to that account:
 
 ```json
 {
-  "email": "YOUR_OUTLOOK_ADDRESS",
+  "email": "<the connected Outlook address>",
   "name": "Test Member"
 }
 ```
 
-Set the constants to a test meeting named `[install-test] …` on your own calendar, created for this run. Check that the output has `added: true` and `eventId`, that the event's attendees now include the address, and that a second run with the same address returns `already-attendee` without adding it again.
-
-## Customize
-
-- **Send a confirmation email** to the new member after they are added: a send-email step after the add step.
-- **Create a follow-up task** when no matching meeting is found: a task step after the search step, in place of the `event-not-found` return.
+Set the title and window to a test meeting named `[install-test] …` on the user's own calendar, created for this run. Check that the output has `added: true` and an `eventId`, and that the event's attendees now include the address. Run it again with the same address and check for `already-attendee`, with nothing added. If run-status tools aren't available, check the result in Outlook directly. Ask the user to delete the test meeting; the agent won't delete it. Then publish, confirm the trigger is active, and do the real thing once.
 
 ## Notes
 
 - The Outlook search matches substrings, so the workflow keeps only events whose subject equals the title exactly.
-- Outlook's invite takes only the address, so the member's name is returned in the run output but is not set on the attendee.
+- Outlook's invite takes only the address. The member's name is returned in the run output but is not set on the attendee.
 - The output shapes of the Outlook search and add actions were not read from a live run; the first test run confirms them.
+- To send a confirmation email after the member is added, add a send-email step after the add step.
+- To create a follow-up task when no matching meeting is found, add a task step in place of the `event-not-found` return.

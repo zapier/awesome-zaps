@@ -1,6 +1,6 @@
 ---
 name: update-analytics-profiles-when-contact-territory-value-changes
-description: Build a Zapier Next Gen Zap that keeps an analytics profile current when a HubSpot contact's territory value changes. Use when a sales or marketing team segments or reports by territory in a sheet, and wants each contact's row updated when the CRM territory changes, without manual copying.
+description: Build a Zap on Zapier that keeps an analytics profile current when a HubSpot contact's territory value changes. Use when a sales or marketing team segments or reports by territory in a sheet, and wants each contact's row updated when the CRM territory changes, without manual copying.
 license: MIT
 metadata:
   author: zapier
@@ -13,48 +13,48 @@ metadata:
 
 # Update analytics profiles when contact territory value changes
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/update-analytics-profiles-when-contact-territory-value-changes. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a HubSpot contact's territory property changes (HubSpot "New Contact Property Change").
+1. **Trigger:** a HubSpot contact's territory property changes (`hubspot`, `updated_contact_resthook_v3`, New Contact Property Change).
 2. **HubSpot** fetches the full contact: its lifecycle stage, email and territory.
 3. **Skip checks:** the run stops if the contact's lifecycle stage is inactive (`unsubscribed` or `other`), or if the territory matches the value already stored in its profile row.
 4. **Google Sheets** finds the profile row by HubSpot contact ID, then by email if there's no match.
 5. **Google Sheets** updates that row, or adds a new one if there's no profile yet. It writes the contact ID, email, territory, lifecycle stage and an updated-at time.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/update-analytics-profiles-when-contact-territory-value-changes` (it makes a zap project if you aren't in one), then `npx zap-pack deploy update-analytics-profiles-when-contact-territory-value-changes` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** HubSpot, New Contact Property Change (`updated_contact_resthook_v3`). It needs a HubSpot connection. Set `property_name` to the territory property's internal name.
-2. **Connections** (each alias in the code is the app's slug):
-   - `hubspot`: the HubSpot connection, for the portal that owns the contacts. Use a test or sandbox portal when testing.
-   - `google-sheets`: the Google Sheets connection, for the account that owns the profiles sheet.
-3. **Constants:**
-   - `SPREADSHEET_ID`: the long ID in the profiles sheet's URL.
-   - `WORKSHEET_ID`: the tab with the profile rows. The first tab is `"0"`.
-   - `TERRITORY_PROPERTY`: the HubSpot internal name of the territory property. It must match the trigger's `property_name`.
-   - `TERRITORY_HEADER`: the header of the territory column on the sheet.
-   - `CRM_ID_COLUMN`, `EMAIL_COLUMN`, `TERRITORY_COLUMN`, `LIFECYCLE_COLUMN`, `UPDATED_AT_COLUMN`: column keys such as `COL$A`, not header names. Map the user's headers to their column letters.
-   - `INACTIVE_STAGES`: lifecycle stages to skip. Defaults to `unsubscribed` and `other`.
-4. Test with the steps below, then publish, wait until the trigger is active, and give the user what they need to connect it.
+The Zap only writes to the profiles sheet. It never changes the contact in HubSpot.
 
 ## Ask the user
 
-- Which HubSpot property holds the territory? Give its internal name, which is what the trigger and the code need.
-- Which sheet and tab hold the analytics profiles, and which columns hold the CRM ID, email, territory, lifecycle stage and updated-at time?
-- Which lifecycle stages count as inactive? The default skips `unsubscribed` and `other`.
-- Is a Google Sheet the right place for analytics profiles? If the analytics system is something else, the write steps need a different app.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                      | Where                                                                                          | What goes there                                                                                   |
+| ---------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `REPLACE_TERRITORY_PROPERTY` | `config.ts`, `TERRITORY_PROPERTY`; and `triggers/updated-contact-resthook.ts`, `property_name` | The HubSpot internal name of the territory property, looked up from the user's HubSpot account    |
+| `REPLACE_SPREADSHEET_ID`     | `config.ts`, `SPREADSHEET_ID`                                                                  | The profiles sheet, looked up from the user's Google Sheets. Its ID is the long string in its URL |
 
-Run as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing, using a test HubSpot portal and a test sheet. Use a contact that exists in both, with a territory that differs from the sheet row.
+Also review these defaults with the user:
+
+- `WORKSHEET_ID`: the tab with the profile rows. `"0"` is the first tab.
+- `TERRITORY_HEADER`: the header of the territory column on that tab.
+- `CRM_ID_COLUMN`, `EMAIL_COLUMN`, `TERRITORY_COLUMN`, `LIFECYCLE_COLUMN` and `UPDATED_AT_COLUMN` in `config.ts` (`COL$A` to `COL$E`): map the user's headers to their column letters, since these are column keys, not header names.
+- `INACTIVE_STAGES` in `workflow.ts`: the lifecycle stages to skip. Defaults to `unsubscribed` and `other`.
+
+Before turning it on, confirm a Google Sheet is the right place for analytics profiles. If the analytics system is something else, the write steps need a different app.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `hubspot` (the trigger and the HubSpot step) to the user's HubSpot connection for the portal that owns the contacts, and `google-sheets` (both sheet steps) to the connection for the account that owns the profiles sheet.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. The same answer fills `property_name` in `triggers/updated-contact-resthook.ts`. `triggers/updated-contact-resthook.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections (and sample the trigger) before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test with a test HubSpot portal and a test sheet. Use a contact that exists in both, with a territory that differs from the sheet row:
 
 ```json
 {
@@ -62,16 +62,12 @@ Run as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing, 
 }
 ```
 
-Check that the matching profile row's territory and updated-at changed and nothing else. Then check a contact whose territory is already in the sheet: the run should skip and write nothing. Use test data only.
-
-## Customize
-
-- **Notify on large territory moves:** add a Slack message to a team channel after the update, with a threshold for what counts as large.
-- **Audit trail:** append a row to a mapping sheet each time a profile changes.
+Check that the matching profile row's territory and updated-at changed and nothing else. Then run it on a contact whose territory is already in the sheet: the run should skip and write nothing. If run-status tools aren't available, check the result in Google Sheets directly. Then publish and confirm the trigger is active. The user deletes the test data, not the agent.
 
 ## Notes
 
-- The sub-process from the original Zap is built inline, as steps in this one workflow. Durable workflows have no separate sub-zap.
-- The HubSpot field names used in the code (`lifecyclestage`, `email`, and the territory property) and the contact ID the trigger delivers are not checked against a live sample. Check them on the first test run.
-- The workflow reads the contact through a HubSpot action that needs a connection, so it can't run without one.
+- Everything runs as steps in one workflow. There is no separate sub-zap.
+- The HubSpot field names in the code (`lifecyclestage`, `email`, and the territory property) and the contact ID the trigger delivers are not checked against a live sample. Check them on the first test run.
+- The workflow reads each contact through the HubSpot connection, so the Zap can't run without one.
+- To extend it: post to a Slack channel after the update when a territory move is large, or append a row to a mapping sheet on each change.
 - Never commit a real spreadsheet ID or HubSpot portal details.

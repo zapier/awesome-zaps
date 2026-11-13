@@ -1,6 +1,6 @@
 ---
 name: send-milestone-summaries-to-upgrade-team-by-email
-description: Build a Zapier Next Gen Zap that watches a Google Calendar for customer milestone events (30, 60, 90 or 180 days) and emails a short summary to the upgrade team. Use when a customer success team tracks account milestones as calendar events and wants a concise email per milestone so upgrade or retention owners can act.
+description: Build a Zap on Zapier that watches a Google Calendar for customer milestone events (30, 60, 90 or 180 days) and emails a short summary to the upgrade team. Use when a customer success team tracks account milestones as calendar events and wants a concise email per milestone so upgrade or retention owners can act.
 license: MIT
 metadata:
   author: zapier
@@ -13,43 +13,39 @@ metadata:
 
 # Send milestone summaries to upgrade team by email
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/send-milestone-summaries-to-upgrade-team-by-email. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a Google Calendar Event Start trigger fires 15 minutes before an event on the chosen calendar starts.
+1. **Trigger:** a Google Calendar Event Start trigger (`google-calendar`, `event_start`) fires 15 minutes before an event on the chosen calendar starts.
 2. **Match:** the event title is checked for a package code (`ENTERPRISE`, `BUSINESS`, `PRO` or `STARTER`) and a milestone window (`30`, `60`, `90` or `180` days). If either is missing, the run stops and sends nothing.
 3. **Gmail** sends one email to the upgrade address. The subject is the package, the day count and the event start time. The body has the event title, start time, the event's description (the milestone notes) and the event link.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/send-milestone-summaries-to-upgrade-team-by-email` (it makes a zap project if you aren't in one), then `npx zap-pack deploy send-milestone-summaries-to-upgrade-team-by-email` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Google Calendar, Event Start (`google-calendar`, `event_start`), with `authentication_id` set to the user's Google Calendar connection. Params: `calendarid` = `CALENDAR_ID`, `time_length` = `15`, `time_unit` = `"minutes"`. No search term.
-2. **Connections** (each alias in the code is the app's slug):
-   - `gmail`: the user's Gmail connection, for the account that sends the summaries.
-3. **Constants:**
-   - `CALENDAR_ID`: the calendar the trigger watches. Used in the trigger params, not in the code.
-   - `UPGRADE_EMAIL`: where the summaries go. It must be the Gmail account's own address, unless the user has confirmed another recipient.
-   - `PACKAGE_CODES`: the package names to match in event titles. Change them to the user's own tier names.
-   - `MILESTONE_DAYS`: the day counts that trigger an email.
-4. Test with the steps below, then publish, wait until the trigger is active, and tell the user the trigger is live.
-
 ## Ask the user
 
-- Which calendar holds the milestone events?
-- Who should receive the summaries (the upgrade team's address)?
-- What are the package or tier names in event titles? Does the title also carry the day count (for example "PRO 30-day milestone")?
-- Should the 15-minute lead time change?
+Each `REPLACE_…` value is set per person. Resolve the calendar to its ID with the user's own Google Calendar connection; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                 | Where                                                                 | What goes there                                                                                              |
+| ----------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `REPLACE_CALENDAR_ID`   | `config.ts`, `CALENDAR_ID`; `calendarid` in `triggers/event-start.ts` | The Google Calendar that holds the milestone events                                                          |
+| `REPLACE_UPGRADE_EMAIL` | `config.ts`, `UPGRADE_EMAIL`                                          | The address the summaries go to. It must be the Gmail account's own address unless the user confirms another |
 
-Run these samples as draft test runs (`run_workflow_draft` in Zapier MCP) before publishing.
+Also review the defaults with them: `PACKAGE_CODES` and `MILESTONE_DAYS` in `workflow.ts` (change the package codes to the user's own tier names), and the 15-minute lead time in the trigger (`time_length`, `time_unit`).
+
+Confirm that event titles follow the package and day-count pattern (for example "PRO 30-day milestone"). An event whose title doesn't match is skipped.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `gmail` (the account that sends the summaries) to the user's Gmail connection, and `google-calendar` (the calendar the trigger watches) to their Google Calendar connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/event-start.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run these samples as draft test runs before publishing.
 
 Milestone sample (expects one email):
 
@@ -75,16 +71,11 @@ Non-matching sample (expects a skip and no email):
 }
 ```
 
-Confirm that the milestone run completed, that one email reached the upgrade address with the subject `PRO 30-day milestone (…)` and the event text in the body, and that the non-matching run returned `skipped: true` with no send. Then tell the user to delete any test events and emails they don't want.
-
-## Customize
-
-- **Log outreach:** add a CRM or tracker row after the Gmail step to record the outreach and owner.
-- **Team chat instead of email:** replace the email with a message to a team channel.
+Check that the milestone run completed and that one email reached the upgrade address with the subject `PRO 30-day milestone (…)` and the event text in the body, and that the non-matching run returned `skipped: true` with no send. If run-status tools aren't available, check the result in Gmail directly. The user deletes the test events and emails, not the agent. Publish only after both checks pass, and confirm the trigger is active.
 
 ## Notes
 
-- Events are matched by title, so titles must follow the package and day-count pattern. An event whose title doesn't match is skipped silently.
-- The spec's "days since start" can't be computed from a trigger that fires before the event starts. The day count is read from the title instead.
+- Events are matched by title, so titles must follow the package and day-count pattern. The day count is read from the title, since a trigger that fires before the event starts can't compute days since start.
 - One email goes out per qualifying event; there is no batching.
+- To log outreach, add a CRM or tracker row after the Gmail step with the outreach and owner. To post to a team chat instead of email, replace the email step with a message to a team channel.
 - Never commit a real calendar ID or email address. Anyone who can read the workflow can see who gets the summaries.

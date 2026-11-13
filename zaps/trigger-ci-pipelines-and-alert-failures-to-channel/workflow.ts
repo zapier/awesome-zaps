@@ -8,8 +8,7 @@ import {
   SLACK_CHANNEL,
   MESSAGE_PREFIX,
   MENTION_TEXT,
-} from "@/config";
-import slack from "@/connections/slack";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -35,7 +34,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "trigger-ci-pipelines-and-alert-failures-to-channel",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -83,7 +82,9 @@ const workflow = defineDurable<unknown, unknown>(
       }),
     );
 
-    const pipelineId = started.data[0]?.json?.id;
+    const pipelineId = (
+      started.data[0] as { json?: { id?: string | number } } | undefined
+    )?.json?.id;
     if (!pipelineId) {
       return {
         skipped: true,
@@ -108,7 +109,9 @@ const workflow = defineDurable<unknown, unknown>(
       }),
     );
 
-    const status = statusCheck.data[0]?.json?.status ?? "unknown";
+    const status =
+      (statusCheck.data[0] as { json?: { status?: string } } | undefined)?.json
+        ?.status ?? "unknown";
     if (!FAILED_STATUSES.includes(status)) {
       return { alerted: false, reason: "not-failed", status, pipelineId };
     }
@@ -122,7 +125,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "channel_message",
-        connection: slack,
+        connection: "slack",
         inputs: {
           channel: SLACK_CHANNEL,
           text,

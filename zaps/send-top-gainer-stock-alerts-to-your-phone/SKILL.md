@@ -1,6 +1,6 @@
 ---
 name: send-top-gainer-stock-alerts-to-your-phone
-description: Build a Zapier Next Gen Zap that reads market text posted to a webhook, pulls out stock ticker symbols with AI, saves each new ticker to a Zapier Tables stocks table, and texts you a short alert with a search link. Use when you want top-gainer or market-mover alerts on your phone without checking a feed, and a record of which tickers you've already been alerted about.
+description: Build a Zap on Zapier that reads market text posted to a webhook, pulls out stock ticker symbols with AI, saves each new ticker to a Zapier Tables stocks table, and texts you a short alert with a search link. Use when you want top-gainer or market-mover alerts on your phone without checking a feed, and a record of which tickers you've already been alerted about.
 license: MIT
 metadata:
   author: zapier
@@ -13,49 +13,42 @@ metadata:
 
 # Send top gainer stock alerts to your phone
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/send-top-gainer-stock-alerts-to-your-phone. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** market text is posted to a Webhooks by Zapier catch URL (a market-news service, a script or a form posts the raw text to it).
-2. **AI by Zapier** reads the text and returns the stock ticker symbols it mentions, as a comma-separated list. Anything that isn't a 1 to 5 letter capital symbol is dropped, and the list is capped at 10.
-3. For each ticker, **Zapier Tables** searches your stocks table for a row with the same ticker. If one exists, the ticker is skipped, so you are never alerted twice.
+1. **Trigger:** market text is posted to a Webhooks by Zapier catch URL (`webhook`, `hook_raw`). A market-news service, a script or a form posts the raw text to it.
+2. **AI by Zapier** reads the text and returns the stock ticker symbols it mentions. Anything that isn't a 1 to 5 letter capital symbol is dropped, and the list is capped at 10.
+3. For each ticker, **Zapier Tables** searches the stocks table for a row with the same ticker. If one exists, the ticker is skipped, so you are never alerted twice.
 4. For a new ticker, **Zapier Tables** adds a row: the ticker, the market text as notes, and the time it was added.
-5. **SMS by Zapier** texts a short alert to your connected phone number: the ticker, "top gainer", and a Google search link for the ticker.
+5. **SMS by Zapier** texts a short alert: the ticker, "top gainer", and a Google search link for it.
 
 One failing ticker does not stop the others. The run's result lists each ticker as `alerted`, `duplicate` or `failed`.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/send-top-gainer-stock-alerts-to-your-phone` (it makes a zap project if you aren't in one), then `npx zap-pack deploy send-top-gainer-stock-alerts-to-your-phone` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Webhooks by Zapier, Catch Raw Hook (`webhook`, `hook_raw`). It needs no connection, so its `authentication_id` is `null`. The raw body is read as the market text.
-2. **Connections** (each alias in the code is the app's slug):
-   - `ai`: AI by Zapier. The model is Zapier-managed (`authentication_id: "0"`), so no key is needed.
-   - `zapier-tables`: Zapier Tables, the account that owns the stocks table.
-   - `sms`: SMS by Zapier. It texts the phone number on that connection, so no recipient is set in the code.
-3. **Constants:**
-   - `TABLE_ID`: the ID of your stocks table in Zapier Tables.
-   - `TICKER_LOOKUP_FIELD`, `TICKER_FIELD`, `NOTES_FIELD`, `TIME_FIELD`: the field keys for the table's ticker, notes and time columns. Set these from your table; `f1` is the first field on a table and `new__data__f1` is how a new row's first field is written.
-   - `MAX_TICKERS`: the most tickers handled per message. Defaults to `10`.
-   - `SEARCH_URL_PREFIX`: the search page the ticker link opens. Defaults to Google search.
-   - `TICKER_PROMPT`: the instruction given to the AI step.
-4. Test with the steps below, then publish, wait until the trigger is active, and give the user their webhook URL to point the market-text sender at.
-
 ## Ask the user
 
-- Which Zapier Tables table is the stocks table, and which of its fields hold the ticker, notes and time? Enter the table ID and field keys as constants.
-- Which phone number should get the alerts? SMS by Zapier texts the number on its own connection; connect or choose the right one.
-- Should the search link go to a different site than Google?
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting    | What goes there                                                                                          |
+| ---------- | -------------------------------------------------------------------------------------------------------- |
+| `TABLE_ID` | The Zapier Tables table that holds your stocks. Look up its ID with the user's Zapier Tables connection. |
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing. Use tickers that are not yet in the user's table, or the run will skip them as duplicates:
+Also review the defaults with them: the field keys in `config.ts` must match the table's columns, in order ticker, notes, time (`TICKER_LOOKUP_FIELD` is `f1`, the first field). `MAX_TICKERS` in `workflow.ts` (10) and `SEARCH_URL_PREFIX` (Google search) can change too.
+
+- Which phone number gets the alerts? SMS by Zapier texts the number on the user's `sms` connection, so connect or choose the right one before publishing.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `ai` (AI by Zapier, which uses Zapier-managed models, so no key is needed), `zapier-tables` (the account that owns the stocks table) and `sms` (the phone that gets the alerts) to the user's connections. The webhook trigger needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/hook-raw.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections (and sample the trigger, if it has one) before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run this sample as a draft test run before publishing. Use tickers that are not yet in the user's table, or the run will skip them as duplicates:
 
 ```json
 {
@@ -63,15 +56,12 @@ Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before 
 }
 ```
 
-Check that the stocks table gets one new row per new ticker, with the market text in notes and a time set, that a text arrives on the connected phone for each new ticker, and that the run result lists each ticker as `alerted`. Rerun the same sample and check that each ticker now comes back as `duplicate` with no new row and no text. Then tell the user to delete the test rows if they are real data.
-
-## Customize
-
-- **Only big movers:** add a price-change or market-cap threshold, checked before the table lookup, so only significant movers trigger alerts.
-- **Team channel:** post the same summary to a team channel, instead of or as well as SMS, as an extra step after the text.
+Check that the stocks table gets one new row per new ticker, with the market text in notes and a time set, that a text arrives on the connected phone for each new ticker, and that the run result lists each ticker as `alerted`. Rerun the same sample and check that each ticker now comes back as `duplicate` with no new row and no text. If run-status tools aren't available, check the result in Zapier Tables directly. The user deletes any test rows, not the agent.
 
 ## Notes
 
 - Each alert is a single text; SMS by Zapier cuts messages over 153 characters, so keep the alert short.
-- Anyone with the webhook URL can post market text into your table and trigger texts. Keep the URL private.
-- Never commit a real table ID or phone number to a shared copy of this file.
+- Anyone with the webhook URL can add tickers to the table and trigger texts, so keep the URL private.
+- To alert only on big movers, add a price-change or market-cap threshold before the table lookup. To also post to a team channel, add a step after the text.
+- After publishing and confirming the trigger is active, give the user the webhook URL to point the market-text sender at.
+- Keep real table IDs and phone numbers out of shared copies of this folder.

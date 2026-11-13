@@ -9,10 +9,7 @@ import {
   NOTES_FIELD,
   TIME_FIELD,
   SEARCH_URL_PREFIX,
-} from "@/config";
-import ai from "@/connections/ai";
-import zapierTables from "@/connections/zapier-tables";
-import smsConnection from "@/connections/sms";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -35,7 +32,7 @@ function parseTickers(text: string): string[] {
   return [...new Set(symbols)];
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "send-top-gainer-stock-alerts-to-your-phone",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -48,7 +45,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "ai",
         actionType: "write",
         actionKey: "get_completion",
-        connection: ai,
+        connection: "ai",
         inputs: {
           model_id: "premium/auto",
           authentication_id: "0",
@@ -60,30 +57,34 @@ const workflow = defineDurable<unknown, unknown>(
     );
 
     const tickers = parseTickers(
-      String(extraction.data[0]?.output ?? ""),
+      String(
+        (extraction.data[0] as { output?: string } | undefined)?.output ?? "",
+      ),
     ).slice(0, MAX_TICKERS);
     if (tickers.length === 0) {
       return { skipped: true, reason: "no-tickers" };
     }
 
     const results: { ticker: string; status: string; error?: string }[] = [];
-    for (const [index, ticker] of tickers.entries()) {
+    for (const ticker of tickers) {
       try {
-        const match = await ctx.step(`find-stock-${index}`, async () =>
-          sdk.runAction({
-            appKey: "zapier-tables",
-            actionType: "search",
-            actionKey: "find_record",
-            connection: zapierTables,
-            inputs: {
-              table_id: TABLE_ID,
-              filter_count: "1",
-              use_stored_order: false,
-              field_data_key: TICKER_LOOKUP_FIELD,
-              operator: "exact",
-              lookup_value: ticker,
-            },
-          }),
+        const match = await ctx.step(
+          `find-stock-${ticker.toLowerCase()}`,
+          async () =>
+            sdk.runAction({
+              appKey: "zapier-tables",
+              actionType: "search",
+              actionKey: "find_record",
+              connection: "zapier-tables",
+              inputs: {
+                table_id: TABLE_ID,
+                filter_count: "1",
+                use_stored_order: false,
+                field_data_key: TICKER_LOOKUP_FIELD,
+                operator: "exact",
+                lookup_value: ticker,
+              },
+            }),
         );
 
         if (match.data.length > 0) {
@@ -91,12 +92,12 @@ const workflow = defineDurable<unknown, unknown>(
           continue;
         }
 
-        await ctx.step(`create-stock-${index}`, async () =>
+        await ctx.step(`create-stock-${ticker.toLowerCase()}`, async () =>
           sdk.runAction({
             appKey: "zapier-tables",
             actionType: "write",
             actionKey: "create_record",
-            connection: zapierTables,
+            connection: "zapier-tables",
             inputs: {
               table_id: TABLE_ID,
               [TICKER_FIELD]: ticker,
@@ -107,12 +108,12 @@ const workflow = defineDurable<unknown, unknown>(
         );
 
         const link = `${SEARCH_URL_PREFIX}${encodeURIComponent(ticker)}+stock`;
-        await ctx.step(`send-sms-${index}`, async () =>
+        await ctx.step(`send-sms-${ticker.toLowerCase()}`, async () =>
           sdk.runAction({
             appKey: "sms",
             actionType: "write",
             actionKey: "send_v2",
-            connection: smsConnection,
+            connection: "sms",
             inputs: { message: `${ticker} top gainer: ${link}` },
           }),
         );

@@ -1,6 +1,6 @@
 ---
 name: notify-finance-of-new-payment-charges-by-email
-description: Build a Zapier Next Gen Zap that emails your finance and billing recipients for every new Stripe charge, so accounting can reconcile and triage issues the same day. Use when a business takes card payments through Stripe and wants finance notified of each charge, including failed ones, without checking the dashboard.
+description: Build a Zap on Zapier that emails your finance and billing recipients for every new Stripe charge, so accounting can reconcile and triage issues the same day. Use when a business takes card payments through Stripe and wants finance notified of each charge, including failed ones, without checking the dashboard.
 license: MIT
 metadata:
   author: zapier
@@ -13,38 +13,39 @@ metadata:
 
 # Notify finance of new payment charges by email
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/notify-finance-of-new-payment-charges-by-email. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a Stripe (Legacy) new charge event, with failed charges included. Each charge starts one run.
+1. **Trigger:** a new Stripe (Legacy) charge (`stripe-legacy`, `charge_v3`). Each charge starts one run. Failed charges count only when the trigger's `include_failed_charges` is `"true"`.
 2. **Email by Zapier** sends one plain-text email to the finance recipients. The subject carries the charge ID and status. The body has the amount, currency, status and a link to the charge in the Stripe dashboard.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/notify-finance-of-new-payment-charges-by-email` (it makes a zap project if you aren't in one), then `npx zap-pack deploy notify-finance-of-new-payment-charges-by-email` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Stripe (Legacy), New Charge (`stripe-legacy`, action `charge_v3`). Params: `include_failed_charges: "true"`. It needs the user's Stripe connection, so its `authentication_id` is the connection ID.
-2. **Connections:** none in the code. Email by Zapier is a no-auth app and gets no alias. The Stripe connection is used only by the trigger.
-3. **Constants:**
-   - `FINANCE_RECIPIENTS`: the finance and billing addresses, comma separated, up to five. Replace `YOUR_FINANCE_EMAIL`.
-   - `SEND_EMAIL`: `true` sends the email. Set to `false` to log without emailing.
-4. Test with the steps below, then publish, wait until the trigger is active, and give the user the trigger's webhook URL if one is shown.
+The Zap only sends email. It never changes or refunds a charge.
 
 ## Ask the user
 
-- Which addresses should receive the charge emails? Replace `YOUR_FINANCE_EMAIL` with them.
-- Which Stripe account should the trigger use? Connect it in Zapier first; the trigger cannot run without it.
-- Should failed charges trigger an email, or only succeeded ones? This template includes them, as the source automation does.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting              | What goes there                                                                                 |
+| -------------------- | ----------------------------------------------------------------------------------------------- |
+| `FINANCE_RECIPIENTS` | The finance and billing email addresses that get each charge email, comma separated, up to five |
 
-Before publishing, run this sample as a draft test run (`run_workflow_draft`), with the email constant set to the user's own address so no one else receives it:
+Also review the defaults with them: `SEND_EMAIL` in `workflow.ts` (`true` sends the email; `false` only logs the charge), and whether failed charges should trigger an email or only succeeded ones.
+
+Before turning it on, confirm the user has a Stripe connection for the account whose charges they want. The trigger cannot run without it.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `stripe-legacy` to the user's Stripe connection. The trigger uses it. Email by Zapier needs no connection and gets no alias.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/charge.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections (and sample the trigger, if it has one) before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test, with `FINANCE_RECIPIENTS` set to an address the user controls so no one else gets the test email:
 
 ```json
 {
@@ -55,15 +56,11 @@ Before publishing, run this sample as a draft test run (`run_workflow_draft`), w
 }
 ```
 
-Check that one email arrived with the subject `New Stripe charge ch_test_0001 (succeeded)` and that the body shows the amount, currency, status and the dashboard link. Then run one real failed charge on a Stripe test-mode account and confirm the email shows the status `failed`.
-
-## Customize
-
-- **Escalate high-value charges:** route only charges above a threshold to a secondary escalation list, with a Filter step before the email.
-- **Separate failed charges:** add a Filter by Zapier step so failed charges go to operations routing and succeeded ones go to finance.
+Check that one email arrived with the subject `New Stripe charge ch_test_0001 (succeeded)` and that the body shows the amount, currency, status and the dashboard link. Then run one failed charge on a Stripe test-mode account and check that the email shows the status `failed`. If run-status tools aren't available, check the inbox directly. Then publish, confirm the trigger is active, and ask the user to delete the test emails and test charges. The user deletes test data, not the agent.
 
 ## Notes
 
-- Email by Zapier sends from a zapiermail.com address and is limited to 10 sends per hour on paid plans. A busy account will hit that limit; use Gmail or SMTP for higher volume.
-- Stripe amounts are in the smallest currency unit (for example, cents). The email shows the raw number, as the source automation does.
+- Email by Zapier sends from a zapiermail.com address and is limited to 10 sends an hour on paid plans. A busy account will hit that limit; use Gmail or SMTP for higher volume.
+- Stripe amounts are in the smallest currency unit (cents), and the email shows the raw number.
+- To escalate high-value charges, add a Filter before the email that routes charges above a threshold to a second list. To split failed charges, add a Filter so failed charges go to operations and succeeded ones go to finance.
 - Never commit a real finance address. Anyone with it can read charge details.

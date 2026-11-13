@@ -1,13 +1,11 @@
-import { ask } from "zap-pack";
+// This zap's settings. Each "REPLACE_…" value is set per person before deploying; its comment says how to get it.
+// The other values are defaults you can change.
 
-export const SPREADSHEET_ID = ask(
-  "Google Sheets spreadsheet ID (the long ID in the sheet's URL).",
-);
+export const SPREADSHEET_ID = "REPLACE_SPREADSHEET_ID"; // Ask the user which sheet is the tracker, then look up its ID (the long ID in the sheet's URL) with their Google Sheets connection.
+export const SLACK_CHANNEL_ID = "REPLACE_SLACK_CHANNEL_ID"; // Ask the user which channel gets the posts, then look up its ID (C…) with their Slack connection.
+
 // Worksheet (tab) ID; the first tab is "0".
 export const WORKSHEET_ID = "0";
-export const SLACK_CHANNEL_ID = ask(
-  "Slack channel ID to post into (starts with C). Use the channel your team reads.",
-);
 // Column keys for the survey fields (COL$A = column A).
 export const CUSTOMER_NAME_COLUMN = "COL$B";
 export const SATISFACTION_COLUMN = "COL$C";

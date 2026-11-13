@@ -8,8 +8,7 @@ import {
   TICKET_TYPE,
   TICKET_TAGS,
   FIRST_COMMENT_PUBLIC,
-} from "@/config";
-import zendesk from "@/connections/zendesk";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -23,7 +22,7 @@ const CHECKLIST_ITEMS = [
   "Close this ticket or note the follow-up",
 ];
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-daily-crawl-health-check-ticket-for-monitoring",
   async (ctx) => {
     const runAt = await ctx.step("capture-run-at", async () =>
@@ -42,7 +41,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zendesk",
         actionType: "write",
         actionKey: "ticket",
-        connection: zendesk,
+        connection: "zendesk",
         inputs: {
           subject,
           first_comment: checklist,

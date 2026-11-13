@@ -2,7 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { SUB_ZAP_URL } from "@/config";
+import { SUB_ZAP_URL } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -17,7 +17,7 @@ const CommitSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-release-trigger-from-merged-pull-request-commits",
   async (ctx, rawInput) => {
     const commit = CommitSchema.parse(

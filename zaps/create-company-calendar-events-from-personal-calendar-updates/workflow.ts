@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { COMPANY_CALENDAR_ID, MIRROR_MARKER } from "@/config";
-import googleCalendar from "@/connections/google-calendar";
+import { COMPANY_CALENDAR_ID, MIRROR_MARKER } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -27,7 +26,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-company-calendar-events-from-personal-calendar-updates",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -56,7 +55,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-calendar",
         actionType: "search",
         actionKey: "event_v2",
-        connection: googleCalendar,
+        connection: "google-calendar",
         inputs: { calendarid: COMPANY_CALENDAR_ID, search_term: sourceId },
       }),
     );
@@ -71,7 +70,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "google-calendar",
           actionType: "write",
           actionKey: "update_event",
-          connection: googleCalendar,
+          connection: "google-calendar",
           inputs: {
             calendarid: COMPANY_CALENDAR_ID,
             eventid: existing.id,
@@ -91,7 +90,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-calendar",
         actionType: "write",
         actionKey: "detailed_event",
-        connection: googleCalendar,
+        connection: "google-calendar",
         inputs: {
           calendarid: COMPANY_CALENDAR_ID,
           summary,

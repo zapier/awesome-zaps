@@ -1,6 +1,6 @@
 ---
 name: update-strategic-kr-when-tactical-kr-scope-changes
-description: Build a Zapier Next Gen Zap that, when a tactical KR's watched properties change in Notion, finds its linked strategic KR and sets the strategic KR's scope-change checkbox. Use when leadership and ops keep strategic and tactical KRs in separate Notion databases and need a scope change on a tactical KR to flag the strategic KR automatically.
+description: Build a Zap on Zapier that, when a tactical KR's watched properties change in Notion, finds its linked strategic KR and sets the strategic KR's scope-change checkbox. Use when leadership and ops keep strategic and tactical KRs in separate Notion databases and need a scope change on a tactical KR to flag the strategic KR automatically.
 license: MIT
 metadata:
   author: zapier
@@ -13,46 +13,46 @@ metadata:
 
 # Update strategic KR when tactical KR scope changes
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/update-strategic-kr-when-tactical-kr-scope-changes. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a Notion data source item's properties are updated in the tactical KR database.
+1. **Trigger:** a Notion data source item's properties are updated in the tactical KR database (`notion`, `updated_data_source_item_properties`).
 2. **Filter:** the run continues only if the tactical KR has a source reference and its status is "In progress".
 3. **Notion** finds the strategic KR in the strategic database whose source reference matches. If there is none, the run stops and creates nothing.
 4. **Filter:** if the strategic KR's scope-change checkbox is already true, the run stops.
 5. **Notion** sets the strategic KR's scope-change checkbox to true.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/update-strategic-kr-when-tactical-kr-scope-changes` (it makes a zap project if you aren't in one), then `npx zap-pack deploy update-strategic-kr-when-tactical-kr-scope-changes` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Notion, Updated Properties in Data Source Item (`notion`, `updated_data_source_item_properties`), watching the tactical KR data source. It needs the user's Notion connection, so `authentication_id` is that connection's ID.
-2. **Connections** (the alias in the code is the app's slug):
-   - `notion`: the user's Notion connection, for the account that owns both KR databases. The database must be shared with that Notion integration.
-3. **Constants:**
-   - `TACTICAL_DATA_SOURCE_ID`: the data source ID of the tactical KR database.
-   - `STRATEGIC_DATA_SOURCE_ID`: the data source ID of the strategic KR database.
-   - `SOURCE_REFERENCE_PROPERTY`: the tactical KR property that links to its strategic KR. Use the same property name on both sides, or change the search step.
-   - `STATUS_PROPERTY` and `IN_PROGRESS_STATUS`: the status property and the value that means "in progress".
-   - `SCOPE_CHANGE_PROPERTY`: the strategic KR checkbox that flags a scope change.
-4. Test with the steps below, then publish, wait until the trigger is active, and give the user the workflow to keep or disable.
+The Zap never creates a strategic KR, and a tactical KR with no matching strategic KR is skipped.
 
 ## Ask the user
 
-- Which Notion data sources are the tactical and strategic KR databases?
-- Which property links a tactical KR to its strategic KR, and what is the status property's "in progress" value?
-- Which strategic KR checkbox marks a scope change?
-- Which tactical KR properties should trigger the update? The spec says "watched properties", but the trigger does not yet filter on specific properties.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                             | What goes there                                                                                                                     |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `REPLACE_TACTICAL_DATA_SOURCE_ID`   | The data source of the Tactical KRs database, the one the trigger watches                                                           |
+| `REPLACE_STRATEGIC_DATA_SOURCE_ID`  | The data source of the Strategic KRs database                                                                                       |
+| `REPLACE_SOURCE_REFERENCE_PROPERTY` | The tactical KR property that links it to its strategic KR. Use the same property name on both databases, or change the search step |
+| `REPLACE_STATUS_PROPERTY`           | The tactical KR status property                                                                                                     |
+| `REPLACE_SCOPE_CHANGE_PROPERTY`     | The strategic KR checkbox that flags a scope change                                                                                 |
 
-The connected Notion account is personal and has no KR databases, so a test would change real data. To test, use a Notion test workspace or a test connection, with records named "[install-test] …", then run the sample below as a draft test run (`run_workflow_draft`):
+Also review the default with them: `IN_PROGRESS_STATUS` (`"In progress"`), the status value that counts as in progress. Change it if their database uses another name.
+
+Also ask: which tactical KR properties should trigger the update? The trigger does not filter by property yet, so a change to any property runs the workflow.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `notion` to the user's Notion connection, for the account that owns both KR databases. Both databases must be shared with that Notion integration. No other apps need a connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/updated-data-source-item-properties.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them, and point the trigger at the data source in `TACTICAL_DATA_SOURCE_ID`. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's Notion connection and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Use a Notion test workspace or a test connection, with records named "[install-test] …". Never run this against the user's real KR databases, since the test changes a record. Run it once as a draft test run, with the sample below, using the names of their own properties as keys:
 
 ```json
 {
@@ -64,15 +64,10 @@ The connected Notion account is personal and has no KR databases, so a test woul
 }
 ```
 
-Check that the matching strategic record's scope-change checkbox is now true, and that no other strategic record changed. Then remove the test records.
-
-## Customize
-
-- **Notify the ops channel:** add a team notification step to post the update to your ops channel.
-- **Audit comment:** append a comment on the strategic record that summarizes the change.
+Check that the matching strategic record's scope-change checkbox is now true, and that no other strategic record changed. If run-status tools aren't available, check the strategic record in Notion directly. Then publish, confirm the trigger is active, and leave the workflow for the user to keep or disable. The user deletes the test records, not the agent.
 
 ## Notes
 
-- The workflow never creates a strategic record. A tactical KR with no matching strategic KR is skipped.
+- Until every `REPLACE_…` value is filled in, the workflow cannot run.
 - The spec's "map source fields to strategic fields" is reduced to the one scope-change flag. The spec defines no other field to map.
-- Property names in the source are placeholders, so the draft cannot run until they are filled in.
+- To extend it: post the update to an ops channel after the last step, or append an audit comment on the strategic record that summarizes the change.

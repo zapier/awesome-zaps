@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { TRELLO_BOARD_ID, TRELLO_INTAKE_LIST_ID } from "@/config";
-import trello from "@/connections/trello";
+import { TRELLO_BOARD_ID, TRELLO_INTAKE_LIST_ID } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -79,7 +78,10 @@ function cardNameFromSubject(subject: string): string {
   return subject.replace(/^((re|fwd?):\s*)+/i, "").trim();
 }
 
-const workflow = defineDurable<unknown, unknown>(
+// The Trello card fields the duplicate check reads from the search results.
+type TrelloCard = { id: string; name?: string | null; desc?: string | null };
+
+const workflow = defineDurable(
   "create-design-request-cards-from-inbound-email-requests",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(normalizeInput(rawInput));
@@ -124,7 +126,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "trello",
         actionType: "search",
         actionKey: "organization_card_v2",
-        connection: trello,
+        connection: "trello",
         inputs: {
           board: TRELLO_BOARD_ID,
           keyword: cardName,
@@ -134,7 +136,7 @@ const workflow = defineDurable<unknown, unknown>(
       }),
     );
 
-    const duplicate = existing.data.find(
+    const duplicate = (existing.data as TrelloCard[]).find(
       (card) => card.name === cardName && card.desc?.includes(receivedAt),
     );
     if (duplicate) {
@@ -150,7 +152,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "trello",
         actionType: "write",
         actionKey: "card_v2",
-        connection: trello,
+        connection: "trello",
         inputs: {
           board: TRELLO_BOARD_ID,
           list: TRELLO_INTAKE_LIST_ID,

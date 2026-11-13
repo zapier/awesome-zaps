@@ -2,14 +2,14 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { CALENDAR_ID, DEFAULT_CONTACT, CONTACT_LABEL } from "@/config";
-import googleCalendar from "@/connections/google-calendar";
+import { CALENDAR_ID, DEFAULT_CONTACT, CONTACT_LABEL } from "./config.ts";
 
 const sdk = createZapierSdk();
 
 // Rotation names as they appear in event titles, mapped to the on-call contact's email.
+// Ask the user for each pair, then add one line per rotation; matching ignores case.
 const ROSTER: Record<string, string> = {
-  YOUR_ROTATION_NAME: "YOUR_CONTACT_EMAIL",
+  REPLACE_ROTATION_NAME: "REPLACE_CONTACT_EMAIL",
 };
 
 const InputSchema = z
@@ -31,7 +31,7 @@ function resolveContact(summary: string): string {
   return rotation ? ROSTER[rotation] : DEFAULT_CONTACT;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "assign-on-call-contact-from-next-calendar-event-to-roster",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -53,7 +53,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-calendar",
         actionType: "write",
         actionKey: "update_event",
-        connection: googleCalendar,
+        connection: "google-calendar",
         inputs: {
           calendarid: CALENDAR_ID,
           eventid: input.id,
@@ -67,7 +67,7 @@ const workflow = defineDurable<unknown, unknown>(
       eventId: input.id,
       shiftStart: input.start?.dateTime ?? null,
       contact,
-      updated: update.data?.[0]?.id ?? null,
+      updated: (update.data?.[0] as { id?: string } | undefined)?.id ?? null,
     };
   },
 );

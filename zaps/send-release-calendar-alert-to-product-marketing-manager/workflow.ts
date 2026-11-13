@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { FALLBACK_SLACK_USER_ID } from "@/config";
-import slack from "@/connections/slack";
+import { FALLBACK_SLACK_USER_ID } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -67,7 +66,7 @@ function formatWhen(
   return `${dateText}, ${timeFormat.format(startDate)}${endTime}`;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "send-release-calendar-alert-to-product-marketing-manager",
   async (ctx, rawInput) => {
     const event = InputSchema.parse(
@@ -88,7 +87,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "slack",
             actionType: "search",
             actionKey: "user_by_email",
-            connection: slack,
+            connection: "slack",
             inputs: { email: organizerEmail },
           }),
         )
@@ -110,7 +109,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "direct_message",
-        connection: slack,
+        connection: "slack",
         inputs: {
           channel: recipientId,
           text,

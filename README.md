@@ -1,39 +1,37 @@
 # awesome-zaps
 
-A collection of Zaps written as code (Next Gen Zaps built on the Zapier SDK), written and maintained by Zapier. It doesn't accept zaps from outside contributors.
-
-## Layout
-
-| Path          | What lives here                                                                      |
-| ------------- | ------------------------------------------------------------------------------------ |
-| `zaps/<zap>/` | One zap per folder, in the [zap-pack](https://www.npmjs.com/package/zap-pack) layout |
-| `scripts/`    | Scripts for deploying a zap and checking its status, and the catalog test            |
-| `docs/`       | How to test and deploy a zap                                                         |
-
-## A zap's folder
-
-Each zap is a folder of plain files that the [zap-pack](https://www.npmjs.com/package/zap-pack) CLI deploys as is:
-
-```
-zaps/<zap>/
-├── workflow.ts      the workflow; imports its settings and accounts
-├── config.ts        its settings: ask("…") for values each person sets
-├── connections/     one file per account it uses
-├── triggers/        what starts it
-├── SKILL.md         what an agent builds, asks and tests; zapier.sh lists it
-└── README.md
-```
+Zap templates you install by pasting one line into your AI agent. Written and maintained by Zapier; the repo doesn't accept zaps from outside contributors.
 
 ## Install a zap
 
-From your terminal, with the zap CLI. It makes a zap project if you aren't in one, then deploys to your Zapier account:
+Pick a folder in [`zaps/`](zaps) and paste this into your AI agent, with the folder name filled in:
 
-```bash
-npx zap-pack add awesome-zaps/<zap>
-npx zap-pack deploy <zap>
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/<zap>
+
+The agent follows the zap's `SKILL.md`: it asks for your values, then builds, tests and turns on the Zap in your Zapier account. It builds with Zapier MCP, and walks you through connecting it if your agent isn't connected yet.
+
+## A zap's folder
+
+Each zap is a folder of plain files:
+
+```
+zaps/<zap>/
+├── README.md        what it does and the one-line install prompt
+├── SKILL.md         what the agent asks, builds and tests
+├── workflow.ts      the Zap's code
+├── config.ts        its settings; each "REPLACE_…" value is set per person
+├── connections/     one file per account it uses
+└── triggers/        what starts it
 ```
 
-Or paste a zap's prompt from [zapier.sh](https://zapier.sh) into any agent with Zapier MCP. Its `SKILL.md` says how to publish the folder that way.
+## Layout
+
+| Path          | What lives here                                                                                                                                   |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `zaps/<zap>/` | One zap per folder                                                                                                                                |
+| `scripts/`    | The catalog test, and scripts for deploying a zap and checking its status                                                                         |
+| `skills/`     | Skills for working on zaps: [`create-zap-template`](skills/create-zap-template/SKILL.md) turns a zapier.com page or a running Zap into a template |
+| `docs/`       | How to test and deploy a zap                                                                                                                      |
 
 ## Working on this repo
 

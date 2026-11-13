@@ -1,6 +1,6 @@
 ---
 name: update-release-branch-record-on-completed-deployment-status
-description: Build a Zapier Next Gen Zap that, when a Salesforce deployment metadata log entry is marked Completed, finds the matching branch record and writes its production-release flag, hotfix flag and last UAT deployment date. Use when a release team tracks deployments in Salesforce and wants each branch record updated automatically when a deployment finishes.
+description: Build a Zap on Zapier that, when a Salesforce deployment metadata log entry is marked Completed, finds the matching branch record and writes its production-release flag, hotfix flag and last UAT deployment date. Use when a release team tracks deployments in Salesforce and wants each branch record updated automatically when a deployment finishes.
 license: MIT
 metadata:
   author: zapier
@@ -13,48 +13,54 @@ metadata:
 
 # Update release branch record on completed deployment status
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/update-release-branch-record-on-completed-deployment-status. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a Salesforce "Updated Field on Record" trigger watches the deployment metadata log object for changes to its status field.
-2. The run stops unless the status is `Completed`, the process type is a deployment, the run result is `Success`, and no error field is filled in.
+1. **Trigger:** a Salesforce "Updated Field on Record" trigger (`salesforce`, `updated_field_on_record`) watches the deployment metadata log object for changes to its status field.
+2. The run stops unless the status is `Completed`, the process type is `Deployment`, the run result is `Success`, and no error field is filled in.
 3. **Salesforce** finds the branch record whose ID matches the branch reference on the metadata log entry. If none matches, the run stops and creates nothing.
 4. The release-type value is mapped to the hotfix flag (`Hotfix` is true, anything else is false).
 5. **Salesforce** updates that branch record: the production-release checkbox is set to true, the hotfix checkbox gets the mapped flag, and the last UAT deployment datetime gets the deployment date from the log entry.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/update-release-branch-record-on-completed-deployment-status` (it makes a zap project if you aren't in one), then `npx zap-pack deploy update-release-branch-record-on-completed-deployment-status` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Salesforce, "Updated Field on Record" (`updated_field_on_record`). Set the object to the deployment metadata log object. Watch the status field.
-2. **Connections** (each alias in the code is the app's slug):
-   - `salesforce`: a Salesforce connection for the org that holds the metadata log and branch objects. Use a sandbox or integration org for testing.
-3. **Constants:**
-   - `METADATA_LOG_OBJECT`, `BRANCH_OBJECT`: Salesforce object API names.
-   - `STATUS_FIELD`, `COMPLETED_VALUE`: the status field and the value that means finished.
-   - `BRANCH_REFERENCE_FIELD`, `BRANCH_ID_FIELD`: the metadata log field holding the branch reference, and the branch field it matches.
-   - `PROCESS_TYPE_FIELD`, `DEPLOYMENT_PROCESS_TYPE`, `RUN_RESULT_FIELD`, `SUCCESS_RESULT_VALUE`, `ERROR_FIELD`: fields used by the filter.
-   - `RELEASE_TYPE_FIELD`, `HOTFIX_LOOKUP`: the release-type field and its mapping to the hotfix flag.
-   - `DEPLOYMENT_DATE_FIELD`: the metadata log field with the deployment date.
-   - `PRODUCTION_RELEASE_FIELD`, `HOTFIX_FIELD`, `LAST_UAT_DEPLOYMENT_FIELD`: the branch fields to write.
-   - Every value shipped in this file is a `YOUR_…` placeholder for the org's API names, except `Completed`, `Deployment`, `Success` and the `Regular`/`Hotfix` lookup keys, which are examples to confirm.
+The Zap never creates branch records. A missing match stops the run.
 
 ## Ask the user
 
-- What are the Salesforce API names of the deployment metadata log object and the branch object?
-- Which metadata log field holds the status, the process type, the run result, the error flag, the release type and the deployment date? Which field holds the branch reference, and which branch field matches it?
-- What values mean "Completed", "Deployment", "Success" and "Hotfix" in the org? Is any value other than `Hotfix` also a hotfix?
-- Which branch fields are the production-release checkbox, the hotfix checkbox and the last UAT deployment datetime?
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                             | What goes there                                                                                                   |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `REPLACE_METADATA_LOG_OBJECT`       | The Salesforce API name of the deployment metadata log object. The trigger watches this object.                   |
+| `REPLACE_BRANCH_OBJECT`             | The Salesforce API name of the branch object whose record gets updated                                            |
+| `REPLACE_STATUS_FIELD`              | The metadata log field that holds the deployment status. The trigger watches it, and the Zap runs when it changes |
+| `REPLACE_BRANCH_REFERENCE_FIELD`    | The metadata log field that references the branch record                                                          |
+| `REPLACE_BRANCH_ID_FIELD`           | The branch field the reference is matched against, usually the branch ID                                          |
+| `REPLACE_PROCESS_TYPE_FIELD`        | The metadata log field that holds the process type                                                                |
+| `REPLACE_RUN_RESULT_FIELD`          | The metadata log field that holds the run result                                                                  |
+| `REPLACE_ERROR_FIELD`               | The metadata log field that is filled in when the run errored                                                     |
+| `REPLACE_RELEASE_TYPE_FIELD`        | The metadata log field that holds the release type, regular or hotfix                                             |
+| `REPLACE_DEPLOYMENT_DATE_FIELD`     | The metadata log field that holds the deployment date                                                             |
+| `REPLACE_PRODUCTION_RELEASE_FIELD`  | The branch checkbox that is set to true when the release reaches production                                       |
+| `REPLACE_HOTFIX_FIELD`              | The branch checkbox that records whether the release is a hotfix                                                  |
+| `REPLACE_LAST_UAT_DEPLOYMENT_FIELD` | The branch datetime field that holds the last UAT deployment                                                      |
 
-There was no Salesforce connection on the account to test with. To test, use a sandbox connection and a branch record and metadata log entry named "[install-test] …". Set the metadata log entry's status to `Completed` and its run result to `Success`. Then check that:
+Also review these defaults with them: `COMPLETED_VALUE` (`Completed`), `DEPLOYMENT_PROCESS_TYPE` (`Deployment`) and `SUCCESS_RESULT_VALUE` (`Success`) in `config.ts` must match the org's values. In `HOTFIX_LOOKUP` in `workflow.ts`, `Hotfix` counts as a hotfix; ask whether any other release-type value does too.
+
+Ask which org the Salesforce connection points at. Use a sandbox or integration org for testing.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `salesforce` to the user's Salesforce connection for the org that holds the metadata log and branch objects.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/updated-field-on-record.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. Set the trigger's object to `METADATA_LOG_OBJECT` and its watched field to `STATUS_FIELD`. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections (and sample the trigger, if it has one) before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test against the sandbox. Create a branch record and a metadata log entry, both named "[install-test] …". Set the log entry's status to `Completed`, its process type to `Deployment`, its run result to `Success`, and leave its error field empty. Then check that:
 
 - the branch record's production-release box is checked;
 - the hotfix box matches the release type;
@@ -62,13 +68,10 @@ There was no Salesforce connection on the account to test with. To test, use a s
 - a log entry with a non-matching status, process type or run result, or with an error, changes nothing;
 - a log entry whose branch reference matches no record creates no record.
 
-## Customize
-
-- **Alert on failures:** add an optional alert step that notifies release owners for any stopped or errored run.
-- **Per-environment timestamps:** add conditional paths that write different timestamp fields for production and UAT.
+If run-status tools aren't available, check the result in Salesforce directly. Ask the user to delete the test records; the agent doesn't delete them.
 
 ## Notes
 
-- The workflow never creates branch records. A missing match stops the run.
 - Each Salesforce step is one action, so a failed update shows up as a failed step in the run history.
-- Never commit real Salesforce object names, record IDs or connection details into the constants; keep the `YOUR_…` placeholders in the shared copy.
+- To alert release owners on any stopped or errored run, add an optional alert step that notifies them.
+- To write different timestamp fields for production and UAT, add conditional paths that each write their own field.

@@ -13,8 +13,7 @@ import {
   ASSET_STATUS_PROPERTY,
   ASSET_STATUS_NEW,
   ASSET_URL_BASE,
-} from "@/config";
-import notion from "@/connections/notion";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -62,7 +61,7 @@ function parseFilename(title: string): Record<FilenameField, string | null> {
   ) as Record<FilenameField, string | null>;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-creative-asset-records-from-task-webhook-entries",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -84,7 +83,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "notion",
         actionType: "search",
         actionKey: "find_data_source_item",
-        connection: notion,
+        connection: "notion",
         inputs: {
           datasource: REQUESTS_DATA_SOURCE,
           [REQUEST_PERMALINK_PROPERTY]: permalink,
@@ -93,7 +92,7 @@ const workflow = defineDurable<unknown, unknown>(
     );
 
     let requestId: string | null =
-      (existing.data[0]?.id as string | undefined) ?? null;
+      (existing.data[0] as { id?: string } | undefined)?.id ?? null;
     let requestCreated = false;
 
     if (!requestId) {
@@ -102,7 +101,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "notion",
           actionType: "write",
           actionKey: "create_database_item",
-          connection: notion,
+          connection: "notion",
           inputs: {
             datasource: REQUESTS_DATA_SOURCE,
             template_mode: "none",
@@ -111,14 +110,14 @@ const workflow = defineDurable<unknown, unknown>(
           },
         }),
       );
-      requestId = (created.data[0]?.id as string | undefined) ?? null;
+      requestId = (created.data[0] as { id?: string } | undefined)?.id ?? null;
       requestCreated = true;
     }
 
     let recorded = 0;
     let failed = 0;
 
-    for (const [index, asset] of assets.entries()) {
+    for (const asset of assets) {
       const assetId = String(asset.id);
       const meta = parseFilename(asset.title);
       const url = input.board_id
@@ -126,14 +125,14 @@ const workflow = defineDurable<unknown, unknown>(
         : `${ASSET_URL_BASE}/${assetId}`;
 
       const result = await ctx.step(
-        `create-asset-record-${index}`,
+        `create-asset-record-${assetId}`,
         async () => {
           try {
             const item = await sdk.runAction({
               appKey: "notion",
               actionType: "write",
               actionKey: "create_database_item",
-              connection: notion,
+              connection: "notion",
               inputs: {
                 datasource: ASSETS_DATA_SOURCE,
                 template_mode: "none",
@@ -149,7 +148,10 @@ const workflow = defineDurable<unknown, unknown>(
                 ),
               },
             });
-            return { ok: true, id: item.data[0]?.id ?? null };
+            return {
+              ok: true,
+              id: (item.data[0] as { id?: string } | undefined)?.id ?? null,
+            };
           } catch (error) {
             return { ok: false, error: String(error) };
           }

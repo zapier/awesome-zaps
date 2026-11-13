@@ -2,7 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { FINANCE_RECIPIENTS } from "@/config";
+import { FINANCE_RECIPIENTS } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -18,7 +18,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "notify-finance-of-new-payment-charges-by-email",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(

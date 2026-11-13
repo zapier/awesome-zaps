@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { EXPERIMENT_DATA_SOURCE, CONTENT_FORMAT } from "@/config";
-import notion from "@/connections/notion";
+import { EXPERIMENT_DATA_SOURCE, CONTENT_FORMAT } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -21,7 +20,7 @@ const TaskSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-a-b-test-entry-in-your-experiment-database",
   async (ctx, rawInput) => {
     const task = TaskSchema.parse(
@@ -42,7 +41,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "notion",
         actionType: "write",
         actionKey: "create_database_item",
-        connection: notion,
+        connection: "notion",
         inputs: {
           datasource: EXPERIMENT_DATA_SOURCE,
           template_mode: "none",

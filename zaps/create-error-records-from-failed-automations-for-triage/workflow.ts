@@ -11,8 +11,7 @@ import {
   NOTES_FIELD,
   STATUS_FIELD,
   ERROR_STATUS,
-} from "@/config";
-import airtable from "@/connections/airtable";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -26,7 +25,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-error-records-from-failed-automations-for-triage",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -46,7 +45,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "airtable",
         actionType: "search",
         actionKey: "findRecord",
-        connection: airtable,
+        connection: "airtable",
         inputs: {
           applicationId: BASE_ID,
           tableName: TABLE_NAME,
@@ -65,7 +64,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "airtable",
           actionType: "write",
           actionKey: "updateRecord",
-          connection: airtable,
+          connection: "airtable",
           inputs: {
             applicationId: BASE_ID,
             tableName: TABLE_NAME,
@@ -88,7 +87,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "airtable",
         actionType: "write",
         actionKey: "createRecord",
-        connection: airtable,
+        connection: "airtable",
         inputs: {
           applicationId: BASE_ID,
           tableName: TABLE_NAME,

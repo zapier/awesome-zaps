@@ -11,9 +11,7 @@ import {
   SPREADSHEET_ID,
   WORKSHEET_ID,
   MODEL_ID,
-} from "@/config";
-import greenhouse from "@/connections/greenhouse";
-import googleSheets from "@/connections/google-sheets";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -72,7 +70,7 @@ const AttachmentSchema = z
   .object({ type: z.string(), url: z.string() })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "add-ai-evaluation-note-to-candidate-profile",
   async (ctx, rawInput) => {
     const input = ApplicationSchema.parse(
@@ -95,25 +93,22 @@ const workflow = defineDurable<unknown, unknown>(
       .map((item) => `Q: ${item.question ?? ""}\nA: ${item.answer ?? ""}`)
       .join("\n\n");
 
-    const resumeUrl = await ctx.step(
-      `find-resume-${applicationId}`,
-      async () => {
-        const response = await sdk.fetch(
-          `https://harvest.greenhouse.io/v3/attachments?application_ids=${applicationId}&type=resume`,
-          { connection: greenhouse, method: "GET" },
-        );
-        if (!response.ok) {
-          throw new Error(`Greenhouse returned ${response.status}`);
-        }
-        const attachments = z
-          .array(AttachmentSchema)
-          .parse(await response.json());
-        return attachments.find((item) => item.type === "resume")?.url ?? null;
-      },
-    );
+    const resumeUrl = await ctx.step("find-resume", async () => {
+      const response = await sdk.fetch(
+        `https://harvest.greenhouse.io/v3/attachments?application_ids=${applicationId}&type=resume`,
+        { connection: "greenhouse", method: "GET" },
+      );
+      if (!response.ok) {
+        throw new Error(`Greenhouse returned ${response.status}`);
+      }
+      const attachments = z
+        .array(AttachmentSchema)
+        .parse(await response.json());
+      return attachments.find((item) => item.type === "resume")?.url ?? null;
+    });
 
     const resumeText = resumeUrl
-      ? await ctx.step(`extract-resume-text-${applicationId}`, async () => {
+      ? await ctx.step("extract-resume-text", async () => {
           const extracted = await sdk.runAction({
             appKey: "files-by-zapier",
             actionType: "write",
@@ -126,48 +121,46 @@ const workflow = defineDurable<unknown, unknown>(
         })
       : "";
 
-    const scorecard = await ctx.step(
-      `score-application-${applicationId}`,
-      async () =>
-        sdk.runAction({
-          appKey: "ai",
-          actionType: "write",
-          actionKey: "get_completion",
-          inputs: {
-            model_id: MODEL_ID,
-            authentication_id: "0",
-            instructions: INSTRUCTIONS,
-            inputFields: {
-              candidate_name: candidateName,
-              application_answers: answersText,
-              resume_text: resumeText,
-            },
-            includeWorkflowData: false,
-            outputFields: [
-              {
-                name: "experience_gate",
-                type: "category_single",
-                options: ["Met", "Not met", "Unclear"],
-                isRequired: true,
-              },
-              {
-                name: "depth_score",
-                type: "category_single",
-                options: SCORE_OPTIONS,
-                isRequired: true,
-              },
-              {
-                name: "product_thinking_score",
-                type: "category_single",
-                options: SCORE_OPTIONS,
-                isRequired: true,
-              },
-              { name: "overall_assessment", type: "text", isRequired: true },
-              { name: "summary", type: "text", isRequired: true },
-              { name: "red_flags", type: "text", isRequired: true },
-            ],
+    const scorecard = await ctx.step("score-application", async () =>
+      sdk.runAction({
+        appKey: "ai",
+        actionType: "write",
+        actionKey: "get_completion",
+        inputs: {
+          model_id: MODEL_ID,
+          authentication_id: "0",
+          instructions: INSTRUCTIONS,
+          inputFields: {
+            candidate_name: candidateName,
+            application_answers: answersText,
+            resume_text: resumeText,
           },
-        }),
+          includeWorkflowData: false,
+          outputFields: [
+            {
+              name: "experience_gate",
+              type: "category_single",
+              options: ["Met", "Not met", "Unclear"],
+              isRequired: true,
+            },
+            {
+              name: "depth_score",
+              type: "category_single",
+              options: SCORE_OPTIONS,
+              isRequired: true,
+            },
+            {
+              name: "product_thinking_score",
+              type: "category_single",
+              options: SCORE_OPTIONS,
+              isRequired: true,
+            },
+            { name: "overall_assessment", type: "text", isRequired: true },
+            { name: "summary", type: "text", isRequired: true },
+            { name: "red_flags", type: "text", isRequired: true },
+          ],
+        },
+      }),
     );
 
     const result = (scorecard.data[0] ?? {}) as Record<string, unknown>;
@@ -193,12 +186,12 @@ const workflow = defineDurable<unknown, unknown>(
           ]),
     ].join("\n");
 
-    await ctx.step(`add-greenhouse-note-${applicationId}`, async () =>
+    await ctx.step("add-greenhouse-note", async () =>
       sdk.runAction({
         appKey: "greenhouse",
         actionType: "write",
         actionKey: "candidate_note_v2",
-        connection: greenhouse,
+        connection: "greenhouse",
         inputs: {
           candidate: candidateId,
           body: noteBody,
@@ -216,12 +209,12 @@ const workflow = defineDurable<unknown, unknown>(
       )
       .join(" | ");
 
-    await ctx.step(`log-tracker-row-${applicationId}`, async () =>
+    await ctx.step("log-tracker-row", async () =>
       sdk.runAction({
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "add_row",
-        connection: googleSheets,
+        connection: "google-sheets",
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,

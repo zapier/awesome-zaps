@@ -9,8 +9,7 @@ import {
   REVIEWER_NAME_KEY,
   RATING_KEY,
   RECEIVED_AT_KEY,
-} from "@/config";
-import zapierTables from "@/connections/zapier-tables";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -33,7 +32,7 @@ const STAR_WORDS: Record<string, number> = {
 
 const InputSchema = z.object({}).loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-review-records-and-assign-local-owners-for-follow-up",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -60,7 +59,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "search",
         actionKey: "find_record",
-        connection: zapierTables,
+        connection: "zapier-tables",
         inputs: {
           table_id: TABLE_ID,
           filter_count: "1",
@@ -72,7 +71,8 @@ const workflow = defineDurable<unknown, unknown>(
       }),
     );
 
-    const rowId = existing.data?.[0]?.record_id as string | undefined;
+    const rowId = (existing.data?.[0] as { record_id?: string } | undefined)
+      ?.record_id;
 
     if (rowId) {
       const updated = await ctx.step("update-review-row", async () =>
@@ -80,7 +80,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "zapier-tables",
           actionType: "write",
           actionKey: "update_record",
-          connection: zapierTables,
+          connection: "zapier-tables",
           inputs: { table_id: TABLE_ID, record_id: rowId, ...row },
         }),
       );
@@ -97,7 +97,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "create_record",
-        connection: zapierTables,
+        connection: "zapier-tables",
         inputs: { table_id: TABLE_ID, ...row },
       }),
     );
@@ -105,7 +105,9 @@ const workflow = defineDurable<unknown, unknown>(
     return {
       externalId,
       action: "created",
-      recordId: created.data?.[0]?.record_id ?? null,
+      recordId:
+        (created.data?.[0] as { record_id?: string } | undefined)?.record_id ??
+        null,
     };
   },
 );

@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { MEDIA_FOLDER_ID } from "@/config";
-import googleDrive from "@/connections/google-drive";
+import { MEDIA_FOLDER_ID } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -18,7 +17,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "save-tagged-social-images-into-central-media-folder",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -45,7 +44,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-drive",
         actionType: "write",
         actionKey: "file",
-        connection: googleDrive,
+        connection: "google-drive",
         inputs: {
           file: mediaUrl,
           folder: MEDIA_FOLDER_ID,

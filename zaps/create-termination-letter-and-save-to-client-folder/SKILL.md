@@ -1,6 +1,6 @@
 ---
 name: create-termination-letter-and-save-to-client-folder
-description: Build a Zapier Next Gen Zap that turns a termination request posted to a webhook into a filled-in termination letter, saved as a Google Doc in the client's Drive folder and ready for review. Use when a legal or practice-admin team generates termination letters from a template and wants the letter created and filed automatically.
+description: Build a Zap on Zapier that turns a termination request posted to a webhook into a filled-in termination letter, saved as a Google Doc in the client's Drive folder and ready for review. Use when a legal or practice-admin team generates termination letters from a template and wants the letter created and filed automatically.
 license: MIT
 metadata:
   author: zapier
@@ -13,46 +13,48 @@ metadata:
 
 # Create termination letter and save to client folder
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/create-termination-letter-and-save-to-client-folder. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a termination request arrives at a Webhooks by Zapier catch hook (a practice system, form or script posts to it). The payload carries the client folder's Drive URL and the letter's fields.
+1. **Trigger:** a termination request arrives at a Webhooks by Zapier catch hook (`webhook`, `hook_v2`). A practice system, form or script posts to it. The payload carries the client folder's Drive URL and the letter's fields.
 2. **Code** pulls the Drive folder ID out of `folder_path` and stamps the current time.
-3. **Google Docs** copies your termination template into that folder, fills in the template fields (termination date, provider, practice, address, credential and tax references) and names the document with the practice, provider and time. Fields with no value are left as their `{{placeholder}}`.
+3. **Google Docs** copies the termination template into that folder, fills in the template fields (termination date, provider, practice, address, credential and tax references) and names the document with the practice, provider and time. Fields with no value are left as their `{{placeholder}}`.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-termination-letter-and-save-to-client-folder` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-termination-letter-and-save-to-client-folder` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Webhooks by Zapier, Catch Hook (`webhook`, `hook_v2`). It needs no connection, so its `authentication_id` is `null`.
-2. **Connections** (the alias is the app's slug):
-   - `google-docs`: the Google account that owns the template and the client folders.
-3. **Constants:**
-   - `TEMPLATE_DOC_ID`: the long ID in the template document's URL.
-   - `TITLE_PREFIX`: the start of each new document's name. Defaults to `"Termination letter"`.
-4. **Template:** a Google Doc with these placeholders, spelled exactly: `{{termination_date}}`, `{{provider_name}}`, `{{practice_name}}`, `{{practice_address}}`, `{{credential_ref}}`, `{{tax_ref}}`. Copy the template's name and layout to your own letter wording; keep the placeholder names or change them in the code.
-5. Test with the steps below, then publish, wait until the trigger is active, and give the user their webhook URL to point their practice system at.
+The Zap only creates the letter as a private document for review. It sends nothing to the client.
 
 ## Ask the user
 
-- Which Google Doc is the termination template?
-- Which Google account should own the new letters, and is the client folder in that account's My Drive or a shared drive?
-- What does the sending system call each field? The code expects `folder_path` (the client folder's Drive URL), `provider_name`, `practice_name`, `practice_address`, `credential_ref`, `tax_ref` and `termination_date`. Rename them in the code if the sender uses other names.
-- Should the letter's date default to today when the payload has none? (The build defaults to today.)
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                   | What goes there                                                                                                                         |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `REPLACE_TEMPLATE_DOC_ID` | The Google Doc used as the termination template. Pick it from the user's Google Docs connection; it is `TEMPLATE_DOC_ID` in `config.ts` |
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing, with a folder the connected account can write to:
+Also review the default with them: `TITLE_PREFIX` (`"Termination letter"`; the practice, provider and time are appended). If the payload has no `termination_date`, the letter uses today's date.
+
+Confirm before building:
+
+- Does the sending system name its fields `folder_path`, `provider_name`, `practice_name`, `practice_address`, `credential_ref`, `tax_ref` and `termination_date`? If not, rename them in `workflow.ts`.
+- Is the client folder in the connected account's My Drive or a shared drive? The account needs write access to it.
+- Does the template have these placeholders, spelled exactly: `{{termination_date}}`, `{{provider_name}}`, `{{practice_name}}`, `{{practice_address}}`, `{{credential_ref}}`, `{{tax_ref}}`? Keep the names or change them in the code.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `google-docs` to the user's Google Docs connection for the Google account that owns the template and the client folders. Webhooks by Zapier needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with `REPLACE_TEMPLATE_DOC_ID` replaced by the user's answer. `triggers/hook.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run this sample as a draft test run before publishing, with a folder the connected account can write to. Use this sample, not real client data:
 
 ```json
 {
-  "folder_path": "https://drive.google.com/drive/folders/YOUR_FOLDER_ID",
+  "folder_path": "https://drive.google.com/drive/folders/TEST_FOLDER_ID",
   "provider_name": "Dr. Test Provider",
   "practice_name": "Test Practice",
   "practice_address": "1 Test Street, New York, NY",
@@ -62,16 +64,10 @@ Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before 
 }
 ```
 
-Confirm that the run completes, a new document is in the folder with the title built from the practice and provider, and the document's text shows each value in place of its placeholder. Then delete the test document, and tell the user to delete it too if they used real data.
-
-## Customize
-
-- **Convert to PDF and attach to the CRM record:** add a step after the letter is created that exports it and attaches it to the client's record in the CRM.
-- **Legal review before sending:** route each new document to a review channel and wait for approval before anyone sends it.
+Check that the run completes, a new document is in the folder with the title built from the practice and provider, and the document's text shows each value in place of its placeholder. If run-status tools aren't available, check the result in Google Docs directly. Then ask the user to delete the test document; the agent does not delete it.
 
 ## Notes
 
-- The new document is private to the connected account until someone shares it.
-- Google Docs keeps any unused placeholder as written, so a missing field shows up in the letter instead of disappearing. Check the letter before it goes out.
-- The title's timestamp is ISO format so that repeated runs never collide.
-- Never commit a real template ID, folder ID or webhook URL. Anyone with the webhook URL can create letters in the connected account.
+- The new document is private to the connected account until someone shares it. Google Docs keeps any unused placeholder as written, so check the letter before it goes out.
+- Once the trigger is active, give the user the webhook URL to point their practice system at. Anyone with that URL can create letters in the connected account, so share it only with the sending system.
+- To convert the letter to PDF and attach it to the client's CRM record, add a step after the letter is created that exports it and attaches it. To add legal review, route each new document to a review channel and wait for approval before anyone sends it.

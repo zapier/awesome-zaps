@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { STATUS_SUBJECT } from "@/config";
-import gmail from "@/connections/gmail";
+import { STATUS_SUBJECT } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -27,7 +26,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "send-infrastructure-status-updates-to-contacts-in-affected-list",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -51,7 +50,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: gmail,
+        connection: "gmail",
         inputs: {
           to: [email],
           subject: STATUS_SUBJECT,
@@ -61,7 +60,9 @@ const workflow = defineDurable<unknown, unknown>(
       }),
     );
 
-    return { sent: true, contactId, messageId: sent.data?.[0]?.id ?? null };
+    const messageId =
+      (sent.data?.[0] as { id?: string | null } | undefined)?.id ?? null;
+    return { sent: true, contactId, messageId };
   },
 );
 

@@ -1,6 +1,6 @@
 ---
 name: update-active-rotation-event-to-current-on-call-contact
-description: Build a Zapier Next Gen Zap that watches an on-call rotation calendar and, when a rotation event becomes active (its start and end cover the current time), posts the active on-call contact to a routing channel. Use when an engineering team keeps its on-call rotation in Google Calendar and wants the current responder applied as soon as the rotation starts.
+description: Build a Zap on Zapier that watches an on-call rotation calendar and, when a rotation event becomes active (its start and end cover the current time), posts the active on-call contact to a routing channel. Use when an engineering team keeps its on-call rotation in Google Calendar and wants the current responder applied as soon as the rotation starts.
 license: MIT
 metadata:
   author: zapier
@@ -13,44 +13,39 @@ metadata:
 
 # Update active rotation event to current on-call contact
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/update-active-rotation-event-to-current-on-call-contact. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a Google Calendar event is created or updated on the rotation calendar (`event_updated`, recurring instances expanded).
+1. **Trigger:** a Google Calendar event is created or updated on the rotation calendar (`google-calendar`, `event_updated`).
 2. **Clock check:** reads the current time and checks whether the event's start is at or before now and its end is after now. If not, the run stops and posts nothing.
 3. **Contact:** uses the event title as the contact handle. If the title is empty, it uses the default member list.
-4. **Routing:** posts one message to the routing channel with the handle, the active window and the members. This stands in for the spec's sub-workflow call.
+4. **Routing:** posts one message to the routing channel (`slack`) with the handle, the active window and the members.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/update-active-rotation-event-to-current-on-call-contact` (it makes a zap project if you aren't in one), then `npx zap-pack deploy update-active-rotation-event-to-current-on-call-contact` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Google Calendar, New or Updated Event (`google-calendar` / `event_updated`), with `expand_recurring: true`. Its `authentication_id` is the user's Google Calendar connection.
-2. **Connections** (each alias in the code is the app's slug):
-   - `google-calendar`: the trigger's calendar connection. Use the account that owns the rotation calendar.
-   - `slack`: the Slack connection for the workspace that holds the routing channel.
-3. **Constants:**
-   - `CALENDAR_ID`: the calendar the trigger watches (its email or calendar ID). Set it as the trigger's `calendarid`; the code does not read it.
-   - `ROUTING_CHANNEL`: the Slack channel ID that receives the routing message.
-   - `DEFAULT_MEMBERS`: the members to hand to routing when an event title gives no handle.
-   - `MENTION_CHANNEL`: `false` by default. Set to `true` only if the routing message should ping the channel with `@channel`.
-4. Test with the steps below, then publish, wait until the trigger is active, and give the user the trigger's setup details.
+The Zap never posts for an event that isn't active at the moment it runs.
 
 ## Ask the user
 
-- Which calendar holds the rotation, and which Google account owns it?
-- Which Slack channel should receive the routing message? Its ID is the value for `ROUTING_CHANNEL`.
-- What is the default member list for events with no handle in their title?
-- What should the routing step do: post to a channel (as built here), call a routing sub-workflow, or update a group? The spec names a sub-workflow but not which one.
-- Should the routing message mention `@channel`? (Default: no.)
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                        | Where         | What goes there                                                              |
+| ------------------------------ | ------------- | ---------------------------------------------------------------------------- |
+| `REPLACE_CALENDAR_ID`          | `config.ts`   | The rotation calendar. The trigger watches it, and the code does not read it |
+| `REPLACE_ROUTING_CHANNEL`      | `config.ts`   | The Slack channel that gets the routing message                              |
+| `REPLACE_DEFAULT_MEMBER_EMAIL` | `workflow.ts` | The people routed to when an event title gives no handle, as email addresses |
+
+Also review the default with them: `MENTION_CHANNEL` in `workflow.ts` (`false`). Set it to `true` only if the routing message should ping the channel with `@channel`.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `google-calendar` to the user's Google Calendar connection for the account that owns the rotation calendar (the trigger uses it). Bind `slack` to the user's Slack connection for the workspace that holds the routing channel (it posts the routing message).
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/event-updated.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections (and sample the trigger, if it has one) before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
 
 Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing. Use a `[install-test]` event on the rotation calendar whose window covers the current time:
 
@@ -68,12 +63,7 @@ Set the `start` and `end` so the window covers the moment you run it. Then check
 - **Active path:** the run output has `skipped` absent, `routed.ok` true, and a `permalink` for the message in the routing channel. The message should show the event title, the window and the members.
 - **Filter path:** run again with a window that has already ended. The output should be `reason: "event-not-active"`, and the only operation that ran should be `capture-checked-at`. No message is posted.
 
-Afterwards, delete the test message and test event if they were real data.
-
-## Customize
-
-- **Notify on routing change:** add a Slack or email step after routing, only when the active contact differs from the last one posted.
-- **Urgency tag:** add a field to the routing payload for high-priority rotations, based on a calendar color or a name in the title.
+If run-status tools aren't available, check the result in Slack directly. Ask the user to delete the test message and test event.
 
 ## Notes
 
@@ -82,3 +72,5 @@ Afterwards, delete the test message and test event if they were real data.
 - Google Calendar sends start and end as `start.dateTime` and `end.dateTime`. The code reads that shape.
 - If two events overlap, each one that updates posts its own message. Add de-duplication if that is noisy.
 - Anyone who can post to the routing channel can see the on-call contact. Keep the channel appropriate for that.
+- To notify on a routing change, add a Slack or email step after routing that runs only when the active contact differs from the last one posted.
+- To flag urgent rotations, add a field to the routing payload, based on a calendar color or a name in the title.

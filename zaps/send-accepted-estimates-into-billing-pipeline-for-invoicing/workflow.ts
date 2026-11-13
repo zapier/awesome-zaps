@@ -6,7 +6,7 @@ import {
   DOWNSTREAM_WEBHOOK_URL,
   ACCEPTED_STATUS,
   LINE_DELIMITER,
-} from "@/config";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -31,7 +31,7 @@ const isPresent = (value: unknown) =>
 const asList = (value: unknown): unknown[] =>
   Array.isArray(value) ? value : isPresent(value) ? [value] : [];
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "send-accepted-estimates-into-billing-pipeline-for-invoicing",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
