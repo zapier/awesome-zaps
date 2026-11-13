@@ -1,13 +1,11 @@
-import { ask } from "zap-pack";
+// This zap's settings. Each "REPLACE_…" value is set per person before deploying; its comment says how to get it.
+// The other values are defaults you can change.
 
-export const SPREADSHEET_ID = ask(
-  "Google Sheets spreadsheet ID holding the user stories and the output tab (the long ID in the sheet's URL).",
-);
+export const SPREADSHEET_ID = "REPLACE_SPREADSHEET_ID"; // Google Sheets spreadsheet ID holding the user stories and the output tab (the long ID in the sheet's URL).
+export const OUTPUT_WORKSHEET_ID = "REPLACE_OUTPUT_WORKSHEET_ID"; // Worksheet (tab) that receives the generated test cases and scripts.
+
 // Worksheet (tab) holding the user stories; the first tab is "0".
 export const STORIES_WORKSHEET_ID = "0";
-export const OUTPUT_WORKSHEET_ID = ask(
-  "Worksheet (tab) that receives the generated test cases and scripts.",
-);
 // Story columns on the stories tab (COL$A = column A).
 export const STORY_ID_COLUMN = "COL$A";
 export const STORY_DESCRIPTION_COLUMN = "COL$B";

@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { TRELLO_BOARD_ID, TRELLO_INSIGHTS_LIST_ID } from "@/config";
-import trello from "@/connections/trello";
+import { TRELLO_BOARD_ID, TRELLO_INSIGHTS_LIST_ID } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -30,7 +29,7 @@ function readInsightList(rawInput: unknown): unknown[] {
   return Array.isArray(list) ? list : [];
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "move-processed-insight-cards-into-the-insights-list",
   async (ctx, rawInput) => {
     const insights = readInsightList(rawInput);
@@ -60,7 +59,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "trello",
             actionType: "write",
             actionKey: "card_list",
-            connection: trello,
+            connection: "trello",
             inputs: {
               card: cardId,
               board: TRELLO_BOARD_ID,

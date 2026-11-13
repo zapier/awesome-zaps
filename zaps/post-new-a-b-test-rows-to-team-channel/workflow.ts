@@ -12,9 +12,7 @@ import {
   REPORTER_COLUMN,
   SCREENSHOT_COLUMN,
   SLACK_CHANNEL_ID,
-} from "@/config";
-import googleSheets from "@/connections/google-sheets";
-import slack from "@/connections/slack";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -33,7 +31,7 @@ function cell(input: Record<string, unknown>, column: string): string {
   return value === null || value === undefined ? "" : String(value).trim();
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "post-new-a-b-test-rows-to-team-channel",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -58,7 +56,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "google-sheets",
           actionType: "search",
           actionKey: "find_many_rows",
-          connection: googleSheets,
+          connection: "google-sheets",
           inputs: {
             spreadsheet: SPREADSHEET_ID,
             worksheet: WORKSHEET_ID,
@@ -101,7 +99,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "channel_message",
-        connection: slack,
+        connection: "slack",
         inputs: {
           channel: SLACK_CHANNEL_ID,
           text: lines.join("\n"),

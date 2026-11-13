@@ -1,11 +1,9 @@
-import { ask } from "zap-pack";
+// This zap's settings. Each "REPLACE_…" value is set per person before deploying; its comment says how to get it.
+// The other values are defaults you can change.
 
-export const TARGETS_FILE_NAME = ask(
-  "Name of the canonical targets JSON file in Google Drive (the first match is used).",
-);
-export const SPREADSHEET_ID = ask(
-  "Google Sheets spreadsheet ID (the long ID in the sheet's URL).",
-);
+export const TARGETS_FILE_NAME = "REPLACE_TARGETS_FILE_NAME"; // Name of the canonical targets JSON file in Google Drive (the first match is used).
+export const SPREADSHEET_ID = "REPLACE_SPREADSHEET_ID"; // Google Sheets spreadsheet ID (the long ID in the sheet's URL).
+
 // Worksheet (tab) ID; the first tab is "0".
 export const WORKSHEET_ID = "0";
 // Sheet columns for each recorded field.

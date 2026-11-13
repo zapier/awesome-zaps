@@ -6,9 +6,7 @@ import {
   INTAKE_SPREADSHEET_ID,
   WORKSHEET_ID,
   DIGEST_RECIPIENT,
-} from "@/config";
-import googleSheets from "@/connections/google-sheets";
-import gmail from "@/connections/gmail";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -28,7 +26,7 @@ const priorityRank = (priority: string) => {
   return index === -1 ? PRIORITY_ORDER.length : index;
 };
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-hourly-design-intake-snapshot-to-prioritize-work",
   async (ctx) => {
     const intake = await ctx.step("read-intake-rows", async () =>
@@ -36,7 +34,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "search",
         actionKey: "get_many_rows",
-        connection: googleSheets,
+        connection: "google-sheets",
         inputs: {
           spreadsheet: INTAKE_SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,
@@ -117,7 +115,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: gmail,
+        connection: "gmail",
         inputs: {
           to: [DIGEST_RECIPIENT],
           subject,

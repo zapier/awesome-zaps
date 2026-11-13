@@ -13,7 +13,7 @@ import {
   CLAIM_AMOUNT_COLUMN,
   STATUS_COLUMN,
   RECEIVED_AT_COLUMN,
-} from "@/config";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -28,7 +28,7 @@ function text(value: unknown): string {
   return value === null || value === undefined ? "" : String(value).trim();
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-claims-database-entry-from-updated-sheet-rows",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(

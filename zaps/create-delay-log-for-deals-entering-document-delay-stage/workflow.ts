@@ -6,8 +6,7 @@ import {
   DELAY_STAGE_ID,
   DELAY_LOG_TABLE_ID,
   INITIAL_TRIAGE_STATUS,
-} from "@/config";
-import zapierTables from "@/connections/zapier-tables";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -19,7 +18,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-delay-log-for-deals-entering-document-delay-stage",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -40,7 +39,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "search",
         actionKey: "find_record",
-        connection: zapierTables,
+        connection: "zapier-tables",
         inputs: {
           table_id: DELAY_LOG_TABLE_ID,
           filter_count: "1",
@@ -65,7 +64,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "create_record",
-        connection: zapierTables,
+        connection: "zapier-tables",
         inputs: {
           table_id: DELAY_LOG_TABLE_ID,
           new__data__f1: dealId,

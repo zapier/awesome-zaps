@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { SPREADSHEET_ID, WORKSHEET_ID } from "@/config";
-import googleSheets from "@/connections/google-sheets";
+import { SPREADSHEET_ID, WORKSHEET_ID } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -96,7 +95,7 @@ function parseOrderEmail(input: z.infer<typeof InputSchema>) {
   };
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-formatted-order-rows-from-incoming-order-emails",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -112,7 +111,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "search",
         actionKey: "lookup_row",
-        connection: googleSheets,
+        connection: "google-sheets",
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,
@@ -138,7 +137,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "add_row",
-        connection: googleSheets,
+        connection: "google-sheets",
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,

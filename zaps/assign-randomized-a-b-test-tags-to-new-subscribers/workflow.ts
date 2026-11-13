@@ -2,8 +2,6 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import kit from "@/connections/kit";
-
 const sdk = createZapierSdk();
 
 // Kit tag ID for the A-group. Pick it from the tag list in Kit (the number in the tag's URL).
@@ -22,7 +20,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "assign-randomized-a-b-test-tags-to-new-subscribers",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -48,7 +46,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "kit",
           actionType: "write",
           actionKey: "tagCreate",
-          connection: kit,
+          connection: "kit",
           inputs: {
             id: tagId,
             email,

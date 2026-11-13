@@ -6,9 +6,7 @@ import {
   CARTONCLOUD_TENANT,
   CARTONCLOUD_CUSTOMER,
   IT_ALERT_EMAIL,
-} from "@/config";
-import cartoncloud from "@/connections/cartoncloud";
-import gmail from "@/connections/gmail";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -62,7 +60,7 @@ const InvoiceSchema = z
 
 type LineItem = { ItemCode?: string | null; Quantity?: number | string | null };
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-dispatch-orders-from-zero-paid-invoices-for-ops",
   async (ctx, rawInput) => {
     const payload = InvoiceSchema.parse(
@@ -109,7 +107,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "cartoncloud",
             actionType: "write",
             actionKey: "create_outbound_order",
-            connection: cartoncloud,
+            connection: "cartoncloud",
             inputs: {
               tenant: CARTONCLOUD_TENANT,
               customer: CARTONCLOUD_CUSTOMER,
@@ -139,7 +137,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "gmail",
           actionType: "write",
           actionKey: "message",
-          connection: gmail,
+          connection: "gmail",
           inputs: {
             to: IT_ALERT_EMAIL,
             subject: `[Dispatch orders] Order creation failed for invoice ${reference}`,

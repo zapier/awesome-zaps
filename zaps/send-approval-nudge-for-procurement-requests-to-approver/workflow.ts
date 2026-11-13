@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { APPROVAL_PHASE, RECORD_URL_PREFIX } from "@/config";
-import slack from "@/connections/slack";
+import { APPROVAL_PHASE, RECORD_URL_PREFIX } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -20,7 +19,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "send-approval-nudge-for-procurement-requests-to-approver",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -37,7 +36,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "search",
         actionKey: "user_by_email",
-        connection: slack,
+        connection: "slack",
         inputs: { email: input.approver_email },
       }),
     );
@@ -63,7 +62,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "direct_message",
-        connection: slack,
+        connection: "slack",
         inputs: {
           channel: approverId,
           text: lines.join("\n"),

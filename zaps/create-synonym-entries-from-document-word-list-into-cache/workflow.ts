@@ -8,8 +8,7 @@ import {
   SYNONYMS_COLUMN,
   THESAURUS_URL,
   SYNONYM_SEPARATOR,
-} from "@/config";
-import googleDocs from "@/connections/google-docs";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -32,7 +31,7 @@ function extractTerms(text: string): string[] {
   return [...new Set(lines)].slice(0, MAX_WORDS);
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-synonym-entries-from-document-word-list-into-cache",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -44,7 +43,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-docs",
         actionType: "search",
         actionKey: "get_document_content",
-        connection: googleDocs,
+        connection: "google-docs",
         inputs: { document_id: input.id },
       }),
     );

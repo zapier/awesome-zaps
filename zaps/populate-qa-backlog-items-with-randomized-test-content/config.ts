@@ -1,12 +1,12 @@
-import { ask } from "zap-pack";
+// This zap's settings. Each "REPLACE_…" value is set per person before deploying; its comment says how to get it.
+// The other values are defaults you can change.
+
+export const SPREADSHEET_ID = "REPLACE_SPREADSHEET_ID"; // Google Sheets spreadsheet ID of the test-content library (the long ID in the sheet's URL).
 
 // Notion property whose value picks the content rows (select, multi-select, status or text).
 export const CATEGORY_PROPERTY = "Category";
 // Notion rich-text property the seeded test content is written into (replaced on each seed).
 export const SEEDED_CONTENT_PROPERTY = "Seeded Test Content";
-export const SPREADSHEET_ID = ask(
-  "Google Sheets spreadsheet ID of the test-content library (the long ID in the sheet's URL).",
-);
 // Worksheet (tab) ID; the first tab is "0".
 export const WORKSHEET_ID = "0";
 // Column holding each row's category, matched against the page's category (COL$A = column A).

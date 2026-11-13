@@ -1,8 +1,8 @@
-import { ask } from "zap-pack";
+// This zap's settings. Each "REPLACE_…" value is set per person before deploying; its comment says how to get it.
+// The other values are defaults you can change.
 
-export const TABLE_ID = ask(
-  "Zapier Tables table that holds the billing records (the ID in the table's URL).",
-);
+export const TABLE_ID = "REPLACE_TABLE_ID"; // Zapier Tables table that holds the billing records (the ID in the table's URL).
+
 // Field holding the customer reference, matched against Stripe customers by email.
 export const CUSTOMER_REF_FIELD = "f1";
 // Field holding the amount in major units (e.g. 49.99).

@@ -1,7 +1,6 @@
-import { connection } from "zap-pack";
-
-export default connection({
+// The account this zap uses as "microsoft-outlook"; workflow.ts and triggers/ refer to it by that alias.
+export default {
   app: "microsoft-outlook",
   description:
     "The user's Outlook connection, for the mailbox the alerts are sent from",
-});
+};

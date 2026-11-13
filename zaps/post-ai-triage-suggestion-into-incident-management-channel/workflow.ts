@@ -6,8 +6,7 @@ import {
   INCIDENT_TEAM_ID,
   INCIDENT_CHANNEL_ID,
   CAPABILITY_TO_TEAM_MAP,
-} from "@/config";
-import microsoftTeams from "@/connections/microsoft-teams";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -27,7 +26,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "post-ai-triage-suggestion-into-incident-management-channel",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -89,7 +88,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "microsoft-teams",
         actionType: "write",
         actionKey: "reply_to_channel_message",
-        connection: microsoftTeams,
+        connection: "microsoft-teams",
         inputs: {
           reply,
           format: "text",

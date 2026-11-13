@@ -2,8 +2,11 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { ROTATION_TABLE_ID, FALLBACK_EMAIL, PROCESSED_MARKER } from "@/config";
-import gmail from "@/connections/gmail";
+import {
+  ROTATION_TABLE_ID,
+  FALLBACK_EMAIL,
+  PROCESSED_MARKER,
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -41,7 +44,7 @@ function escapeHtml(text: string): string {
     .replace(/>/g, "&gt;");
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "assign-expert-requests-to-next-specialist-in-rotation",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -91,7 +94,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "gmail",
           actionType: "write",
           actionKey: "add_label",
-          connection: gmail,
+          connection: "gmail",
           inputs: { message_id: input.message_id, new_label_ids: [labelId] },
         }),
       );
@@ -104,7 +107,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "reply_to_message",
-        connection: gmail,
+        connection: "gmail",
         inputs: {
           thread_id: input.thread_id,
           to: [recipient],

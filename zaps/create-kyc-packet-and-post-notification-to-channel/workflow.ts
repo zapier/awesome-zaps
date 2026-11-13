@@ -7,9 +7,7 @@ import {
   SLACK_CHANNEL,
   SHARING_PREFERENCE,
   REVIEWER_MENTION,
-} from "@/config";
-import googleDocs from "@/connections/google-docs";
-import slack from "@/connections/slack";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -36,7 +34,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-kyc-packet-and-post-notification-to-channel",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -63,7 +61,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "google-docs",
           actionType: "write",
           actionKey: "create_from_template",
-          connection: googleDocs,
+          connection: "google-docs",
           inputs: {
             file: templateId,
             title: `${input.fund_name} KYC packet`,
@@ -101,7 +99,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "slack",
           actionType: "write",
           actionKey: "channel_message",
-          connection: slack,
+          connection: "slack",
           inputs: {
             channel: SLACK_CHANNEL,
             text,

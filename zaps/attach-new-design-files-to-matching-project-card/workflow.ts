@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { TRELLO_BOARD_ID } from "@/config";
-import trello from "@/connections/trello";
+import { TRELLO_BOARD_ID } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -14,7 +13,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "attach-new-design-files-to-matching-project-card",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -30,7 +29,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "trello",
         actionType: "search",
         actionKey: "organization_card_v2",
-        connection: trello,
+        connection: "trello",
         inputs: {
           board: TRELLO_BOARD_ID,
           keyword: filename,
@@ -52,7 +51,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "trello",
         actionType: "write",
         actionKey: "card_attachment",
-        connection: trello,
+        connection: "trello",
         inputs: {
           card: card.id,
           file: input.file,

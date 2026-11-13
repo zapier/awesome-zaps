@@ -6,9 +6,7 @@ import {
   CLOSED_DATE_FIELD,
   LOOKUP_VALUE_FIELD,
   NOTION_DATA_SOURCE_ID,
-} from "@/config";
-import zapierTables from "@/connections/zapier-tables";
-import notion from "@/connections/notion";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -22,7 +20,7 @@ function formatMMDDYY(date: Date): string {
   return `${mm}/${dd}/${yy}`;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-weekly-job-invoicing-performance-report-for-finance",
   async (ctx) => {
     const reportDate = await ctx.step("capture-report-date", async () =>
@@ -46,7 +44,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "zapier-tables",
               actionType: "search",
               actionKey: "find_record",
-              connection: zapierTables,
+              connection: "zapier-tables",
               inputs: {
                 table_id: TABLE_ID,
                 filter_count: "1",
@@ -79,7 +77,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "notion",
         actionType: "write",
         actionKey: "create_database_item",
-        connection: notion,
+        connection: "notion",
         inputs: {
           datasource: NOTION_DATA_SOURCE_ID,
           content: summary,

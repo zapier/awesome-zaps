@@ -1,11 +1,9 @@
-import { ask } from "zap-pack";
+// This zap's settings. Each "REPLACE_…" value is set per person before deploying; its comment says how to get it.
+// The other values are defaults you can change.
 
-export const AIRTABLE_BASE_ID = ask(
-  'Airtable base ID (starts with "app", from the base URL).',
-);
-export const AIRTABLE_TABLE = ask(
-  'Airtable table ID ("tbl…") or exact table name for loan applications.',
-);
+export const AIRTABLE_BASE_ID = "REPLACE_AIRTABLE_BASE_ID"; // Airtable base ID (starts with "app", from the base URL).
+export const AIRTABLE_TABLE = "REPLACE_AIRTABLE_TABLE"; // Airtable table ID ("tbl…") or exact table name for loan applications.
+
 // Airtable field names in the intake table. Records are matched on FIELD_EMAIL.
 export const FIELD_EXTERNAL_REF = "Submission ID";
 export const FIELD_APPLIED_AT = "Application Timestamp";

@@ -11,8 +11,7 @@ import {
   FILE_LINK_COLUMN,
   STATUS_COLUMN,
   COMPLETED_VALUE,
-} from "@/config";
-import gmail from "@/connections/gmail";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -31,7 +30,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "send-requested-creative-files-to-requestor-same-day",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -64,7 +63,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: gmail,
+        connection: "gmail",
         inputs: {
           to: [to],
           cc: CC_ADDRESSES,

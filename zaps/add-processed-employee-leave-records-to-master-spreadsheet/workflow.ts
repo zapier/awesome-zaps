@@ -14,8 +14,7 @@ import {
   END_DATE_COLUMN,
   PROVIDER_COLUMN,
   NOTES_COLUMN,
-} from "@/config";
-import excel from "@/connections/excel";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -43,7 +42,7 @@ function toDayMonthYear(value: string | null | undefined): string {
   return match ? `${match[3]}/${match[2]}/${match[1]}` : cleaned;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "add-processed-employee-leave-records-to-master-spreadsheet",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -66,7 +65,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "excel",
         actionType: "write",
         actionKey: "add_row",
-        connection: excel,
+        connection: "excel",
         inputs: {
           folder_id: FOLDER_ID,
           workbook_id: WORKBOOK_ID,

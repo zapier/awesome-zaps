@@ -11,8 +11,7 @@ import {
   DATE_FIELD,
   AUDIENCE_FIELD,
   URL_FIELD,
-} from "@/config";
-import slack from "@/connections/slack";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -44,7 +43,7 @@ function text(value: unknown): string {
   return "";
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "publish-planned-feature-releases-to-gtm-team-channel",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -81,7 +80,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "channel_message",
-        connection: slack,
+        connection: "slack",
         inputs: {
           channel: SLACK_CHANNEL,
           text: message,

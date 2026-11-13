@@ -1,9 +1,9 @@
-import { ask } from "zap-pack";
+// This zap's settings. Each "REPLACE_…" value is set per person before deploying; its comment says how to get it.
+// The other values are defaults you can change.
 
-export const WORKBOOK_ID = ask(
-  "Microsoft Excel workbook ID (the OneDrive file the master sheet lives in).",
-);
-export const WORKSHEET_ID = ask("Worksheet (tab) ID inside that workbook.");
+export const WORKBOOK_ID = "REPLACE_WORKBOOK_ID"; // Microsoft Excel workbook ID (the OneDrive file the master sheet lives in).
+export const WORKSHEET_ID = "REPLACE_WORKSHEET_ID"; // Worksheet (tab) ID inside that workbook.
+
 // OneDrive folder ID holding the workbook; "root" is the top of the drive.
 export const FOLDER_ID = "root";
 // "one_drive" or "sharepoint".

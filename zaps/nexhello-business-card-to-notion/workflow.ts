@@ -1,8 +1,7 @@
 import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 
-import { CONTACT_ID_FILTER } from "@/config";
-import notion from "@/connections/notion";
+import { CONTACT_ID_FILTER } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -107,7 +106,7 @@ function readContact(payload: Obj) {
   };
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "nexhello-business-card-to-notion",
   async (ctx, rawInput) => {
     if (NOTION_DATA_SOURCE_ID === "SET_ME")
@@ -131,7 +130,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "notion",
         actionType: "search",
         actionKey: "find_data_source_item",
-        connection: notion,
+        connection: "notion",
         inputs: {
           datasource: NOTION_DATA_SOURCE_ID,
           search_fields: ["NexHello Contact ID"],
@@ -150,7 +149,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "notion",
           actionType: "write",
           actionKey: "create_database_item",
-          connection: notion,
+          connection: "notion",
           inputs: {
             datasource: NOTION_DATA_SOURCE_ID,
             template_mode: "none",
@@ -189,7 +188,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "notion",
         actionType: "write",
         actionKey: "update_database_item",
-        connection: notion,
+        connection: "notion",
         inputs,
       }),
     );

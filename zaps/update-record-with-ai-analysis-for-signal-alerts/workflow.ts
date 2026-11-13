@@ -9,9 +9,7 @@ import {
   REVIEWED_AT_FIELD,
   MARKET_DATA_URL,
   MODEL,
-} from "@/config";
-import chatgpt from "@/connections/chatgpt";
-import zapierTables from "@/connections/zapier-tables";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -21,7 +19,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "update-record-with-ai-analysis-for-signal-alerts",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -54,7 +52,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "chatgpt",
         actionType: "write",
         actionKey: "conversation_responses_api",
-        connection: chatgpt,
+        connection: "chatgpt",
         inputs: {
           model: MODEL,
           instructions:
@@ -76,7 +74,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "update_record",
-        connection: zapierTables,
+        connection: "zapier-tables",
         inputs: {
           table_id: TABLE_ID,
           record_id: recordId,

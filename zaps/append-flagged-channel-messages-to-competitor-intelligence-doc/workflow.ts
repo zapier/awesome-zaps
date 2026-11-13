@@ -6,8 +6,7 @@ import {
   WATCHED_CHANNEL,
   SLACK_WORKSPACE_URL,
   INTEL_DOC_TITLE,
-} from "@/config";
-import googleDocs from "@/connections/google-docs";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -31,7 +30,7 @@ function normalizeInput(rawInput: unknown): unknown {
   return rawInput;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "append-flagged-channel-messages-to-competitor-intelligence-doc",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(normalizeInput(rawInput));
@@ -55,7 +54,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-docs",
         actionType: "search",
         actionKey: "document",
-        connection: googleDocs,
+        connection: "google-docs",
         inputs: { title: INTEL_DOC_TITLE },
       });
       return { id: result.data[0]?.id ?? null };
@@ -68,7 +67,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "google-docs",
           actionType: "write",
           actionKey: "newtxtdocument",
-          connection: googleDocs,
+          connection: "google-docs",
           inputs: {
             title: INTEL_DOC_TITLE,
             file: "Competitor intelligence. Flagged channel messages are appended below.",
@@ -89,7 +88,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-docs",
         actionType: "search",
         actionKey: "get_document_content",
-        connection: googleDocs,
+        connection: "google-docs",
         inputs: { document_id: docId },
       });
       return { text: String(result.data[0]?.text_content ?? "") };
@@ -106,7 +105,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-docs",
         actionType: "write",
         actionKey: "append",
-        connection: googleDocs,
+        connection: "google-docs",
         inputs: { file: docId, text: entry },
       });
       return { appended: result.data.length };

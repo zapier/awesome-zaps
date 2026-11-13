@@ -13,9 +13,7 @@ import {
   NEXT_STAGE,
   EMAIL_SUBJECT,
   FROM_NAME,
-} from "@/config";
-import gmail from "@/connections/gmail";
-import zapierTables from "@/connections/zapier-tables";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -39,7 +37,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "send-scheduled-welcome-email-and-update-visitor-status",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -74,7 +72,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: gmail,
+        connection: "gmail",
         inputs: {
           to: email,
           subject: EMAIL_SUBJECT.replace("{name}", name),
@@ -94,7 +92,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "update_record",
-        connection: zapierTables,
+        connection: "zapier-tables",
         inputs: {
           table_id: TABLE_ID,
           record_id: recordId,

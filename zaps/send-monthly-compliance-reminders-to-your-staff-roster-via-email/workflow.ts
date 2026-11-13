@@ -11,9 +11,7 @@ import {
   TO_ADDRESS,
   SUBJECT_PREFIX,
   SUBJECT,
-} from "@/config";
-import googleSheets from "@/connections/google-sheets";
-import microsoftOutlook from "@/connections/microsoft-outlook";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -25,7 +23,7 @@ const BODY =
 
 const RosterRowSchema = z.record(z.string(), z.unknown());
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "send-monthly-compliance-reminders-to-your-staff-roster-via-email",
   async (ctx) => {
     const lookup = await ctx.step("read-roster-rows", async () =>
@@ -33,7 +31,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "search",
         actionKey: "get_many_rows",
-        connection: googleSheets,
+        connection: "google-sheets",
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,
@@ -71,7 +69,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "microsoft-outlook",
         actionType: "write",
         actionKey: "send_email",
-        connection: microsoftOutlook,
+        connection: "microsoft-outlook",
         inputs: {
           recipients: [TO_ADDRESS],
           bccRecipients,

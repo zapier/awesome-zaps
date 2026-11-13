@@ -14,10 +14,7 @@ import {
   INDUCTION_LINK,
   HIRING_MANAGER_EMAIL,
   INVITED_AT,
-} from "@/config";
-import zapierTables from "@/connections/zapier-tables";
-import gmail from "@/connections/gmail";
-import googleCalendar from "@/connections/google-calendar";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -57,7 +54,7 @@ function formatDisplayDate(iso: string): string {
   });
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-induction-event-and-welcome-emails-for-new-hires",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -95,7 +92,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "update_record",
-        connection: zapierTables,
+        connection: "zapier-tables",
         inputs: {
           table_id: TABLE_ID,
           record_id: recordId,
@@ -124,7 +121,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: gmail,
+        connection: "gmail",
         inputs: {
           to: email,
           cc: HR_COORDINATOR_EMAIL,
@@ -139,7 +136,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: gmail,
+        connection: "gmail",
         inputs: {
           to: `${IT_EMAIL}, ${LICENSE_OWNERS_EMAIL}`,
           subject: `New hire provisioning: ${name} (starts ${displayDate})`,
@@ -153,7 +150,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-calendar",
         actionType: "write",
         actionKey: "detailed_event",
-        connection: googleCalendar,
+        connection: "google-calendar",
         inputs: {
           calendarid: HR_CALENDAR_ID,
           summary: `Induction: ${name}`,

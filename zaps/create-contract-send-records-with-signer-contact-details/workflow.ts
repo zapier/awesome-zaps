@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { TABLE_ID } from "@/config";
-import zapierTables from "@/connections/zapier-tables";
+import { TABLE_ID } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -28,7 +27,7 @@ function toList(value: string | string[] | null | undefined): string[] {
   return value ? [value] : [];
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-contract-send-records-with-signer-contact-details",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -60,7 +59,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "zapier-tables",
             actionType: "search",
             actionKey: "find_record",
-            connection: zapierTables,
+            connection: "zapier-tables",
             inputs: {
               table_id: TABLE_ID,
               filter_count: "2",
@@ -84,7 +83,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "zapier-tables",
             actionType: "write",
             actionKey: "create_record",
-            connection: zapierTables,
+            connection: "zapier-tables",
             inputs: {
               table_id: TABLE_ID,
               new__data__f1: name,

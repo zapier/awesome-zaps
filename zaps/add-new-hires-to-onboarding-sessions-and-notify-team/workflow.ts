@@ -7,10 +7,7 @@ import {
   PROVISIONING_REMINDER,
   ONBOARDING_CALENDAR_ID,
   DEFAULT_SESSION_SEARCH_TERM,
-} from "@/config";
-import slack from "@/connections/slack";
-import bamboohr from "@/connections/bamboohr";
-import googleCalendar from "@/connections/google-calendar";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -51,7 +48,7 @@ type CalendarEvent = {
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "add-new-hires-to-onboarding-sessions-and-notify-team",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -69,7 +66,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "channel_message",
-        connection: slack,
+        connection: "slack",
         inputs: {
           channel: ONBOARDING_CHANNEL_ID,
           text: `New Google Workspace account: ${fullName} (${email}).\n${PROVISIONING_REMINDER}`,
@@ -90,7 +87,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "bamboohr",
           actionType: "search",
           actionKey: "employeeSearch",
-          connection: bamboohr,
+          connection: "bamboohr",
           inputs: {
             search_by: "email",
             search_term: email,
@@ -127,7 +124,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "google-calendar",
           actionType: "search",
           actionKey: "event_v2",
-          connection: googleCalendar,
+          connection: "google-calendar",
           inputs: {
             calendarid: ONBOARDING_CALENDAR_ID,
             search_term: searchTerm,
@@ -160,7 +157,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "google-calendar",
               actionType: "write",
               actionKey: "add_attendees",
-              connection: googleCalendar,
+              connection: "google-calendar",
               inputs: {
                 calendarid: ONBOARDING_CALENDAR_ID,
                 eventid: session.id,

@@ -8,8 +8,7 @@ import {
   OPPORTUNITY_INVOICE_ID_FIELD,
   OPPORTUNITY_PLAN_FIELD,
   REVENUE_RECOGNITION_STAGE,
-} from "@/config";
-import salesforce from "@/connections/salesforce";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -53,7 +52,7 @@ function isoDate(unixSeconds: number): string {
   return new Date(unixSeconds * 1000).toISOString().slice(0, 10);
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "add-opportunities-from-membership-invoices-to-sales-team",
   async (ctx, rawInput) => {
     const invoice = InvoiceSchema.parse(normalizeInput(rawInput));
@@ -90,7 +89,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "salesforce",
         actionType: "search",
         actionKey: "find_record",
-        connection: salesforce,
+        connection: "salesforce",
         inputs: {
           object: "Contact",
           searchField: CONTACT_STRIPE_CUSTOMER_FIELD,
@@ -110,7 +109,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "salesforce",
             actionType: "write",
             actionKey: "create_contact",
-            connection: salesforce,
+            connection: "salesforce",
             inputs: {
               LastName: invoice.customer_name ?? customerId,
               Email: invoice.customer_email ?? undefined,
@@ -129,7 +128,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "salesforce",
           actionType: "search",
           actionKey: "find_record",
-          connection: salesforce,
+          connection: "salesforce",
           inputs: {
             object: "Opportunity",
             searchField: OPPORTUNITY_INVOICE_ID_FIELD,
@@ -155,7 +154,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "salesforce",
           actionType: "write",
           actionKey: "create_record",
-          connection: salesforce,
+          connection: "salesforce",
           inputs: {
             object: "Opportunity",
             RecordTypeId: MEMBERSHIP_RECORD_TYPE_ID,
@@ -178,7 +177,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "salesforce",
           actionType: "write",
           actionKey: "create_record",
-          connection: salesforce,
+          connection: "salesforce",
           inputs: {
             object: "OpportunityContactRole",
             OpportunityId: opportunityId,

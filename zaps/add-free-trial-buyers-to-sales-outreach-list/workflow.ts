@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { OUTREACH_LIST_ID, TRIAL_TAG } from "@/config";
-import activecampaign from "@/connections/activecampaign";
+import { OUTREACH_LIST_ID, TRIAL_TAG } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -19,7 +18,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "add-free-trial-buyers-to-sales-outreach-list",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -35,7 +34,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "activecampaign",
         actionType: "write",
         actionKey: "action_4",
-        connection: activecampaign,
+        connection: "activecampaign",
         inputs: {
           email,
           first_name: input.contact__first_name ?? "",
@@ -49,7 +48,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "activecampaign",
         actionType: "write",
         actionKey: "list_subscription",
-        connection: activecampaign,
+        connection: "activecampaign",
         inputs: {
           action: "subscribe",
           list_id: OUTREACH_LIST_ID,
@@ -65,7 +64,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "activecampaign",
           actionType: "write",
           actionKey: "contact_tag",
-          connection: activecampaign,
+          connection: "activecampaign",
           inputs: {
             action: "Add",
             contact_email: email,

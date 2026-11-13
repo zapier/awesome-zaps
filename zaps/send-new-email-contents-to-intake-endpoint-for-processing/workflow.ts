@@ -2,7 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { INTAKE_ENDPOINT_URL } from "@/config";
+import { INTAKE_ENDPOINT_URL } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -33,7 +33,7 @@ function senderAddress(from: unknown): string {
   return "";
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "send-new-email-contents-to-intake-endpoint-for-processing",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(

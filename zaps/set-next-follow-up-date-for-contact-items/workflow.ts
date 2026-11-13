@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { BOARD_ID, NEXT_FOLLOW_UP_COLUMN_ID } from "@/config";
-import monday from "@/connections/monday";
+import { BOARD_ID, NEXT_FOLLOW_UP_COLUMN_ID } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -28,7 +27,7 @@ function nextFollowUpDate(date: string): string {
   return next.toISOString().slice(0, 10);
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "set-next-follow-up-date-for-contact-items",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -50,7 +49,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "monday",
         actionType: "write",
         actionKey: "change_multiple_columns_value",
-        connection: monday,
+        connection: "monday",
         inputs: {
           item_id: Number(itemId),
           board_id: Number(BOARD_ID),

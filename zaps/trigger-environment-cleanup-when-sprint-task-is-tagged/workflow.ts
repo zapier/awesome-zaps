@@ -2,7 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { REMOVAL_API_URL } from "@/config";
+import { REMOVAL_API_URL } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -20,7 +20,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "trigger-environment-cleanup-when-sprint-task-is-tagged",
   async (ctx, rawInput) => {
     const task = InputSchema.parse(normalizeInput(rawInput));

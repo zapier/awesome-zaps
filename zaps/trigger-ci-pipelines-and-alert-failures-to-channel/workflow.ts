@@ -8,8 +8,7 @@ import {
   SLACK_CHANNEL,
   MESSAGE_PREFIX,
   MENTION_TEXT,
-} from "@/config";
-import slack from "@/connections/slack";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -35,7 +34,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "trigger-ci-pipelines-and-alert-failures-to-channel",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -122,7 +121,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "channel_message",
-        connection: slack,
+        connection: "slack",
         inputs: {
           channel: SLACK_CHANNEL,
           text,

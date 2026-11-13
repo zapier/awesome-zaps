@@ -8,9 +8,7 @@ import {
   TITLE_PREFIX,
   CLICKUP_WORKSPACE_ID,
   DRAFTER_EMAIL,
-} from "@/config";
-import googleDocs from "@/connections/google-docs";
-import clickup from "@/connections/clickup";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -34,7 +32,7 @@ const MONTHS = [
   "December",
 ];
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-monthly-investor-update-and-assign-drafting-task",
   async (ctx) => {
     const when = await ctx.step("capture-run-details", async () => {
@@ -55,7 +53,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-docs",
         actionType: "write",
         actionKey: "create_from_template",
-        connection: googleDocs,
+        connection: "google-docs",
         inputs: {
           file: TEMPLATE_DOC_ID,
           title: docTitle,
@@ -77,7 +75,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "clickup",
         actionType: "write",
         actionKey: "ae_39348_clickup_find_task_by_name_custom_action",
-        connection: clickup,
+        connection: "clickup",
         inputs: { taskName: taskTitle, workspaceId: CLICKUP_WORKSPACE_ID },
       }),
     );
@@ -88,7 +86,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "clickup",
           actionType: "write",
           actionKey: "task",
-          connection: clickup,
+          connection: "clickup",
           inputs: {
             name: taskTitle,
             content: doc.alternateLink,

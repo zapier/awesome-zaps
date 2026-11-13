@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { LOAN_OBJECT, EXTERNAL_LOAN_ID_FIELD } from "@/config";
-import salesforce from "@/connections/salesforce";
+import { LOAN_OBJECT, EXTERNAL_LOAN_ID_FIELD } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -56,7 +55,7 @@ function toNumber(value: string | number | null | undefined): number | null {
   return Number.isNaN(parsed) ? null : parsed;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "update-loan-records-from-external-loan-status-feed",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -69,7 +68,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "salesforce",
         actionType: "search",
         actionKey: "find_record",
-        connection: salesforce,
+        connection: "salesforce",
         inputs: {
           object: LOAN_OBJECT,
           searchField: EXTERNAL_LOAN_ID_FIELD,
@@ -113,7 +112,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "salesforce",
         actionType: "write",
         actionKey: "update_record_utc",
-        connection: salesforce,
+        connection: "salesforce",
         inputs: {
           object: LOAN_OBJECT,
           record_id: loan.id,

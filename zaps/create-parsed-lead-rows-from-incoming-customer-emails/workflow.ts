@@ -11,8 +11,7 @@ import {
   DESCRIPTION_COLUMN,
   DETAILS_COLUMN,
   SOURCE_COLUMN,
-} from "@/config";
-import googleSheets from "@/connections/google-sheets";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -25,7 +24,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-parsed-lead-rows-from-incoming-customer-emails",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -44,7 +43,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "search",
         actionKey: "lookup_row",
-        connection: googleSheets,
+        connection: "google-sheets",
         inputs: {
           drive: DRIVE_ID,
           spreadsheet: SPREADSHEET_ID,
@@ -75,7 +74,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "add_row",
-        connection: googleSheets,
+        connection: "google-sheets",
         inputs: {
           drive: DRIVE_ID,
           spreadsheet: SPREADSHEET_ID,

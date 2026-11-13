@@ -6,8 +6,7 @@ import {
   BOARD_ID,
   ALLOCATION_COLUMN_ID,
   TOTAL_PERCENTAGE_COLUMN_ID,
-} from "@/config";
-import monday from "@/connections/monday";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -28,7 +27,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "apply-splits-on-copyright-change-for-song-entries",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -63,7 +62,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "monday",
         actionType: "write",
         actionKey: "change_multiple_columns_value",
-        connection: monday,
+        connection: "monday",
         inputs: {
           item_id: String(input.item_id),
           board_id: BOARD_ID,

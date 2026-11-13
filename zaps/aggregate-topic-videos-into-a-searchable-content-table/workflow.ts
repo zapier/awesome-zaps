@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { TITLE_KEYWORD, TABLE_ID } from "@/config";
-import zapierTables from "@/connections/zapier-tables";
+import { TITLE_KEYWORD, TABLE_ID } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -17,7 +16,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "aggregate-topic-videos-into-a-searchable-content-table",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -34,7 +33,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "create_record",
-        connection: zapierTables,
+        connection: "zapier-tables",
         inputs: {
           table_id: TABLE_ID,
           new__data__f1: title,

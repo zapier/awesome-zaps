@@ -19,9 +19,7 @@ import {
   LOG_NEW_STATUS_COLUMN,
   LOG_REACTED_BY_COLUMN,
   LOG_MESSAGE_LINK_COLUMN,
-} from "@/config";
-import slack from "@/connections/slack";
-import googleSheets from "@/connections/google-sheets";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -67,7 +65,7 @@ function extractEnvironment(text: string): string | null {
   return null;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "update-environment-usage-and-log-from-deploy-reaction",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -99,7 +97,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "slack",
           actionType: "search",
           actionKey: "user_by_id",
-          connection: slack,
+          connection: "slack",
           inputs: { id: reactorId },
         }),
       );
@@ -113,7 +111,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "search",
         actionKey: "lookup_row",
-        connection: googleSheets,
+        connection: "google-sheets",
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: REGISTRY_WORKSHEET_ID,
@@ -138,7 +136,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "google-sheets",
           actionType: "write",
           actionKey: "update_row",
-          connection: googleSheets,
+          connection: "google-sheets",
           inputs: {
             spreadsheet: SPREADSHEET_ID,
             worksheet: REGISTRY_WORKSHEET_ID,
@@ -157,7 +155,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "add_row",
-        connection: googleSheets,
+        connection: "google-sheets",
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: LOG_WORKSHEET_ID,
@@ -192,7 +190,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "channel_message",
-        connection: slack,
+        connection: "slack",
         inputs: {
           channel,
           thread_ts: threadTs,

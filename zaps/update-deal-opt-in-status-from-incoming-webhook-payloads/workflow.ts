@@ -8,8 +8,7 @@ import {
   CONSENT_FIELD_KEY,
   OPT_IN_VALUE,
   OPT_OUT_VALUE,
-} from "@/config";
-import pipedrive from "@/connections/pipedrive";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -43,7 +42,7 @@ const workflow = defineDurable<Input, unknown>(
         appKey: "pipedrive",
         actionType: "search",
         actionKey: "get_deal",
-        connection: pipedrive,
+        connection: "pipedrive",
         inputs: { id: String(dealId) },
       }),
     );
@@ -58,7 +57,7 @@ const workflow = defineDurable<Input, unknown>(
         appKey: "pipedrive",
         actionType: "write",
         actionKey: "update_deal_v2",
-        connection: pipedrive,
+        connection: "pipedrive",
         inputs: { id: Number(deal.id), [CONSENT_FIELD_KEY]: consent },
       }),
     );

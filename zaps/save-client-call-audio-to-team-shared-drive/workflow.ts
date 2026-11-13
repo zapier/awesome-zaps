@@ -9,9 +9,7 @@ import {
   DROPBOX_FOLDER,
   PLACEHOLDER_STATUS,
   FILE_SUFFIX,
-} from "@/config";
-import zapierTables from "@/connections/zapier-tables";
-import dropbox from "@/connections/dropbox";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -34,7 +32,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "save-client-call-audio-to-team-shared-drive",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -58,7 +56,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "search",
         actionKey: "find_record",
-        connection: zapierTables,
+        connection: "zapier-tables",
         inputs: {
           table_id: TABLE_ID,
           filter_count: "1",
@@ -76,7 +74,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "zapier-tables",
           actionType: "write",
           actionKey: "create_record",
-          connection: zapierTables,
+          connection: "zapier-tables",
           inputs: {
             table_id: TABLE_ID,
             new__data__f1: meetingId,
@@ -99,7 +97,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "dropbox",
         actionType: "write",
         actionKey: "file",
-        connection: dropbox,
+        connection: "dropbox",
         inputs: {
           file: audio.download_url,
           directory: DROPBOX_FOLDER,

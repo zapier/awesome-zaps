@@ -11,11 +11,7 @@ import {
   STATUS_FIELD,
   QBO_ITEM_ID,
   PROCUREMENT_EMAIL,
-} from "@/config";
-import microsoftOutlook from "@/connections/microsoft-outlook";
-import ai from "@/connections/ai";
-import zapierTables from "@/connections/zapier-tables";
-import quickbooks from "@/connections/quickbooks";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -45,7 +41,7 @@ const notifyProcurement = (subject: string, body: string) =>
     appKey: "microsoft-outlook",
     actionType: "write",
     actionKey: "send_email",
-    connection: microsoftOutlook,
+    connection: "microsoft-outlook",
     inputs: {
       recipients: PROCUREMENT_EMAIL,
       subject,
@@ -59,11 +55,11 @@ const replyToEmail = (emailId: string, comment: string) =>
     appKey: "microsoft-outlook",
     actionType: "write",
     actionKey: "reply_to_email",
-    connection: microsoftOutlook,
+    connection: "microsoft-outlook",
     inputs: { email_id: emailId, comment },
   });
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-approved-purchase-orders-from-supplier-approval-emails",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -75,7 +71,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "ai",
         actionType: "write",
         actionKey: "get_completion",
-        connection: ai,
+        connection: "ai",
         inputs: {
           model_id: "premium/auto",
           authentication_id: "0",
@@ -130,7 +126,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "search",
         actionKey: "find_record",
-        connection: zapierTables,
+        connection: "zapier-tables",
         inputs: {
           table_id: PO_TABLE_ID,
           filter_count: "1",
@@ -159,7 +155,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "quickbooks",
         actionType: "search",
         actionKey: "vendor",
-        connection: quickbooks,
+        connection: "quickbooks",
         inputs: { name: vendorName },
       }),
     );
@@ -200,7 +196,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "quickbooks",
           actionType: "write",
           actionKey: "purchase_order",
-          connection: quickbooks,
+          connection: "quickbooks",
           inputs: {
             vendor: vendorId,
             date: orderDate,
@@ -221,7 +217,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "update_record",
-        connection: zapierTables,
+        connection: "zapier-tables",
         inputs: {
           table_id: PO_TABLE_ID,
           record_id: record.record_id,

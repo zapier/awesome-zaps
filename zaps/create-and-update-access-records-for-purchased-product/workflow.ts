@@ -2,7 +2,11 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { QUALIFYING_PRODUCT_ID, USER_API_URL, ACCESS_STATUS } from "@/config";
+import {
+  QUALIFYING_PRODUCT_ID,
+  USER_API_URL,
+  ACCESS_STATUS,
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -44,7 +48,7 @@ function summarizeAddress(address: unknown): string {
     .join(", ");
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-and-update-access-records-for-purchased-product",
   async (ctx, rawInput) => {
     const order = InputSchema.parse(

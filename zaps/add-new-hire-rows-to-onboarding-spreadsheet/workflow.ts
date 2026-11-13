@@ -12,8 +12,7 @@ import {
   MANAGER_NAME_COLUMN,
   MANAGER_EMAIL_COLUMN,
   HIRING_MANAGER_ROLE,
-} from "@/config";
-import googleSheets from "@/connections/google-sheets";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -74,7 +73,7 @@ const InputSchema = z.union([
   z.object({ data: HirePayload }).loose(),
 ]);
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "add-new-hire-rows-to-onboarding-spreadsheet",
   async (ctx, rawInput) => {
     const parsed = InputSchema.parse(
@@ -99,7 +98,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "google-sheets",
           actionType: "write",
           actionKey: "add_row",
-          connection: googleSheets,
+          connection: "google-sheets",
           inputs: {
             spreadsheet: SPREADSHEET_ID,
             worksheet: WORKSHEET_ID,

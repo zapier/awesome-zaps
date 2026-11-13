@@ -2,9 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { PROCESSED_LABEL_ID, ARCHIVE_FOLDER_ID } from "@/config";
-import googleDrive from "@/connections/google-drive";
-import gmail from "@/connections/gmail";
+import { PROCESSED_LABEL_ID, ARCHIVE_FOLDER_ID } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -30,7 +28,7 @@ function buildFilename(
   return `${stamp}_${original.replace(/[^A-Za-z0-9._-]+/g, "_")}`;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "save-incoming-client-faxes-and-scans-to-cloud-folder",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -43,7 +41,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-drive",
         actionType: "write",
         actionKey: "file",
-        connection: googleDrive,
+        connection: "google-drive",
         inputs: {
           file: input.attachment,
           folder: ARCHIVE_FOLDER_ID,
@@ -57,7 +55,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "add_label",
-        connection: gmail,
+        connection: "gmail",
         inputs: {
           message_id: input.message_id,
           new_label_ids: [PROCESSED_LABEL_ID],

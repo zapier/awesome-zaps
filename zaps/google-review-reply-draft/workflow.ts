@@ -1,10 +1,6 @@
 import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 
-import sms from "@/connections/sms";
-import gmail from "@/connections/gmail";
-import googleSheets from "@/connections/google-sheets";
-
 const sdk = createZapierSdk();
 
 // Who gets the reply drafts, and where 5-star reviews are collected.
@@ -55,7 +51,7 @@ function parseStars(review: Record<string, unknown>): number | null {
   return null;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "google-review-reply-draft",
   async (ctx, rawInput) => {
     if (OWNER_EMAIL === "you@example.com")
@@ -123,7 +119,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "sms",
           actionType: "write",
           actionKey: "send_v2",
-          connection: sms,
+          connection: "sms",
           inputs: { message: smsText },
         }),
       );
@@ -151,7 +147,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: gmail,
+        connection: "gmail",
         inputs: { to: [OWNER_EMAIL], subject, body, body_type: "plain" },
       }),
     );
@@ -171,7 +167,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "google-sheets",
           actionType: "write",
           actionKey: "add_row",
-          connection: googleSheets,
+          connection: "google-sheets",
           inputs: {
             spreadsheet: TESTIMONIAL_SHEET_ID,
             worksheet: TESTIMONIAL_WORKSHEET_ID,

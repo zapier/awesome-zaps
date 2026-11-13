@@ -1,8 +1,8 @@
-import { ask } from "zap-pack";
+// This zap's settings. Each "REPLACE_…" value is set per person before deploying; its comment says how to get it.
+// The other values are defaults you can change.
 
-export const TABLE_ID = ask(
-  "Zapier Tables table that holds one row per client call, keyed by Zoom meeting ID.",
-);
+export const TABLE_ID = "REPLACE_TABLE_ID"; // Zapier Tables table that holds one row per client call, keyed by Zoom meeting ID.
+
 // Table field key for the Zoom meeting ID column (used to match rows).
 export const MEETING_ID_FIELD = "f1";
 // Table field key for the client name column (used in the file name).

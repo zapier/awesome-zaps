@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { BASE_ID, CASE_TABLE, KPI_TABLE } from "@/config";
-import airtable from "@/connections/airtable";
+import { BASE_ID, CASE_TABLE, KPI_TABLE } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -45,7 +44,7 @@ function normalizeInput(rawInput: unknown): unknown {
   return rawInput;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "update-case-records-with-discovery-and-bwc-statuses",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(normalizeInput(rawInput));
@@ -56,7 +55,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "airtable",
         actionType: "search",
         actionKey: "findRecordById",
-        connection: airtable,
+        connection: "airtable",
         inputs: {
           applicationId: BASE_ID,
           tableName: CASE_TABLE,
@@ -92,7 +91,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "airtable",
           actionType: "write",
           actionKey: "createRecord",
-          connection: airtable,
+          connection: "airtable",
           inputs: {
             applicationId: BASE_ID,
             tableName: KPI_TABLE,
@@ -111,7 +110,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "airtable",
         actionType: "write",
         actionKey: "createRecord",
-        connection: airtable,
+        connection: "airtable",
         inputs: {
           applicationId: BASE_ID,
           tableName: KPI_TABLE,
@@ -130,7 +129,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "airtable",
         actionType: "write",
         actionKey: "updateRecord",
-        connection: airtable,
+        connection: "airtable",
         inputs: {
           applicationId: BASE_ID,
           tableName: CASE_TABLE,

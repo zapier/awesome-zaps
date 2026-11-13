@@ -13,8 +13,7 @@ import {
   ASSET_STATUS_PROPERTY,
   ASSET_STATUS_NEW,
   ASSET_URL_BASE,
-} from "@/config";
-import notion from "@/connections/notion";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -62,7 +61,7 @@ function parseFilename(title: string): Record<FilenameField, string | null> {
   ) as Record<FilenameField, string | null>;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-creative-asset-records-from-task-webhook-entries",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -84,7 +83,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "notion",
         actionType: "search",
         actionKey: "find_data_source_item",
-        connection: notion,
+        connection: "notion",
         inputs: {
           datasource: REQUESTS_DATA_SOURCE,
           [REQUEST_PERMALINK_PROPERTY]: permalink,
@@ -102,7 +101,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "notion",
           actionType: "write",
           actionKey: "create_database_item",
-          connection: notion,
+          connection: "notion",
           inputs: {
             datasource: REQUESTS_DATA_SOURCE,
             template_mode: "none",
@@ -133,7 +132,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "notion",
               actionType: "write",
               actionKey: "create_database_item",
-              connection: notion,
+              connection: "notion",
               inputs: {
                 datasource: ASSETS_DATA_SOURCE,
                 template_mode: "none",

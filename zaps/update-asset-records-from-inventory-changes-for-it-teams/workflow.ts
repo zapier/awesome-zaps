@@ -6,8 +6,7 @@ import {
   ASSET_DATASOURCE_ID,
   INVENTORY_IDENTIFIER_PROPERTY,
   ASSET_IDENTIFIER_PROPERTY,
-} from "@/config";
-import notion from "@/connections/notion";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -31,7 +30,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "update-asset-records-from-inventory-changes-for-it-teams",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -50,7 +49,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "notion",
         actionType: "search",
         actionKey: "find_data_source_item",
-        connection: notion,
+        connection: "notion",
         inputs: {
           datasource: ASSET_DATASOURCE_ID,
           [ASSET_IDENTIFIER_PROPERTY]: identifier,
@@ -80,14 +79,14 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "notion",
             actionType: "write",
             actionKey: "update_database_item",
-            connection: notion,
+            connection: "notion",
             inputs: { id: existing.id, ...values },
           })
         : sdk.runAction({
             appKey: "notion",
             actionType: "write",
             actionKey: "create_database_item",
-            connection: notion,
+            connection: "notion",
             inputs: {
               datasource: ASSET_DATASOURCE_ID,
               [ASSET_IDENTIFIER_PROPERTY]: identifier,

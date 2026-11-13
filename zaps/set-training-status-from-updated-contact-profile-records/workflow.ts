@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { TRAINING_PROPERTY, STATUS_FLAG_PROPERTY } from "@/config";
-import hubspot from "@/connections/hubspot";
+import { TRAINING_PROPERTY, STATUS_FLAG_PROPERTY } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -18,7 +17,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "set-training-status-from-updated-contact-profile-records",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -42,7 +41,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "hubspot",
         actionType: "write",
         actionKey: "update_crm_contact",
-        connection: hubspot,
+        connection: "hubspot",
         inputs: {
           id: contactId,
           [STATUS_FLAG_PROPERTY]: completed ? "true" : "false",

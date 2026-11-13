@@ -6,8 +6,7 @@ import {
   DESTINATION_FOLDER_ID,
   SIZE_SUFFIX,
   MIME_PREFIX,
-} from "@/config";
-import googleDrive from "@/connections/google-drive";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -19,7 +18,7 @@ function sizedName(name: string): string {
   return `${name.slice(0, dot)}${SIZE_SUFFIX}${name.slice(dot)}`;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-standardized-resized-image-copies-in-your-media-folder",
   async (ctx) => {
     const listing = await ctx.step("list-source-folder", async () =>
@@ -27,7 +26,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-drive",
         actionType: "write",
         actionKey: "ae_50140_google_drive_get_files_from_folder_custom",
-        connection: googleDrive,
+        connection: "google-drive",
         inputs: { folderId: SOURCE_FOLDER_ID },
       }),
     );
@@ -57,7 +56,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "google-drive",
               actionType: "search",
               actionKey: "file_v2",
-              connection: googleDrive,
+              connection: "google-drive",
               inputs: {
                 title: newName,
                 folder: DESTINATION_FOLDER_ID,
@@ -72,7 +71,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "google-drive",
               actionType: "write",
               actionKey: "copy_file",
-              connection: googleDrive,
+              connection: "google-drive",
               inputs: {
                 file: file.id,
                 new_name: newName,

@@ -13,9 +13,7 @@ import {
   TOTAL_RMSE_COLUMN,
   HIGH_ERROR_RMSE_COLUMN,
   PROFIT_ESTIMATE_COLUMN,
-} from "@/config";
-import googleDrive from "@/connections/google-drive";
-import googleSheets from "@/connections/google-sheets";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -45,7 +43,7 @@ const rmse = (values: number[]) =>
     values.reduce((sum, value) => sum + value * value, 0) / values.length,
   );
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "log-model-evaluation-metrics-to-central-results-sheet",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -58,7 +56,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-drive",
         actionType: "search",
         actionKey: "file_v2",
-        connection: googleDrive,
+        connection: "google-drive",
         inputs: { title: TARGETS_FILE_NAME, search_type: "exact" },
       }),
     );
@@ -73,7 +71,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-drive",
         actionType: "write",
         actionKey: "ae_461284_google_drive_download_file_custom_action",
-        connection: googleDrive,
+        connection: "google-drive",
         inputs: { fileId: String(fileId) },
       }),
     );
@@ -125,7 +123,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "add_row",
-        connection: googleSheets,
+        connection: "google-sheets",
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,

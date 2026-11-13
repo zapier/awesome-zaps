@@ -8,9 +8,7 @@ import {
   DRIVE_FOLDER_ID,
   SHARED_DRIVE_ID,
   PROCESSED_LABEL_ID,
-} from "@/config";
-import googleDrive from "@/connections/google-drive";
-import gmail from "@/connections/gmail";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -31,7 +29,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "save-security-report-attachments-to-shared-drive-folder",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -66,7 +64,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "google-drive",
             actionType: "write",
             actionKey: "file",
-            connection: googleDrive,
+            connection: "google-drive",
             inputs: {
               file: attachment.url,
               drive: SHARED_DRIVE_ID,
@@ -94,7 +92,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "add_label",
-        connection: gmail,
+        connection: "gmail",
         inputs: { message_id: input.id, new_label_ids: [PROCESSED_LABEL_ID] },
       }),
     );

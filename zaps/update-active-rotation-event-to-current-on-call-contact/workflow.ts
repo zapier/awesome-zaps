@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { ROUTING_CHANNEL } from "@/config";
-import slack from "@/connections/slack";
+import { ROUTING_CHANNEL } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -26,7 +25,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "update-active-rotation-event-to-current-on-call-contact",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -58,7 +57,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "channel_message",
-        connection: slack,
+        connection: "slack",
         inputs: {
           channel: ROUTING_CHANNEL,
           text,

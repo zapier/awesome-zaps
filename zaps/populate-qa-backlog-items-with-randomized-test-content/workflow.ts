@@ -10,9 +10,7 @@ import {
   CATEGORY_COLUMN,
   NOTION_VERSION,
   NOTION_API,
-} from "@/config";
-import notion from "@/connections/notion";
-import googleSheets from "@/connections/google-sheets";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -64,7 +62,7 @@ function seedMarker(category: string): string {
   return `[seeded for: ${category}]`;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "populate-qa-backlog-items-with-randomized-test-content",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(normalizeInput(rawInput));
@@ -72,7 +70,7 @@ const workflow = defineDurable<unknown, unknown>(
 
     const page = await ctx.step("get-qa-page", async () => {
       const response = await sdk.fetch(`${NOTION_API}/pages/${pageId}`, {
-        connection: notion,
+        connection: "notion",
         method: "GET",
         headers: { "Notion-Version": NOTION_VERSION },
       });
@@ -114,7 +112,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "search",
         actionKey: "find_many_rows",
-        connection: googleSheets,
+        connection: "google-sheets",
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,
@@ -159,7 +157,7 @@ const workflow = defineDurable<unknown, unknown>(
 
     await ctx.step("write-seeded-content", async () => {
       const response = await sdk.fetch(`${NOTION_API}/pages/${pageId}`, {
-        connection: notion,
+        connection: "notion",
         method: "PATCH",
         headers: {
           "Notion-Version": NOTION_VERSION,

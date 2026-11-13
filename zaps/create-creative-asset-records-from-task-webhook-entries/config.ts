@@ -1,11 +1,9 @@
-import { ask } from "zap-pack";
+// This zap's settings. Each "REPLACE_…" value is set per person before deploying; its comment says how to get it.
+// The other values are defaults you can change.
 
-export const REQUESTS_DATA_SOURCE = ask(
-  "Notion data source (database) of creative requests. Share it with the connected Notion integration.",
-);
-export const ASSETS_DATA_SOURCE = ask(
-  "Notion data source (database) of creative asset records.",
-);
+export const REQUESTS_DATA_SOURCE = "REPLACE_REQUESTS_DATA_SOURCE"; // Notion data source (database) of creative requests. Share it with the connected Notion integration.
+export const ASSETS_DATA_SOURCE = "REPLACE_ASSETS_DATA_SOURCE"; // Notion data source (database) of creative asset records.
+
 // Requests property that holds the task permalink URL, matched when looking for an existing request.
 export const REQUEST_PERMALINK_PROPERTY = "Permalink";
 // Requests title property, set when a new request is created.

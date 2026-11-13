@@ -9,10 +9,7 @@ import {
   COMPANY_FIELD,
   PO_NUMBER_FIELD,
   NOT_FOUND,
-} from "@/config";
-import pdf4me from "@/connections/pdf4me";
-import chatgpt from "@/connections/chatgpt";
-import zapierTables from "@/connections/zapier-tables";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -43,7 +40,7 @@ function parseFields(reply: string): { company: string; poNumber: string } {
   }
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-po-records-from-new-purchase-order-pd-fs",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -60,7 +57,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "pdf4me",
         actionType: "write",
         actionKey: "ExtractText",
-        connection: pdf4me,
+        connection: "pdf4me",
         inputs: { fileUrl, fName: fileName, extractTextMode: "pagewise" },
       }),
     );
@@ -71,7 +68,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "chatgpt",
         actionType: "write",
         actionKey: "conversation_responses_api",
-        connection: chatgpt,
+        connection: "chatgpt",
         inputs: {
           model: "gpt-4o",
           instructions:
@@ -95,7 +92,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "search",
         actionKey: "find_record",
-        connection: zapierTables,
+        connection: "zapier-tables",
         inputs: { table_id: PO_TABLE_ID, [PO_NUMBER_FIELD]: poNumber },
       }),
     );
@@ -108,7 +105,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "create_record",
-        connection: zapierTables,
+        connection: "zapier-tables",
         inputs: {
           table_id: PO_TABLE_ID,
           [DATE_FIELD]: input.created_at ?? "",

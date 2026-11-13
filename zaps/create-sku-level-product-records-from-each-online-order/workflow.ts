@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { TABLE_ID } from "@/config";
-import zapierTables from "@/connections/zapier-tables";
+import { TABLE_ID } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -37,7 +36,7 @@ function normalizeInput(rawInput: unknown): unknown {
   return rawInput;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-sku-level-product-records-from-each-online-order",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(normalizeInput(rawInput));
@@ -76,7 +75,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "zapier-tables",
               actionType: "write",
               actionKey: "create_record",
-              connection: zapierTables,
+              connection: "zapier-tables",
               inputs: {
                 table_id: TABLE_ID,
                 new__data__f1: item.name ?? item.title ?? "",

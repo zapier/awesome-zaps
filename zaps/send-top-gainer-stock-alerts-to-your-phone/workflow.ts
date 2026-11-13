@@ -9,10 +9,7 @@ import {
   NOTES_FIELD,
   TIME_FIELD,
   SEARCH_URL_PREFIX,
-} from "@/config";
-import ai from "@/connections/ai";
-import zapierTables from "@/connections/zapier-tables";
-import smsConnection from "@/connections/sms";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -35,7 +32,7 @@ function parseTickers(text: string): string[] {
   return [...new Set(symbols)];
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "send-top-gainer-stock-alerts-to-your-phone",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -48,7 +45,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "ai",
         actionType: "write",
         actionKey: "get_completion",
-        connection: ai,
+        connection: "ai",
         inputs: {
           model_id: "premium/auto",
           authentication_id: "0",
@@ -74,7 +71,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "zapier-tables",
             actionType: "search",
             actionKey: "find_record",
-            connection: zapierTables,
+            connection: "zapier-tables",
             inputs: {
               table_id: TABLE_ID,
               filter_count: "1",
@@ -96,7 +93,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "zapier-tables",
             actionType: "write",
             actionKey: "create_record",
-            connection: zapierTables,
+            connection: "zapier-tables",
             inputs: {
               table_id: TABLE_ID,
               [TICKER_FIELD]: ticker,
@@ -112,7 +109,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "sms",
             actionType: "write",
             actionKey: "send_v2",
-            connection: smsConnection,
+            connection: "sms",
             inputs: { message: `${ticker} top gainer: ${link}` },
           }),
         );

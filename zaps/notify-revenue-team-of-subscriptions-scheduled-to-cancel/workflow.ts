@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { REVENUE_TEAM_EMAIL, ACCOUNT_OWNER_EMAIL } from "@/config";
-import gmail from "@/connections/gmail";
+import { REVENUE_TEAM_EMAIL, ACCOUNT_OWNER_EMAIL } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -21,7 +20,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "notify-revenue-team-of-subscriptions-scheduled-to-cancel",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -58,7 +57,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: gmail,
+        connection: "gmail",
         inputs: {
           to: [REVENUE_TEAM_EMAIL, ACCOUNT_OWNER_EMAIL],
           subject,

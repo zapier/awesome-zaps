@@ -6,8 +6,7 @@ import {
   CUSTOMER_API_URL,
   DEFAULT_QUICK_START_URL,
   ONBOARDING_SUBJECT,
-} from "@/config";
-import microsoftOutlook from "@/connections/microsoft-outlook";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -40,7 +39,7 @@ function generateTemporaryPassword(): string {
     .slice(0, 20);
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-new-e-store-user-and-assign-access-roles",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -107,7 +106,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "microsoft-outlook",
         actionType: "write",
         actionKey: "send_email",
-        connection: microsoftOutlook,
+        connection: "microsoft-outlook",
         inputs: {
           recipients: [email],
           subject: ONBOARDING_SUBJECT,

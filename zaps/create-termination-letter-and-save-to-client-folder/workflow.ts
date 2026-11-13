@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { TEMPLATE_DOC_ID, TITLE_PREFIX } from "@/config";
-import googleDocs from "@/connections/google-docs";
+import { TEMPLATE_DOC_ID, TITLE_PREFIX } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -19,7 +18,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-termination-letter-and-save-to-client-folder",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -55,7 +54,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-docs",
         actionType: "write",
         actionKey: "create_from_template",
-        connection: googleDocs,
+        connection: "google-docs",
         inputs: {
           file: TEMPLATE_DOC_ID,
           title,

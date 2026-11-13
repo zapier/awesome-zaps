@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { NAME_FALLBACK } from "@/config";
-import googleBusinessProfile from "@/connections/google-business-profile";
+import { NAME_FALLBACK } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -22,7 +21,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "reply-to-new-public-reviews-with-brief-responses",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -39,7 +38,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-business-profile",
         actionType: "write",
         actionKey: "create_reply",
-        connection: googleBusinessProfile,
+        connection: "google-business-profile",
         inputs: {
           reply,
           review_name: input.name,

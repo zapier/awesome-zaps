@@ -2,7 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { ENDPOINT_URL, VENDOR_SENDER } from "@/config";
+import { ENDPOINT_URL, VENDOR_SENDER } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -41,7 +41,7 @@ function extractCode(body: string): string | null {
   return bare ? bare[1] : null;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "post-one-time-codes-from-email-to-api-endpoint",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(

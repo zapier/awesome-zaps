@@ -1,7 +1,6 @@
-import { connection } from "zap-pack";
-
-export default connection({
+// The account this zap uses as "asana"; workflow.ts and triggers/ refer to it by that alias.
+export default {
   app: "asana",
   description:
     "The user's Asana connection, for the account that owns the project",
-});
+};

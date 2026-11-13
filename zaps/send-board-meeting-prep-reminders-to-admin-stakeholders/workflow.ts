@@ -1,12 +1,16 @@
 import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 
-import { RECIPIENT, MEETING_TITLE, MEETING_DATE, AGENDA_LINK } from "@/config";
-import gmail from "@/connections/gmail";
+import {
+  RECIPIENT,
+  MEETING_TITLE,
+  MEETING_DATE,
+  AGENDA_LINK,
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "send-board-meeting-prep-reminders-to-admin-stakeholders",
   async (ctx) => {
     if (!AGENDA_LINK) {
@@ -26,7 +30,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: gmail,
+        connection: "gmail",
         inputs: { to: RECIPIENT, subject, body, body_type: "plain" },
       }),
     );

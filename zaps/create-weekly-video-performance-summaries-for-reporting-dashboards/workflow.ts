@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { CHANNEL_ID } from "@/config";
-import youtube from "@/connections/youtube";
+import { CHANNEL_ID } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -29,7 +28,7 @@ const InputSchema = z
 
 const toNumber = (value: unknown) => Number(value ?? 0) || 0;
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-weekly-video-performance-summaries-for-reporting-dashboards",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -60,7 +59,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "youtube",
         actionType: "search",
         actionKey: "get_report",
-        connection: youtube,
+        connection: "youtube",
         inputs: {
           report_type: "video_top",
           report_breakdown: "Channel",

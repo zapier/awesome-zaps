@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { PRODUCT_COLUMN, BRANCH_COLUMN, STOCK_COLUMN } from "@/config";
-import gmail from "@/connections/gmail";
+import { PRODUCT_COLUMN, BRANCH_COLUMN, STOCK_COLUMN } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -22,7 +21,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "send-low-stock-email-alerts-to-team-leaders",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -51,7 +50,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: gmail,
+        connection: "gmail",
         inputs: {
           to: settings.emails,
           subject: `Low stock at ${branch}: ${product}`,

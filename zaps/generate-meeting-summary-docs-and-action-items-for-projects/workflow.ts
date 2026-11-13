@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { DOC_FOLDER, AI_MODEL } from "@/config";
-import googleDocs from "@/connections/google-docs";
+import { DOC_FOLDER, AI_MODEL } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -30,7 +29,7 @@ const RecordSchema = z
 
 const InputSchema = z.object({ new: RecordSchema }).loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "generate-meeting-summary-docs-and-action-items-for-projects",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -138,7 +137,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-docs",
         actionType: "write",
         actionKey: "newtxtdocument",
-        connection: googleDocs,
+        connection: "google-docs",
         inputs: {
           title: docTitle,
           file: body,

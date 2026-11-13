@@ -2,7 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { INTAKE_WEBHOOK_URL } from "@/config";
+import { INTAKE_WEBHOOK_URL } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -22,7 +22,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "route-new-social-leads-to-intake-webhook-for-processing",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(

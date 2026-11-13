@@ -2,9 +2,12 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { WORKBOOK_ID, WORKSHEET_ID, LOOKUP_COLUMN, KPI_COLUMN } from "@/config";
-import chatgpt from "@/connections/chatgpt";
-import excel from "@/connections/excel";
+import {
+  WORKBOOK_ID,
+  WORKSHEET_ID,
+  LOOKUP_COLUMN,
+  KPI_COLUMN,
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -15,7 +18,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "update-kpi-row-with-csat-percentage-from-email-pd-fs",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -34,7 +37,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "chatgpt",
         actionType: "write",
         actionKey: "conversation_responses_api",
-        connection: chatgpt,
+        connection: "chatgpt",
         inputs: {
           model: "gpt-4o",
           user_message:
@@ -56,7 +59,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "excel",
         actionType: "search",
         actionKey: "find_row",
-        connection: excel,
+        connection: "excel",
         inputs: {
           workbook_id: WORKBOOK_ID,
           worksheet_id: WORKSHEET_ID,
@@ -76,7 +79,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "excel",
         actionType: "write",
         actionKey: "update_row",
-        connection: excel,
+        connection: "excel",
         inputs: {
           workbook_id: WORKBOOK_ID,
           worksheet_id: WORKSHEET_ID,

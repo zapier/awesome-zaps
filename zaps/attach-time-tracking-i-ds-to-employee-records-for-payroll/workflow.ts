@@ -8,8 +8,7 @@ import {
   EMAIL_FIELD,
   FULL_NAME_FIELD,
   TIME_TRACKING_LINK_FIELD,
-} from "@/config";
-import airtable from "@/connections/airtable";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -27,7 +26,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "attach-time-tracking-i-ds-to-employee-records-for-payroll",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -57,7 +56,7 @@ const workflow = defineDurable<unknown, unknown>(
                 appKey: "airtable",
                 actionType: "search",
                 actionKey: "findRecord",
-                connection: airtable,
+                connection: "airtable",
                 inputs: {
                   applicationId: AIRTABLE_BASE_ID,
                   tableName: EMPLOYEE_TABLE,
@@ -79,7 +78,7 @@ const workflow = defineDurable<unknown, unknown>(
                 appKey: "airtable",
                 actionType: "search",
                 actionKey: "findRecord",
-                connection: airtable,
+                connection: "airtable",
                 inputs: {
                   applicationId: AIRTABLE_BASE_ID,
                   tableName: EMPLOYEE_TABLE,
@@ -123,7 +122,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "airtable",
               actionType: "write",
               actionKey: "updateRecord",
-              connection: airtable,
+              connection: "airtable",
               inputs: {
                 applicationId: AIRTABLE_BASE_ID,
                 tableName: EMPLOYEE_TABLE,

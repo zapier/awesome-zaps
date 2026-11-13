@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { GOOGLE_ADS_ACCOUNT_ID } from "@/config";
-import googleAds from "@/connections/google-ads";
+import { GOOGLE_ADS_ACCOUNT_ID } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -27,7 +26,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "add-qualified-contact-records-to-remarketing-audience-list",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -52,7 +51,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-ads",
         actionType: "write",
         actionKey: "add_email_to_customer_list_v3",
-        connection: googleAds,
+        connection: "google-ads",
         inputs: {
           mainAccountId: GOOGLE_ADS_ACCOUNT_ID,
           customer_list_id: CUSTOMER_LIST_ID,

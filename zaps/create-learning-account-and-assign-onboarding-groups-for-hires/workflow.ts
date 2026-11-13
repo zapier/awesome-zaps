@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { NOTIFY_NEW_USER } from "@/config";
-import go1 from "@/connections/go1";
+import { NOTIFY_NEW_USER } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -31,7 +30,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-learning-account-and-assign-onboarding-groups-for-hires",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -62,7 +61,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "go1",
         actionType: "search",
         actionKey: "find_user",
-        connection: go1,
+        connection: "go1",
         inputs: { email },
       }),
     );
@@ -74,7 +73,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "go1",
             actionType: "write",
             actionKey: "create_user",
-            connection: go1,
+            connection: "go1",
             inputs: {
               email,
               first_name: input.firstName ?? "",
@@ -91,7 +90,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "go1",
           actionType: "write",
           actionKey: "assign_group",
-          connection: go1,
+          connection: "go1",
           inputs: { email, id: groupIds },
         }),
     );

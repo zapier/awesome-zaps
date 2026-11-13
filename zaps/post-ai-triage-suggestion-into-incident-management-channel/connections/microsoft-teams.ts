@@ -1,7 +1,6 @@
-import { connection } from "zap-pack";
-
-export default connection({
+// The account this zap uses as "microsoft-teams"; workflow.ts and triggers/ refer to it by that alias.
+export default {
   app: "microsoft-teams",
   description:
     "The user's Microsoft Teams connection, for an account that can post in the incident channel",
-});
+};

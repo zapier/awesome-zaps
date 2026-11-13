@@ -2,7 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { CREDIT_PULL_URL, DEFAULT_COUNTRY_CODE } from "@/config";
+import { CREDIT_PULL_URL, DEFAULT_COUNTRY_CODE } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -25,7 +25,7 @@ function toE164(phone: string | null | undefined): string | null {
   return digits.length > 0 ? `+${digits}` : null;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-debt-records-and-attach-credit-pull-pd-fs",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(

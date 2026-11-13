@@ -1,13 +1,11 @@
-import { ask } from "zap-pack";
+// This zap's settings. Each "REPLACE_…" value is set per person before deploying; its comment says how to get it.
+// The other values are defaults you can change.
 
-export const SPREADSHEET_ID = ask(
-  "Google Sheets spreadsheet that holds one analytics profile row per contact (the long ID in the sheet's URL).",
-);
+export const SPREADSHEET_ID = "REPLACE_SPREADSHEET_ID"; // Google Sheets spreadsheet that holds one analytics profile row per contact (the long ID in the sheet's URL).
+export const TERRITORY_PROPERTY = "REPLACE_TERRITORY_PROPERTY"; // HubSpot internal name of the territory property. Must match the trigger's property_name.
+
 // Worksheet (tab) with the profile rows. The first tab is "0".
 export const WORKSHEET_ID = "0";
-export const TERRITORY_PROPERTY = ask(
-  "HubSpot internal name of the territory property. Must match the trigger's property_name.",
-);
 // Header of the territory column on the profiles sheet, used to compare with the new value.
 export const TERRITORY_HEADER = "Territory";
 // Column holding the HubSpot contact ID, the first match key (COL$A = column A).

@@ -10,8 +10,7 @@ import {
   PLANNER_FIELD,
   REQUEST_DETAILS_FIELD,
   SENDER_ADDRESS,
-} from "@/config";
-import microsoftOutlook from "@/connections/microsoft-outlook";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -30,7 +29,7 @@ const escapeHtml = (value: string) =>
 const field = (row: Record<string, unknown>, key: string) =>
   String(row[key] ?? "").trim();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "send-contract-request-emails-to-assigned-advisors-today",
   async (ctx, rawInput) => {
     const row = InputSchema.parse(
@@ -66,7 +65,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "microsoft-outlook",
         actionType: "write",
         actionKey: "send_email",
-        connection: microsoftOutlook,
+        connection: "microsoft-outlook",
         inputs: {
           recipients: [advisorEmail],
           ccRecipients: collaborators.length ? collaborators : undefined,

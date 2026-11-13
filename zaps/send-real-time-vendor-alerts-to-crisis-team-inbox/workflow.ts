@@ -11,8 +11,7 @@ import {
   DETAILS_COLUMN,
   ALERT_COLUMN,
   RECIPIENTS_COLUMN,
-} from "@/config";
-import microsoftOutlook from "@/connections/microsoft-outlook";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -31,7 +30,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "send-real-time-vendor-alerts-to-crisis-team-inbox",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -86,7 +85,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "microsoft-outlook",
         actionType: "write",
         actionKey: "send_email",
-        connection: microsoftOutlook,
+        connection: "microsoft-outlook",
         inputs: {
           recipients,
           subject,

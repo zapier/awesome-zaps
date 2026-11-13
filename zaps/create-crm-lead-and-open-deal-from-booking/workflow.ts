@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { EVENT_NAME_MATCH } from "@/config";
-import pipedrive from "@/connections/pipedrive";
+import { EVENT_NAME_MATCH } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -22,7 +21,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-crm-lead-and-open-deal-from-booking",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -47,7 +46,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "pipedrive",
         actionType: "write",
         actionKey: "create_personV2",
-        connection: pipedrive,
+        connection: "pipedrive",
         inputs: {
           name: inviteeName,
           emails: inviteeEmail ? [inviteeEmail] : [],
@@ -65,7 +64,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "pipedrive",
         actionType: "write",
         actionKey: "create_deal_v2",
-        connection: pipedrive,
+        connection: "pipedrive",
         inputs: {
           title: `${eventName || "Booking"}: ${inviteeName}`,
           person_id: Number(personId),

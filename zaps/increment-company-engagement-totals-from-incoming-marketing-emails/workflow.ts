@@ -7,8 +7,7 @@ import {
   COMPANY_ID_FIELD,
   ENGAGEMENT_COUNT_FIELD,
   INCREMENT_AMOUNT,
-} from "@/config";
-import zapierTables from "@/connections/zapier-tables";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -28,7 +27,7 @@ type EngagementResult = {
   error?: string;
 };
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "increment-company-engagement-totals-from-incoming-marketing-emails",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -54,7 +53,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "zapier-tables",
             actionType: "search",
             actionKey: "find_record",
-            connection: zapierTables,
+            connection: "zapier-tables",
             inputs: {
               table_id: TABLE_ID,
               filter_count: "1",
@@ -73,7 +72,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "zapier-tables",
               actionType: "write",
               actionKey: "increment_value",
-              connection: zapierTables,
+              connection: "zapier-tables",
               inputs: {
                 table_id: TABLE_ID,
                 record_id: recordId,
@@ -91,7 +90,7 @@ const workflow = defineDurable<unknown, unknown>(
                 appKey: "zapier-tables",
                 actionType: "write",
                 actionKey: "create_record",
-                connection: zapierTables,
+                connection: "zapier-tables",
                 inputs: {
                   table_id: TABLE_ID,
                   new__data__f1: companyId,

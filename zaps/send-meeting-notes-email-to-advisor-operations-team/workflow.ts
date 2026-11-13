@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { REPLY_TO_EMAIL, SUBJECT_PREFIX } from "@/config";
-import microsoftOutlook from "@/connections/microsoft-outlook";
+import { REPLY_TO_EMAIL, SUBJECT_PREFIX } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -60,7 +59,7 @@ function toList(value: string | string[] | null | undefined): string[] {
   return items.map((item) => item.trim()).filter(Boolean);
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "send-meeting-notes-email-to-advisor-operations-team",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(normalizeInput(rawInput));
@@ -78,7 +77,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "microsoft-outlook",
           actionType: "search",
           actionKey: "find_email",
-          connection: microsoftOutlook,
+          connection: "microsoft-outlook",
           inputs: { searchValue: eventId },
         }),
       );
@@ -118,7 +117,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "microsoft-outlook",
         actionType: "write",
         actionKey: "send_email",
-        connection: microsoftOutlook,
+        connection: "microsoft-outlook",
         inputs: {
           recipients: ADVISOR_EMAILS,
           ...(OPS_CC_EMAILS.length ? { ccRecipients: OPS_CC_EMAILS } : {}),

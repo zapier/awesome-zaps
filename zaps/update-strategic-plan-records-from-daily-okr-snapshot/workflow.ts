@@ -7,8 +7,7 @@ import {
   STRATEGIC_PLAN_OBJECT,
   EXTERNAL_ID_FIELD,
   FISCAL_YEAR,
-} from "@/config";
-import salesforce from "@/connections/salesforce";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -33,7 +32,7 @@ const GoalSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "update-strategic-plan-records-from-daily-okr-snapshot",
   async (ctx) => {
     const goals = await ctx.step("fetch-okr-goals", async () => {
@@ -67,7 +66,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "salesforce",
             actionType: "search",
             actionKey: "find_record_by_query",
-            connection: salesforce,
+            connection: "salesforce",
             inputs: {
               object: STRATEGIC_PLAN_OBJECT,
               whereClause: `${EXTERNAL_ID_FIELD} = '${externalId.replace(/'/g, "\\'")}'`,
@@ -84,7 +83,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "salesforce",
               actionType: "write",
               actionKey: "update_record_utc",
-              connection: salesforce,
+              connection: "salesforce",
               inputs: {
                 object: STRATEGIC_PLAN_OBJECT,
                 record_id: recordId,
@@ -99,7 +98,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "salesforce",
               actionType: "write",
               actionKey: "create_record_utc",
-              connection: salesforce,
+              connection: "salesforce",
               inputs: {
                 object: STRATEGIC_PLAN_OBJECT,
                 ...fields,

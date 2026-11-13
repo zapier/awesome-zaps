@@ -12,9 +12,7 @@ import {
   FIELD_STAGE,
   FIELD_OWNER,
   FIELD_SYNCED_AT,
-} from "@/config";
-import salesforce from "@/connections/salesforce";
-import zapierTables from "@/connections/zapier-tables";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -56,7 +54,7 @@ function formatRow(cells: ReportRowValues) {
   };
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-hourly-finance-report-records-in-your-reporting-table",
   async (ctx) => {
     const syncedAt = await ctx.step("capture-synced-at", async () =>
@@ -68,7 +66,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "salesforce",
         actionType: "write",
         actionKey: "run_report",
-        connection: salesforce,
+        connection: "salesforce",
         inputs: {
           reportId: REPORT_ID,
           reportFormat: "TABULAR",
@@ -101,7 +99,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "zapier-tables",
             actionType: "search",
             actionKey: "find_record",
-            connection: zapierTables,
+            connection: "zapier-tables",
             inputs: {
               table_id: REPORTING_TABLE_ID,
               filter_count: "1",
@@ -140,7 +138,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "zapier-tables",
               actionType: "write",
               actionKey: "update_record",
-              connection: zapierTables,
+              connection: "zapier-tables",
               inputs: { ...fields, record_id: lookup.id },
             }),
           );
@@ -151,7 +149,7 @@ const workflow = defineDurable<unknown, unknown>(
               appKey: "zapier-tables",
               actionType: "write",
               actionKey: "create_record",
-              connection: zapierTables,
+              connection: "zapier-tables",
               inputs: fields,
             }),
           );

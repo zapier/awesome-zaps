@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { QUO_FROM_NUMBER_ID } from "@/config";
-import quo from "@/connections/quo";
+import { QUO_FROM_NUMBER_ID } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -24,7 +23,7 @@ function normalizePhone(raw: string): string {
   return digits.length >= 8 ? digits : "";
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "send-sms-for-new-online-quote-to-requester",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -44,7 +43,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "quo",
         actionType: "write",
         actionKey: "contact_update_create",
-        connection: quo,
+        connection: "quo",
         inputs: {
           client_id: phone,
           first_name: firstName,
@@ -60,7 +59,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "quo",
         actionType: "write",
         actionKey: "send_message",
-        connection: quo,
+        connection: "quo",
         inputs: {
           phone_number_id: QUO_FROM_NUMBER_ID,
           to: phone,

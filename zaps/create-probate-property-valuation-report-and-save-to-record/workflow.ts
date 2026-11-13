@@ -7,9 +7,7 @@ import {
   TEMPLATE_DOC_ID,
   FOLDER_ID,
   SHARING_PREFERENCE,
-} from "@/config";
-import zapierTables from "@/connections/zapier-tables";
-import googleDocs from "@/connections/google-docs";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -61,7 +59,7 @@ function prettyDate(value: string | null | undefined): string {
   return `${day} ${MONTHS[month - 1]} ${year}`;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-probate-property-valuation-report-and-save-to-record",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -74,7 +72,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "search",
         actionKey: "find_record",
-        connection: zapierTables,
+        connection: "zapier-tables",
         inputs: {
           table_id: TABLE_ID,
           filter_count: "1",
@@ -98,7 +96,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-docs",
         actionType: "write",
         actionKey: "create_from_template",
-        connection: googleDocs,
+        connection: "google-docs",
         inputs: {
           file: TEMPLATE_DOC_ID,
           title: `Probate valuation report - ${address || recordId}`,
@@ -125,7 +123,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "update_record",
-        connection: zapierTables,
+        connection: "zapier-tables",
         inputs: {
           table_id: TABLE_ID,
           record_id: recordId,

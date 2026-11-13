@@ -12,10 +12,7 @@ import {
   IMAGE_STYLE,
   CAPTION_MODEL,
   IMAGE_MODEL,
-} from "@/config";
-import ai from "@/connections/ai";
-import googleAiStudio from "@/connections/google-ai-studio";
-import zapierTables from "@/connections/zapier-tables";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -29,7 +26,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "generate-social-caption-and-1080-image-for-posts",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -54,7 +51,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "ai",
         actionType: "write",
         actionKey: "get_completion",
-        connection: ai,
+        connection: "ai",
         inputs: {
           model_id: CAPTION_MODEL,
           authentication_id: "0",
@@ -84,7 +81,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "google-ai-studio",
             actionType: "write",
             actionKey: "generate_image",
-            connection: googleAiStudio,
+            connection: "google-ai-studio",
             inputs: {
               model: IMAGE_MODEL,
               apiVersion: "v1beta",
@@ -100,7 +97,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "update_record",
-        connection: zapierTables,
+        connection: "zapier-tables",
         inputs: {
           table_id: TABLE_ID,
           record_id: recordId,

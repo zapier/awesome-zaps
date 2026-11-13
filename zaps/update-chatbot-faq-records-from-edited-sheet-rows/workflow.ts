@@ -11,7 +11,7 @@ import {
   VERSION_FIELD,
   LAST_EDITED_FIELD,
   SHEET_ROW_FIELD,
-} from "@/config";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -37,7 +37,7 @@ function cell(input: Record<string, unknown>, column: string | null): string {
   return value === null || value === undefined ? "" : String(value).trim();
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "update-chatbot-faq-records-from-edited-sheet-rows",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(

@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { TOURING_PACKET_URL, AGENT_NAME } from "@/config";
-import gmail from "@/connections/gmail";
+import { TOURING_PACKET_URL, AGENT_NAME } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -28,7 +27,7 @@ function readField(description: string, label: string): string | null {
   return match ? match[1].trim() : null;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "send-touring-packet-and-pre-visit-reminder-to-prospects",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -62,7 +61,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: gmail,
+        connection: "gmail",
         inputs: { to: [prospectEmail], subject, body },
       }),
     );

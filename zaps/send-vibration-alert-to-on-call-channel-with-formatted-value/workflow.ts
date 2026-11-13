@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { ON_CALL_CHAT_ID, ON_CALL_MENTION } from "@/config";
-import telegram from "@/connections/telegram";
+import { ON_CALL_CHAT_ID, ON_CALL_MENTION } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -22,7 +21,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "send-vibration-alert-to-on-call-channel-with-formatted-value",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -49,7 +48,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "telegram",
         actionType: "write",
         actionKey: "send_message",
-        connection: telegram,
+        connection: "telegram",
         inputs: {
           chat_id: ON_CALL_CHAT_ID,
           format: "plaintext",

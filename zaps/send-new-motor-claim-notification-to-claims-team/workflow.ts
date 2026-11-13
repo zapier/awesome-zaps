@@ -11,8 +11,7 @@ import {
   DRIVING_EXPIRY_FIELD,
   ACCIDENT_DATETIME_FIELD,
   ATTACHMENTS_FIELD,
-} from "@/config";
-import microsoftOutlook from "@/connections/microsoft-outlook";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -81,7 +80,7 @@ function toAttachmentUrls(value: unknown): string[] {
 
 const ClaimInputSchema = z.looseObject({});
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "send-new-motor-claim-notification-to-claims-team",
   async (ctx, rawInput) => {
     const input = ClaimInputSchema.parse(
@@ -128,7 +127,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "microsoft-outlook",
         actionType: "write",
         actionKey: "send_email",
-        connection: microsoftOutlook,
+        connection: "microsoft-outlook",
         inputs: {
           recipients: [CLAIMS_INBOX],
           subject,

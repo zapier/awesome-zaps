@@ -1,5 +1,3 @@
-import type { Trigger } from "zap-pack";
-
 export default {
   app: "schedule",
   event: "custom_frequency",
@@ -9,4 +7,4 @@ export default {
     start_date: "2027-01-15",
     hod: "9:00 AM",
   },
-} satisfies Trigger;
+};

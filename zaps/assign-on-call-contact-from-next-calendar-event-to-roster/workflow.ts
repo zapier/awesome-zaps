@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { CALENDAR_ID, DEFAULT_CONTACT, CONTACT_LABEL } from "@/config";
-import googleCalendar from "@/connections/google-calendar";
+import { CALENDAR_ID, DEFAULT_CONTACT, CONTACT_LABEL } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -31,7 +30,7 @@ function resolveContact(summary: string): string {
   return rotation ? ROSTER[rotation] : DEFAULT_CONTACT;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "assign-on-call-contact-from-next-calendar-event-to-roster",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -53,7 +52,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-calendar",
         actionType: "write",
         actionKey: "update_event",
-        connection: googleCalendar,
+        connection: "google-calendar",
         inputs: {
           calendarid: CALENDAR_ID,
           eventid: input.id,

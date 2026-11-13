@@ -8,8 +8,7 @@ import {
   SUBMISSION_ID_COLUMN,
   NOTES_COLUMN,
   PRIORITY_COLUMN,
-} from "@/config";
-import zapierTables from "@/connections/zapier-tables";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -20,7 +19,7 @@ function textOf(value: unknown): string {
   return String(value).trim();
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "log-legal-entries-from-new-spreadsheet-rows-automatically",
   async (ctx, rawInput) => {
     const row = InputSchema.parse(
@@ -38,7 +37,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "create_record",
-        connection: zapierTables,
+        connection: "zapier-tables",
         inputs: {
           table_id: LEGAL_ENTRIES_TABLE_ID,
           new__data__f1: title,

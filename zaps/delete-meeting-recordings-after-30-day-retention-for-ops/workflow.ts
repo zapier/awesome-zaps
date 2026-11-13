@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { DELETION_TYPE } from "@/config";
-import zoom from "@/connections/zoom";
+import { DELETION_TYPE } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -18,7 +17,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "delete-meeting-recordings-after-30-day-retention-for-ops",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -33,7 +32,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zoom",
         actionType: "write",
         actionKey: "_zap_raw_request",
-        connection: zoom,
+        connection: "zoom",
         inputs: {
           url: `https://api.zoom.us/v2/meetings/${meetingId}/recordings`,
           fail_on_errors: "false",
@@ -53,7 +52,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zoom",
         actionType: "write",
         actionKey: "delete_meeting_recordings",
-        connection: zoom,
+        connection: "zoom",
         inputs: { meeting_id: meetingId, deletion_type: DELETION_TYPE },
       }),
     );

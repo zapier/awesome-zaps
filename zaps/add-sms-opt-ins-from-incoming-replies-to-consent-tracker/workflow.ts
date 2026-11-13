@@ -11,8 +11,7 @@ import {
   OPT_IN_FIELD,
   SUBMISSION_ID_FIELD,
   DEFAULT_COUNTRY_CODE,
-} from "@/config";
-import airtable from "@/connections/airtable";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -48,7 +47,7 @@ function parseOptIn(body: string): { optedIn: boolean; name: string | null } {
   return { optedIn: OPT_IN_KEYWORDS.includes(keyword), name: name || null };
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "add-sms-opt-ins-from-incoming-replies-to-consent-tracker",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -71,7 +70,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "airtable",
         actionType: "write",
         actionKey: "createRecord",
-        connection: airtable,
+        connection: "airtable",
         inputs: {
           applicationId: AIRTABLE_BASE_ID,
           tableName: AIRTABLE_TABLE_NAME,

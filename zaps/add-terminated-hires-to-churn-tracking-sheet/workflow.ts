@@ -10,8 +10,7 @@ import {
   HIRE_DATE_COLUMN,
   DEPARTMENT_COLUMN,
   HOURS_COLUMN,
-} from "@/config";
-import googleSheets from "@/connections/google-sheets";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -49,7 +48,7 @@ const toDayMonthYear = (value: unknown): string => {
   return match ? `${match[3]}/${match[2]}/${match[1]}` : raw;
 };
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "add-terminated-hires-to-churn-tracking-sheet",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -83,7 +82,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "add_row",
-        connection: googleSheets,
+        connection: "google-sheets",
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,

@@ -15,8 +15,7 @@ import {
   HAS_ATTACHMENTS_COLUMN,
   RECEIVED_AT_COLUMN,
   LOGGED_AT_COLUMN,
-} from "@/config";
-import googleSheets from "@/connections/google-sheets";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -64,7 +63,7 @@ function findReference(text: string): string | null {
   return match ? match[0] : null;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-searchable-case-log-from-incoming-support-emails",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -91,7 +90,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "search",
         actionKey: "lookup_row",
-        connection: googleSheets,
+        connection: "google-sheets",
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,
@@ -121,7 +120,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "add_row",
-        connection: googleSheets,
+        connection: "google-sheets",
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,

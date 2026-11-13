@@ -12,8 +12,7 @@ import {
   ATTENDEES_COLUMN,
   CREATED_COLUMN,
   UPDATED_COLUMN,
-} from "@/config";
-import googleSheets from "@/connections/google-sheets";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -29,7 +28,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-structured-meeting-records-in-your-tracking-sheet",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -57,7 +56,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-sheets",
         actionType: "write",
         actionKey: "add_row",
-        connection: googleSheets,
+        connection: "google-sheets",
         inputs: {
           spreadsheet: SPREADSHEET_ID,
           worksheet: WORKSHEET_ID,

@@ -2,8 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { SLACK_CHANNEL, ALERT_HEADER, MENTION_PREFIX } from "@/config";
-import slack from "@/connections/slack";
+import { SLACK_CHANNEL, ALERT_HEADER, MENTION_PREFIX } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -28,7 +27,7 @@ function normalizeInput(rawInput: unknown): unknown {
   return rawInput;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "post-model-monitoring-emails-to-data-science-channel",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(normalizeInput(rawInput));
@@ -61,7 +60,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "slack",
         actionType: "write",
         actionKey: "channel_message",
-        connection: slack,
+        connection: "slack",
         inputs: {
           channel: SLACK_CHANNEL,
           text,

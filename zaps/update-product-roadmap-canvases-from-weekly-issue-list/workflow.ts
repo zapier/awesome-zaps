@@ -1,8 +1,7 @@
 import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 
-import { ROADMAP_LABEL, LOOKBACK } from "@/config";
-import jiraSoftwareCloud from "@/connections/jira-software-cloud";
+import { ROADMAP_LABEL, LOOKBACK } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -63,7 +62,7 @@ function toCanvasUpdate(issue: JiraIssue): CanvasUpdate | null {
   };
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "update-product-roadmap-canvases-from-weekly-issue-list",
   async (ctx) => {
     const search = await ctx.step("find-roadmap-issues", async () =>
@@ -71,7 +70,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "jira-software-cloud",
         actionType: "search",
         actionKey: "issue_jql",
-        connection: jiraSoftwareCloud,
+        connection: "jira-software-cloud",
         inputs: {
           jql: `labels = "${ROADMAP_LABEL}" AND updated >= ${LOOKBACK}`,
           maxResults: MAX_ITEMS,

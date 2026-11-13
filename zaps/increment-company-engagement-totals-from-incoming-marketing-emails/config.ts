@@ -1,8 +1,8 @@
-import { ask } from "zap-pack";
+// This zap's settings. Each "REPLACE_…" value is set per person before deploying; its comment says how to get it.
+// The other values are defaults you can change.
 
-export const TABLE_ID = ask(
-  "Zapier Tables table ID of the tracking table (the ID in the table's URL).",
-);
+export const TABLE_ID = "REPLACE_TABLE_ID"; // Zapier Tables table ID of the tracking table (the ID in the table's URL).
+
 // Field key of the Company ID column. Matched on when looking for a company's row.
 export const COMPANY_ID_FIELD = "data__f1";
 // Field key of the Engagement Count column (a number field).

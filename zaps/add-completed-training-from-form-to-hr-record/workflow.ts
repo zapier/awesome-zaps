@@ -2,7 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { HR_WEBHOOK_URL } from "@/config";
+import { HR_WEBHOOK_URL } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -51,7 +51,7 @@ function formatTrainingDate(raw: string | null): string | null {
   return `${day}/${month}/${parsed.getUTCFullYear()}`;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "add-completed-training-from-form-to-hr-record",
   async (ctx, rawInput) => {
     const answers = AnswersSchema.parse(normalizeInput(rawInput));

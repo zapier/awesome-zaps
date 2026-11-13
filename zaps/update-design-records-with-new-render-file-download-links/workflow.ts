@@ -6,8 +6,7 @@ import {
   NOTION_DATA_SOURCE_ID,
   NOTION_TITLE_PROPERTY,
   NOTION_DOWNLOAD_URL_PROPERTY,
-} from "@/config";
-import notion from "@/connections/notion";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -27,7 +26,7 @@ function firstPageId(found: unknown): string | null {
   return body.results?.[0]?.id ?? null;
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "update-design-records-with-new-render-file-download-links",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -47,7 +46,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "notion",
         actionType: "write",
         actionKey: "_zap_raw_request",
-        connection: notion,
+        connection: "notion",
         inputs: {
           url: `https://api.notion.com/v1/data_sources/${NOTION_DATA_SOURCE_ID}/query`,
           method: "POST",
@@ -72,7 +71,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "notion",
         actionType: "write",
         actionKey: "_zap_raw_request",
-        connection: notion,
+        connection: "notion",
         inputs: {
           url: `https://api.notion.com/v1/pages/${pageId}`,
           method: "PATCH",

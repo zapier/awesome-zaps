@@ -1,17 +1,11 @@
-import { ask } from "zap-pack";
+// This zap's settings. Each "REPLACE_…" value is set per person before deploying; its comment says how to get it.
+// The other values are defaults you can change.
 
-export const BASE_ID = ask(
-  'Airtable base ID (starts with "app") that holds the asset and IT tickets tables.',
-);
-export const ASSET_TABLE = ask(
-  "Website asset table. The trigger watches this table for new or updated records.",
-);
-export const ASSET_MODIFIED_FIELD = ask(
-  "Last-modified-time column in the asset table that the trigger uses to detect updates.",
-);
-export const TICKETS_TABLE = ask(
-  "IT tickets table where new tickets are created.",
-);
+export const BASE_ID = "REPLACE_BASE_ID"; // Airtable base ID (starts with "app") that holds the asset and IT tickets tables.
+export const ASSET_TABLE = "REPLACE_ASSET_TABLE"; // Website asset table. The trigger watches this table for new or updated records.
+export const ASSET_MODIFIED_FIELD = "REPLACE_ASSET_MODIFIED_FIELD"; // Last-modified-time column in the asset table that the trigger uses to detect updates.
+export const TICKETS_TABLE = "REPLACE_TICKETS_TABLE"; // IT tickets table where new tickets are created.
+
 // Asset column holding the unique asset ID. Tickets are matched on it.
 export const ASSET_ID_FIELD = "Asset ID";
 // Asset column holding the title, used in the ticket title.

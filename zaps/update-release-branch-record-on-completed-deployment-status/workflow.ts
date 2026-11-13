@@ -18,8 +18,7 @@ import {
   PRODUCTION_RELEASE_FIELD,
   HOTFIX_FIELD,
   LAST_UAT_DEPLOYMENT_FIELD,
-} from "@/config";
-import salesforce from "@/connections/salesforce";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -31,7 +30,7 @@ const HOTFIX_LOOKUP: Record<string, boolean> = {
 
 const InputSchema = z.looseObject({});
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "update-release-branch-record-on-completed-deployment-status",
   async (ctx, rawInput) => {
     const log = InputSchema.parse(
@@ -59,7 +58,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "salesforce",
         actionType: "search",
         actionKey: "find_record",
-        connection: salesforce,
+        connection: "salesforce",
         inputs: {
           object: BRANCH_OBJECT,
           searchField: BRANCH_ID_FIELD,
@@ -81,7 +80,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "salesforce",
         actionType: "write",
         actionKey: "update_record",
-        connection: salesforce,
+        connection: "salesforce",
         inputs: {
           object: BRANCH_OBJECT,
           record_id: branch.id,

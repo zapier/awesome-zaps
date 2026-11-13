@@ -2,7 +2,7 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { ROUTING_WEBHOOK_URL, FALLBACK_ROTATION } from "@/config";
+import { ROUTING_WEBHOOK_URL, FALLBACK_ROTATION } from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -60,7 +60,7 @@ function attendeeEmails(input: z.infer<typeof InputSchema>): string[] {
   return list.map((e) => String(e).trim()).filter(Boolean);
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "update-on-call-contact-group-when-rotation-event-starts",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(

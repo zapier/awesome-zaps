@@ -11,9 +11,7 @@ import {
   PAYMENT_INTENT_ID_FIELD,
   PAYMENT_STATUS_FIELD,
   PROCESSED_FIELD,
-} from "@/config";
-import stripe from "@/connections/stripe";
-import zapierTables from "@/connections/zapier-tables";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -75,7 +73,7 @@ function toSmallestUnit(amount: number, currency: string): number {
   return Math.round(amount * 100);
 }
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-payment-intents-from-new-billing-records-daily",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(normalizeInput(rawInput));
@@ -115,7 +113,7 @@ const workflow = defineDurable<unknown, unknown>(
           appKey: "stripe",
           actionType: "search",
           actionKey: "find_customer",
-          connection: stripe,
+          connection: "stripe",
           inputs: { query: customerRef, selection: "email" },
         }),
       );
@@ -127,7 +125,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "stripe",
             actionType: "write",
             actionKey: "create_customer",
-            connection: stripe,
+            connection: "stripe",
             inputs: { email: customerRef },
           }),
         );
@@ -141,7 +139,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "stripe",
         actionType: "write",
         actionKey: "create_payment_intent",
-        connection: stripe,
+        connection: "stripe",
         inputs: {
           amount: amountMinor,
           currency,
@@ -166,7 +164,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "update_record",
-        connection: zapierTables,
+        connection: "zapier-tables",
         inputs: {
           table_id: TABLE_ID,
           record_id: recordId,

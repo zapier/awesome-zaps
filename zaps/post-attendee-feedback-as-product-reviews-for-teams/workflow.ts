@@ -10,13 +10,13 @@ import {
   EMAIL_FIELD,
   REVIEW_ENDPOINT_URL,
   PRODUCT_ID,
-} from "@/config";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
 const InputSchema = z.record(z.string(), z.unknown());
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "post-attendee-feedback-as-product-reviews-for-teams",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(

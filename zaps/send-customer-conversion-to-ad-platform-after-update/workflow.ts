@@ -7,8 +7,7 @@ import {
   GOOGLE_ADS_ACCOUNT_ID,
   LIFECYCLE_PROPERTY,
   CUSTOMER_STAGE,
-} from "@/config";
-import googleAds from "@/connections/google-ads";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -22,7 +21,7 @@ const InputSchema = z
   })
   .loose();
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "send-customer-conversion-to-ad-platform-after-update",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -59,7 +58,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "google-ads",
         actionType: "write",
         actionKey: "send_offline_conversion_v2",
-        connection: googleAds,
+        connection: "google-ads",
         inputs: {
           name: CONVERSION_ACTION_NAME,
           time: changedAt ?? new Date().toISOString(),

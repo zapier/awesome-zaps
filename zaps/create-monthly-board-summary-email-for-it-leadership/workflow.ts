@@ -6,9 +6,7 @@ import {
   RECIPIENT_EMAIL,
   FROM_NAME,
   SUBJECT_PREFIX,
-} from "@/config";
-import trello from "@/connections/trello";
-import gmail from "@/connections/gmail";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -22,7 +20,7 @@ type TrelloCard = {
   dateLastActivity?: string | null;
 };
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-monthly-board-summary-email-for-it-leadership",
   async (ctx) => {
     const cardsResult = await ctx.step("find-open-trello-cards", async () =>
@@ -30,7 +28,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "trello",
         actionType: "search",
         actionKey: "organization_card_v2",
-        connection: trello,
+        connection: "trello",
         inputs: {
           board: TRELLO_BOARD_ID,
           open_cards_only: "true",
@@ -65,7 +63,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "gmail",
         actionType: "write",
         actionKey: "message",
-        connection: gmail,
+        connection: "gmail",
         inputs: {
           to: [RECIPIENT_EMAIL],
           subject: `${SUBJECT_PREFIX}Monthly board summary: ${cards.length} open cards`,

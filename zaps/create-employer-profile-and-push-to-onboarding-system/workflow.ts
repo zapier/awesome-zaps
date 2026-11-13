@@ -11,9 +11,7 @@ import {
   SALESFORCE_EXTERNAL_ID_FIELD,
   SALESFORCE_SYNC_STATUS_FIELD,
   INITIAL_STATUS,
-} from "@/config";
-import salesforce from "@/connections/salesforce";
-import zapierTables from "@/connections/zapier-tables";
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
@@ -50,7 +48,7 @@ const employeeCount = (value: string | number | null | undefined) => {
   return Number.isFinite(count) && count > 0 ? count : null;
 };
 
-const workflow = defineDurable<unknown, unknown>(
+const workflow = defineDurable(
   "create-employer-profile-and-push-to-onboarding-system",
   async (ctx, rawInput) => {
     const input = InputSchema.parse(
@@ -71,7 +69,7 @@ const workflow = defineDurable<unknown, unknown>(
             appKey: "salesforce",
             actionType: "search",
             actionKey: "find_record",
-            connection: salesforce,
+            connection: "salesforce",
             inputs: {
               object: "User",
               searchField: "Id",
@@ -103,7 +101,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "create_record",
-        connection: zapierTables,
+        connection: "zapier-tables",
         inputs: {
           table_id: ONBOARDING_TABLE_ID,
           Title: input.Name ?? "",
@@ -155,7 +153,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "zapier-tables",
         actionType: "write",
         actionKey: "update_record",
-        connection: zapierTables,
+        connection: "zapier-tables",
         inputs: {
           table_id: ONBOARDING_TABLE_ID,
           record_id: recordId,
@@ -170,7 +168,7 @@ const workflow = defineDurable<unknown, unknown>(
         appKey: "salesforce",
         actionType: "write",
         actionKey: "update_record",
-        connection: salesforce,
+        connection: "salesforce",
         inputs: {
           object: SALESFORCE_OBJECT,
           record_id: input.Id,
