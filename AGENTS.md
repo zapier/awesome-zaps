@@ -61,6 +61,7 @@ Everything else is in the root `package.json`. The repo root is a zap-pack proje
   - `workflow.ts` imports nothing but `@zapier/zapier-durable`, `@zapier/zapier-sdk`, `zod` and `./config.ts`, and names each account by its alias as a string (`connection: "slack"`).
   - Each alias is a file in `connections/` whose default export is `{ app, description }`. The description says what the account must be able to do.
   - `triggers/` holds what starts it, as a plain object: `app`, `event`, `connection` (the alias) and `params`.
+  - Every file names apps by slug (`slack`, `google-sheets`), never by implementation key. The agent resolves a trigger's full app ID from the slug when it builds, as each `SKILL.md` says.
 - **Parse the input with zod on the first line of the handler.** That schema is the contract for what the trigger delivers.
 - **Wrap each side effect in its own `ctx.step`**, named with a fixed kebab-case verb-noun (`post-to-triage`), so the Zapier editor shows it as an app step. When a step runs once per record in a loop, end its name with the record's primary id so each one is journaled on its own; never use an array index as the suffix.
 - **Put IDs and settings in `config.ts`**, one export each, with a comment naming what each one refers to. Lists and maps stay as constants at the top of `workflow.ts`.
