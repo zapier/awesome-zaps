@@ -4,6 +4,8 @@ import { z } from "zod";
 
 import {
   COMPLIANCE_FOLDER,
+  LLC_TEMPLATE_ID,
+  LP_TEMPLATE_ID,
   SLACK_CHANNEL,
   SHARING_PREFERENCE,
   REVIEWER_MENTION,
@@ -14,9 +16,9 @@ const sdk = createZapierSdk();
 // Entity type → Google Docs template document ID (the Paths branch). The key is the entity_type the webhook sends.
 const TEMPLATE_IDS: Record<string, string> = {
   // Template for LLC funds.
-  llc: "YOUR_LLC_TEMPLATE_DOC_ID",
+  llc: LLC_TEMPLATE_ID,
   // Template for limited partnership funds.
-  lp: "YOUR_LP_TEMPLATE_DOC_ID",
+  lp: LP_TEMPLATE_ID,
 };
 // Set to true to @-mention the reviewer group in the Slack message.
 const MENTION_REVIEWERS = false;
@@ -79,7 +81,14 @@ const workflow = defineDurable(
         }),
     );
 
-    const packet = document.data[0];
+    // The Google Docs action's output is not typed, so name the fields this workflow reads from it.
+    const packet = document.data[0] as
+      | {
+          id?: string;
+          alternateLink?: string;
+          exportLinks?: Record<string, string>;
+        }
+      | undefined;
     const docLink = packet?.alternateLink ?? "";
     const pdfLink = packet?.exportLinks?.["application/pdf"] ?? "";
     const text = [

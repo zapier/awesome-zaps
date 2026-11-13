@@ -1,6 +1,6 @@
 ---
 name: add-terminated-hires-to-churn-tracking-sheet
-description: Build a Zapier Next Gen Zap that adds a row to a central Google Sheets churn tracker whenever an employment is terminated in Personio, with the employee's name, termination and hire dates as DD/MM/YYYY, department and weekly hours. Use when an HR, People Ops or payroll team runs Personio and wants offboarding and employee turnover logged for specific departments without copying data by hand.
+description: Build a Zap on Zapier that adds a row to a central Google Sheets churn tracker whenever an employment is terminated in Personio, with the employee's name, termination and hire dates as DD/MM/YYYY, department and weekly hours. Use when an HR, People Ops or payroll team runs Personio and wants offboarding and employee turnover logged for specific departments without copying data by hand.
 license: MIT
 metadata:
   author: zapier
@@ -13,46 +13,45 @@ metadata:
 
 # Add terminated hires to churn tracking sheet
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/add-terminated-hires-to-churn-tracking-sheet. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** an employment is terminated in Personio (Employment Terminated, instant).
+1. **Trigger:** an employment is terminated in Personio (`personio`, `employment_terminated_instant`).
 2. **Filter:** the run continues only when the employee's department contains one of the names in `TRACKED_DEPARTMENTS`, ignoring case. Any other department stops the run and writes nothing.
 3. **Format:** the termination and hire dates become `DD/MM/YYYY` text, read from the date part only so a time zone never moves the day.
-4. **Google Sheets** adds one new row to the churn sheet: full name, termination date, hire date, department and weekly working hours. It never updates an existing row. Week and month columns are left to the sheet's own formulas.
-
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and the trigger's fields (`get_trigger_fields`), and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/add-terminated-hires-to-churn-tracking-sheet` (it makes a zap project if you aren't in one), then `npx zap-pack deploy add-terminated-hires-to-churn-tracking-sheet` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Personio, Employment Terminated (`employment_terminated_instant`). It takes no parameters. Its `authentication_id` is the user's Personio connection, which needs API access to employee attributes.
-2. **Connections** (each alias in the code is the app's slug):
-   - `google-sheets`: the user's Google Sheets connection, for the account that owns the churn sheet.
-   - `personio`: the user's Personio connection, used by the trigger.
-3. **Constants:**
-   - `SPREADSHEET_ID`: the long ID in the churn sheet's URL.
-   - `WORKSHEET_ID`: the tab. The first tab is `"0"`.
-   - `TRACKED_DEPARTMENTS`: the department names to record, such as `["Fulfillment", "Warehouse"]`. Defaults to `["Fulfillment"]`.
-   - `NAME_COLUMN`, `TERMINATION_DATE_COLUMN`, `HIRE_DATE_COLUMN`, `DEPARTMENT_COLUMN`, `HOURS_COLUMN`: column keys such as `COL$A`, not header names. Map the user's headers to their column letters.
-4. Test with the steps below, then publish and wait until the trigger is active.
+4. **Google Sheets** (`google-sheets`) adds one new row to the churn sheet: full name, termination date, hire date, department and weekly working hours. It only adds rows and never changes an existing one; week and month columns are left to the sheet's own formulas.
 
 ## Ask the user
 
-- Which sheet and tab is the churn tracker, and which columns hold name, termination date, hire date, department and hours?
-- Which Personio departments should be recorded? Partial names work: `Fulfillment` also matches `Fulfillment Berlin`.
-- Do the week and month columns already have formulas that read the termination date? The zap writes dates as `DD/MM/YYYY` text, so the formulas must parse that format.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                  | What goes there                                                                                                                       |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `REPLACE_SPREADSHEET_ID` | The central churn sheet: ask which sheet it is, then look up its ID (the long ID in its URL) with the user's Google Sheets connection |
 
-Before the first test, sample the trigger with the user's Personio connection and check that the record carries `department`, `hire_date`, `termination_date` and `weekly_working_hours` under those names. If any arrive under other keys, update the schema and field reads to match the sample.
+Also review the defaults with them:
 
-Then run this sample as a draft test run (`run_workflow_draft` in Zapier MCP), pointed at a copy of the churn sheet:
+- `WORKSHEET_ID`: the tab. The first tab is `"0"`.
+- `TRACKED_DEPARTMENTS` (in `workflow.ts`): the Personio departments to record, such as `["Fulfillment", "Warehouse"]`. Partial names match, so `Fulfillment` also matches `Fulfillment Berlin`.
+- `NAME_COLUMN`, `TERMINATION_DATE_COLUMN`, `HIRE_DATE_COLUMN`, `DEPARTMENT_COLUMN`, `HOURS_COLUMN`: column keys such as `COL$A`, not header names. Map the user's headers to their column letters.
+
+Also confirm, before building:
+
+- Do the week and month columns already have formulas that read the termination date? The zap writes dates as `DD/MM/YYYY` text, so those formulas must parse that format.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `google-sheets` (the account that owns the churn sheet) to the user's Google Sheets connection, and the trigger's `personio` to the user's Personio connection, which needs API access to employee attributes. No app needs a connection of its own beyond these two.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/employment-terminated.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger with the user's Personio connection before the first test run. Check that the record carries `department`, `hire_date`, `termination_date` and `weekly_working_hours` under those names; if any arrive under other keys, update the field reads in `workflow.ts` to match the sample.
+
+## Test it
+
+Run this sample as a draft test run, pointed at a copy of the churn sheet, with no real employee data:
 
 ```json
 {
@@ -67,15 +66,11 @@ Then run this sample as a draft test run (`run_workflow_draft` in Zapier MCP), p
 }
 ```
 
-Confirm one new row reads `Sam Rivera`, `30/11/2026`, `04/03/2024`, `Fulfillment Berlin`, `40`, and that the week and month formulas fill in. Then run it again with `"department": { "name": "Sales" }` and confirm nothing is written. Delete the test row afterwards.
-
-## Customize
-
-- **Alert payroll:** add a Slack or email step after the row is added when a leaver works high hours, for example 35 or more a week.
-- **Owner column:** add the recruiter or manager to the row so someone owns the follow-up.
+Confirm one new row reads `Sam Rivera`, `30/11/2026`, `04/03/2024`, `Fulfillment Berlin`, `40`, and that the week and month formulas fill in. Then run it again with `"department": { "name": "Sales" }` and confirm nothing is written. If run-status tools aren't available, check the copied sheet directly. Ask the user to delete the test row afterwards; the agent doesn't delete test data. Publish only after both runs pass, and confirm the trigger is active.
 
 ## Notes
 
 - Each termination adds a new row. If the same termination fires twice, the sheet gets two rows.
-- If a date arrives in a format other than `YYYY-MM-DD...`, it is written as received.
-- Never commit a real spreadsheet ID. The sheet holds leaver data, so share it only with the people who need it.
+- A date that arrives in a format other than `YYYY-MM-DD...` is written as received.
+- The sheet holds leaver data, so share it only with the people who need it, and never commit a real spreadsheet ID.
+- To extend it: add a Slack or email step after the row is added to alert payroll when a leaver works high hours, for example 35 or more a week, or add a column for the recruiter or manager who owns the follow-up.

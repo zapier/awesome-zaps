@@ -1,6 +1,6 @@
 ---
 name: notify-revenue-team-of-subscriptions-scheduled-to-cancel
-description: Build a Zapier Next Gen Zap that emails the revenue team and account owner when a Stripe subscription is set to cancel at the end of its billing period, so retention outreach can start before it ends. Use when a business bills subscriptions in Stripe and wants early warning of cancellations scheduled for period end.
+description: Build a Zap on Zapier that emails the revenue team and account owner when a Stripe subscription is set to cancel at the end of its billing period, so retention outreach can start before it ends. Use when a business bills subscriptions in Stripe and wants early warning of cancellations scheduled for period end.
 license: MIT
 metadata:
   author: zapier
@@ -13,43 +13,41 @@ metadata:
 
 # Notify revenue team of subscriptions scheduled to cancel
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/notify-revenue-team-of-subscriptions-scheduled-to-cancel. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a Stripe subscription changes (Stripe's Updated Subscription trigger).
-2. **Filter:** the run continues only if the subscription has `cancel_at_period_end` set to true. Any other update stops the run and sends nothing.
-3. **Gmail** sends one email to the revenue distribution list and the account owner. The subject names the customer, and the body lists the subscription ID, customer ID, customer email and the date the current period ends.
+1. **Trigger:** a Stripe subscription changes (`stripe`, `updated_customer_subscription`). The run continues only if the subscription has `cancel_at_period_end` set to true; any other update stops the run and sends nothing.
+2. **Gmail** sends one email to the revenue distribution list and the account owner. The subject names the customer, and the body lists the subscription ID, customer ID, customer email and the date the current period ends.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/notify-revenue-team-of-subscriptions-scheduled-to-cancel` (it makes a zap project if you aren't in one), then `npx zap-pack deploy notify-revenue-team-of-subscriptions-scheduled-to-cancel` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Stripe, Updated Subscription (`updated_customer_subscription`). It needs the user's Stripe connection, so its `authentication_id` is that connection's ID.
-2. **Connections** (each alias in the code is the app's slug):
-   - `stripe`: the user's Stripe connection, for the account whose subscriptions should be watched.
-   - `gmail`: the user's Gmail connection, for the account that sends the alert.
-3. **Constants:**
-   - `REVENUE_TEAM_EMAIL`: the revenue team's distribution address. Put one address here.
-   - `ACCOUNT_OWNER_EMAIL`: the account owner's address. Put one address here, or repeat the revenue address if there is no separate owner.
-
-Change nothing else in the code.
+The Zap only sends the alert. It doesn't change the subscription or the customer.
 
 ## Ask the user
 
-- Which Stripe account should the trigger watch? Use the live account unless the user wants test-mode events, which are off by default.
-- What is the revenue team's distribution address?
-- Who is the account owner, and what is their address? The alert goes there too.
-- Should the email come from the Gmail account that's connected, or from another sender?
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting               | What goes there                                                                                                 |
+| --------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `REVENUE_TEAM_EMAIL`  | The revenue team's distribution address. Put one address here.                                                  |
+| `ACCOUNT_OWNER_EMAIL` | The account owner's address. Put one address here, or repeat the revenue address if there is no separate owner. |
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing, with a subscription that is scheduled to cancel:
+Also review the defaults with them:
+
+- The trigger watches the live Stripe account. Test-mode events are off by default; ask whether the user wants them.
+- The email is sent from the connected Gmail account. Ask whether it should come from another sender.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `stripe` (the account whose subscriptions are watched; the trigger uses it) and `gmail` (the account that sends the alert) to the user's connections.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/updated-customer-subscription.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run this sample as a draft test before publishing, with a subscription that is scheduled to cancel:
 
 ```json
 {
@@ -63,15 +61,11 @@ Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before 
 }
 ```
 
-Confirm that one email arrived at the revenue address and the account owner's address, with the customer name in the subject and the period end in the body. Then send the same sample with `cancel_at_period_end` set to `"false"` and confirm the run skips and sends nothing.
-
-## Customize
-
-- **Add a CRM lookup** before the email, to attach deal stage and owner to the alert.
-- **Create a follow-up task** in your project tool for outreach, instead of, or as well as, the email.
+Check that one email arrived at the revenue address and the account owner's address, with the customer name in the subject and the period end in the body. Then send the same sample with `cancel_at_period_end` set to `"false"` and check that the run skips and sends nothing. If run-status tools aren't available, check Gmail directly. Ask the user to delete the test emails; the agent doesn't delete them. Then publish, confirm the trigger is active.
 
 ## Notes
 
 - Stripe sends a subscription update every time the subscription changes, so a subscription that stays scheduled to cancel can trigger more than one alert.
-- The alert uses the subscription's email on file. If the customer has no email in Stripe, the body says so and the alert still goes out.
-- Never commit a real email address or account ID into `workflow.ts`. Anyone who can read the file can see where alerts go.
+- If the customer has no email in Stripe, the body says so and the alert still goes out.
+- To attach deal stage and owner to the alert, add a CRM lookup before the email. To track outreach, create a follow-up task in the project tool instead of, or as well as, the email.
+- Keep real addresses and account IDs out of `workflow.ts`; anyone who can read the file sees where alerts go. Change nothing else in the code.

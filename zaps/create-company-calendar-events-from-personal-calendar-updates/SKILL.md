@@ -1,6 +1,6 @@
 ---
 name: create-company-calendar-events-from-personal-calendar-updates
-description: Build a Zapier Next Gen Zap that copies new or updated events from a personal Google Calendar onto a company calendar, creating the copy when it is missing and updating it when it exists. Use when sales ops, account executives or a team need a shared calendar to show the current meeting roster without anyone re-entering events by hand.
+description: Build a Zap on Zapier that copies new or updated events from a personal Google Calendar onto a company calendar, creating the copy when it is missing and updating it when it exists. Use when sales ops, account executives or a team need a shared calendar to show the current meeting roster without anyone re-entering events by hand.
 license: MIT
 metadata:
   author: zapier
@@ -13,41 +13,44 @@ metadata:
 
 # Create company calendar events from personal calendar updates
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/create-company-calendar-events-from-personal-calendar-updates. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a Google Calendar event on your personal calendar is created or updated (recurring instances expanded). Cancelled events do not fire it.
+1. **Trigger:** a Google Calendar event on the personal calendar is created or updated (`google-calendar`, `event_updated`, recurring instances expanded). Cancelled events do not fire it.
 2. **Google Calendar** searches the company calendar for the event's ID. The company copy is recognised by a line in its description, `Mirrored from personal calendar event <source event ID>`, because Google gives each calendar its own event IDs.
 3. If a copy exists, **Google Calendar** updates it with the title, description, location, start and end. If none exists, **Google Calendar** creates one. Events with no start or end time are skipped.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-company-calendar-events-from-personal-calendar-updates` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-company-calendar-events-from-personal-calendar-updates` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Google Calendar, New or Updated Event (`google-calendar` / `event_updated`), with `calendarid` set to your personal calendar (your primary calendar's address) and `expand_recurring: true`. This value lives in the trigger, not in the source, so set it when you configure the trigger.
-2. **Connections** (each alias in the code is the app's slug):
-   - `google-calendar`: the Google Calendar connection for the account that owns the personal calendar. It must also have edit access to the company calendar.
-3. **Constants:**
-   - `COMPANY_CALENDAR_ID`: the Google Calendar ID of the company calendar that receives the copies. It is the calendar's ID from its settings, usually an address ending in `@group.calendar.google.com` or the owner's email.
-   - `MIRROR_MARKER`: the text that marks a copy. Leave the default unless it clashes with something in the calendar.
-4. Test with the steps below, then publish, wait until the trigger is active, and tell the user what it mirrors.
+The Zap never deletes a company event. A cancelled source event leaves its copy in place.
 
 ## Ask the user
 
-- Which personal calendar should the trigger watch? (The primary calendar is the default.)
-- Which company calendar should receive the copies, and does the connected account have edit access to it?
-- Should events that have no start or end time, such as all-day events, be mirrored? The workflow skips them today.
-- Is it acceptable that a copy is matched by the marker line rather than by event ID? (Google event IDs differ between calendars.)
+Each `REPLACE_…` value is set per person. Resolve calendar names to IDs with the user's own Google Calendar connection; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                        | Where                                     | What goes there                                                                                                        |
+| ------------------------------ | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `REPLACE_PERSONAL_CALENDAR_ID` | `triggers/event-updated.ts`, `calendarid` | The personal calendar the trigger watches. The primary calendar is the default, and its ID is the user's email address |
+| `REPLACE_COMPANY_CALENDAR_ID`  | `config.ts`                               | The company calendar that receives the copies. The connected account needs edit access to it                           |
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing. Use a test event on your own personal calendar, and point `COMPANY_CALENDAR_ID` at a calendar you can safely write to:
+Also review the defaults with them: `MIRROR_MARKER` (leave the default unless it clashes with something in the calendar) and `expand_recurring` in the trigger (`true`, so each recurring instance is mirrored).
+
+Confirm two things before turning it on:
+
+- Should events with no start or end time, such as all-day events, be mirrored? The workflow skips them today.
+- Is it acceptable that a copy is matched by the marker line rather than by event ID? Google event IDs differ between calendars.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `google-calendar` to the user's Google Calendar connection for the account that owns the personal calendar. The trigger and the actions use the same one, and it needs edit access to the company calendar. No other apps are used.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/event-updated.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them, including `calendarid` and `expand_recurring`. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connection and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run this sample as a draft test run before publishing. Use a test event on the user's own personal calendar, and point `COMPANY_CALENDAR_ID` at a calendar that is safe to write to:
 
 ```json
 {
@@ -61,17 +64,12 @@ Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before 
 }
 ```
 
-Run it twice. The first run should create one event on the company calendar with the same title, location and time, and the marker line at the end of its description. The second run, with a changed title, location or end time, should update that same event: the company calendar should still hold one copy, not two. Then delete the test events from both calendars.
-
-## Customize
-
-- **Mirror only events with external attendees**, or only events from a set of calendars: add a filter before the search step, since the trigger has no attendee condition.
-- **Remove the copy when the source is cancelled:** this needs a second workflow using the Event Cancelled trigger, because one workflow has one trigger.
-- **Mirror attendees and conferencing links:** add them to the create and update inputs.
+Run it twice. The first run should create one event on the company calendar with the same title, location and time, and the marker line at the end of its description. The second run, with a changed title, location or end time, should update that same event: the company calendar should still hold one copy, not two. If run-status tools aren't available, check the result in Google Calendar directly. The user deletes the test events from both calendars, not the agent. Then publish, confirm the trigger is active, and tell the user what it mirrors.
 
 ## Notes
 
-- Google event IDs differ between calendars, so the copy is found by searching for the source ID in its description. Search covers events that have not yet ended. An update to an event that has already ended therefore creates a second copy.
-- Cancelled events are not removed from the company calendar. The trigger skips cancellations, so this workflow never sees them.
-- The company copy is not notified to anyone, because no attendees are copied. Add attendees under Customize if the copy should send invitations.
-- Never commit a real calendar ID. Anyone who can write to the company calendar can change the events it mirrors.
+- The copy is found by searching for the source ID in its description. Search covers only events that have not yet ended, so an update to an event that has already ended creates a second copy.
+- The trigger skips cancellations, so the company copy of a cancelled event is never removed.
+- No attendees are copied, so the company copy sends no invitations. Add attendees to the create and update inputs if it should.
+- To mirror only some events, such as those with external attendees, add a filter before the search step. To remove copies when the source is cancelled, build a second workflow on the Event Cancelled trigger, since one workflow has one trigger.
+- Anyone who can write to the company calendar can change the events it mirrors.

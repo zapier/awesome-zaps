@@ -78,6 +78,9 @@ function cardNameFromSubject(subject: string): string {
   return subject.replace(/^((re|fwd?):\s*)+/i, "").trim();
 }
 
+// The Trello card fields the duplicate check reads from the search results.
+type TrelloCard = { id: string; name?: string | null; desc?: string | null };
+
 const workflow = defineDurable(
   "create-design-request-cards-from-inbound-email-requests",
   async (ctx, rawInput) => {
@@ -133,7 +136,7 @@ const workflow = defineDurable(
       }),
     );
 
-    const duplicate = existing.data.find(
+    const duplicate = (existing.data as TrelloCard[]).find(
       (card) => card.name === cardName && card.desc?.includes(receivedAt),
     );
     if (duplicate) {

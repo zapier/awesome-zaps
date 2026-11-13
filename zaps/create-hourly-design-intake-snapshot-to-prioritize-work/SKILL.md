@@ -1,6 +1,6 @@
 ---
 name: create-hourly-design-intake-snapshot-to-prioritize-work
-description: Build a Zapier Next Gen Zap that emails a design lead an hourly digest of active design requests from a Google Sheets intake tracker, listing the top 15 by priority and flagging unassigned items. Use when a design team logs requests in a sheet or form and wants an hourly view of what is open, what is high priority and what has no owner.
+description: Build a Zap on Zapier that emails a design lead an hourly digest of active design requests from a Google Sheets intake tracker, listing the top 15 by priority and flagging unassigned items. Use when a design team logs requests in a sheet or form and wants an hourly view of what is open, what is high priority and what has no owner.
 license: MIT
 metadata:
   author: zapier
@@ -13,50 +13,42 @@ metadata:
 
 # Create hourly design intake snapshot to prioritize work
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/create-hourly-design-intake-snapshot-to-prioritize-work. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** Schedule by Zapier, every hour, at the top of the hour, including weekends.
-2. **Google Sheets** reads up to 200 rows from the intake tab (columns A to F: title, client reference, status, priority, owner, submitted time).
-3. Plain code, no app step: rows with a status of `Done` or `Archived`, and rows with no title, are dropped. Rows with the same title and client reference are counted once. The rest are sorted High, then Medium, then Low.
-4. If no active requests remain, the run stops and sends nothing.
-5. **Gmail** sends one email to the address in the constant below. It has the count of active requests, how many are high priority and how many are unassigned, the top 15 by priority with unassigned ones marked `[FLAG: unassigned]`, an action list naming each unassigned request, and a link to the intake sheet.
+1. **Trigger:** `schedule`, every hour at the top of the hour, including weekends.
+2. **Google Sheets** (`google-sheets`) reads up to 200 rows from the intake tab: columns A to F are title, client reference, status, priority, owner and submitted time.
+3. The workflow drops rows with a status of `Done` or `Archived` and rows with no title, counts rows with the same title and client reference once, and sorts the rest High, then Medium, then Low. If no active requests remain, it stops and sends nothing.
+4. **Gmail** (`gmail`) sends one email to `DIGEST_RECIPIENT`. It has the count of active requests, how many are high priority and how many are unassigned, the top 15 by priority with unassigned ones marked `[FLAG: unassigned]`, an action list, and a link to the intake sheet.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-hourly-design-intake-snapshot-to-prioritize-work` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-hourly-design-intake-snapshot-to-prioritize-work` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Schedule by Zapier, `schedule` / `everyHour`, `authentication_id: null`. Params: `weekends: "yes"`. The time offset is left at its default, the top of the hour.
-2. **Connections** (each alias in the code is the app's slug):
-   - `google-sheets`: the Google account that owns the intake spreadsheet.
-   - `gmail`: the Gmail account that sends the digest. It is also the only allowed recipient in the test, see Notes.
-3. **Settings** (in `config.ts`; an `ask(…)` is asked when each person deploys):
-   - `INTAKE_SPREADSHEET_ID`: the long ID in the intake sheet's URL.
-   - `WORKSHEET_ID`: the tab. The first tab is `"0"`.
-   - `DIGEST_RECIPIENT`: the email address that receives the digest.
-   - `MAX_ITEMS`: how many items the digest lists. Defaults to 15.
-   - `MAX_ROWS`: how many sheet rows to read. Defaults to 200; the action allows up to 1,500.
-   - `PRIORITY_ORDER`: the priority values in the sheet, highest first. Defaults to High, Medium, Low.
-   - `FINISHED_STATUSES`: status values to leave out. Defaults to Done and Archived.
-4. The sheet's first row must be headers, and the columns must be in the order above. Change the `range` input in the code if the columns differ.
-5. Test with the steps below, then publish, wait until the trigger is active, and tell the user it runs every hour.
+The digest only reads the sheet and only goes to `DIGEST_RECIPIENT`. Nothing is written back to the sheet.
 
 ## Ask the user
 
-- Which spreadsheet and tab hold the design requests, and which columns are the title, client reference, status, priority, owner and submitted time? If the team uses a form or a project board instead, this workflow needs a different first step.
-- Which status values mean a request is finished? The defaults are `Done` and `Archived`.
-- Which email address should receive the digest?
-- Should the digest run only on weekdays or during business hours? It runs every hour, including weekends, by default.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                         | What goes there                                                                                             |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `REPLACE_INTAKE_SPREADSHEET_ID` | The intake spreadsheet that holds the design requests. Look it up with the user's Google Sheets connection. |
+| `REPLACE_DIGEST_RECIPIENT`      | The email address that gets the digest. It must be the connected Gmail account itself.                      |
 
-Run this as a draft test run (`run_workflow_draft`) before publishing. The input is an empty object, because the schedule trigger sends nothing the code reads. The test sheet held four rows:
+Also review the defaults with them: `WORKSHEET_ID` in `config.ts` (`"0"` is the first tab), `MAX_ITEMS` (15), `MAX_ROWS` (200), `PRIORITY_ORDER` (High, Medium, Low) and `FINISHED_STATUSES` (Done, Archived) in `workflow.ts`, and the weekend setting in `triggers/every-hour.ts` (`weekends: "yes"`, so the digest runs every hour, weekends included).
+
+Before turning it on, confirm the intake tab's first row is headers and its columns are in the order above. If the team logs requests in a form or a project board instead, this zap needs a different first step. If the columns differ, change the `range` in `workflow.ts`.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `google-sheets` to the Google account that owns the intake spreadsheet, and `gmail` to the Gmail account that sends the digest. Schedule by Zapier needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/every-hour.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test before publishing, with a test tab that holds these four rows. The input is an empty object: the schedule trigger sends nothing the code reads.
 
 | Title                                   | Client reference | Status | Priority | Owner  | Submitted        |
 | --------------------------------------- | ---------------- | ------ | -------- | ------ | ---------------- |
@@ -65,24 +57,19 @@ Run this as a draft test run (`run_workflow_draft`) before publishing. The input
 | [install-test] Onboarding illustrations | CLIENT-003       | Done   | Low      | Sam    | 2026-10-20 09:00 |
 | [install-test] Email template           | CLIENT-004       | Active | High     | (none) | 2026-10-27 11:00 |
 
-Confirm that:
+Check that:
 
 - The subject reads `Design intake: 3 active, 2 unassigned`. The `Done` row is left out.
-- The list is in this order: Homepage refresh, Email template, Pricing page redesign. The two High items come first, then the Medium one.
+- The list is in this order: Homepage refresh, Email template, Pricing page redesign.
 - Homepage refresh and Email template are marked `[FLAG: unassigned]` and appear in the action list. Pricing page redesign shows `owner: Dana`.
 - The email arrives in the recipient's inbox with the intake sheet link at the bottom.
 
-Then publish, check that the trigger reads back as `active`, and point the user at the workflow's editor link.
-
-## Customize
-
-- **Route the digest to a Slack channel** instead of email for faster team visibility.
-- **Run only on weekdays** or during the team's business hours.
+If run-status tools aren't available, check the email in Gmail directly. Then publish and confirm the trigger is active. Ask the user to delete the test rows and the test email; the agent doesn't delete them.
 
 ## Notes
 
-- The spec described the intake source as "project board, form, or spreadsheet". This zap reads a spreadsheet only, because that is the one source with a direct read action here.
-- "Active" means any status other than the finished ones. The workflow has no time window, so a request stays in the digest until someone changes its status.
-- Only the sheet link is included, not a link per request. The sheet has no per-row URL.
-- Email is sent to one address. Unlike the spec's "decision makers", there is no list. Change `DIGEST_RECIPIENT` for a different recipient.
+- "Active" means any status other than the finished ones. There is no time window, so a request stays in the digest until its status changes.
+- The digest links to the whole intake sheet, not to each request, because the sheet has no per-row URL.
+- To send the digest to a Slack channel for faster team visibility, replace the Gmail step. To run only on weekdays or during business hours, change the schedule.
+- The digest goes to one address. Change `DIGEST_RECIPIENT` for a different recipient.
 - Never commit a real spreadsheet ID or email address. Anyone who can read the sheet can see the request titles in the digest.

@@ -46,28 +46,30 @@ const workflow = defineDurable(
     }
 
     const results: EngagementResult[] = [];
-    for (const [index, companyId] of companyIds.entries()) {
+    for (const companyId of companyIds) {
       try {
-        const lookup = await ctx.step(`find-company-row-${index}`, async () =>
-          sdk.runAction({
-            appKey: "zapier-tables",
-            actionType: "search",
-            actionKey: "find_record",
-            connection: "zapier-tables",
-            inputs: {
-              table_id: TABLE_ID,
-              filter_count: "1",
-              field_data_key: COMPANY_ID_FIELD,
-              operator: "exact",
-              lookup_value: companyId,
-            },
-          }),
+        const lookup = await ctx.step(
+          `find-company-row-${companyId}`,
+          async () =>
+            sdk.runAction({
+              appKey: "zapier-tables",
+              actionType: "search",
+              actionKey: "find_record",
+              connection: "zapier-tables",
+              inputs: {
+                table_id: TABLE_ID,
+                filter_count: "1",
+                field_data_key: COMPANY_ID_FIELD,
+                operator: "exact",
+                lookup_value: companyId,
+              },
+            }),
         );
 
         const row = lookup.data?.[0] as { record_id?: string } | undefined;
         if (row?.record_id) {
           const recordId = row.record_id;
-          await ctx.step(`increment-company-row-${index}`, async () =>
+          await ctx.step(`increment-company-row-${companyId}`, async () =>
             sdk.runAction({
               appKey: "zapier-tables",
               actionType: "write",
@@ -84,7 +86,7 @@ const workflow = defineDurable(
           results.push({ companyId, action: "incremented", recordId });
         } else {
           const created = await ctx.step(
-            `create-company-row-${index}`,
+            `create-company-row-${companyId}`,
             async () =>
               sdk.runAction({
                 appKey: "zapier-tables",

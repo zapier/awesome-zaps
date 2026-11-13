@@ -70,7 +70,7 @@ const workflow = defineDurable(
       sent: true,
       subscriptionId,
       subject,
-      emailId: email.data?.[0]?.id ?? null,
+      emailId: (email.data?.[0] as { id?: string } | undefined)?.id ?? null,
     };
   },
 );

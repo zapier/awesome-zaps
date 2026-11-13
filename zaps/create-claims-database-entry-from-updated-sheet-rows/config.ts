@@ -1,8 +1,8 @@
 // This zap's settings. Each "REPLACE_…" value is set per person before deploying; its comment says how to get it.
 // The other values are defaults you can change.
 
-export const SPREADSHEET_ID = "REPLACE_SPREADSHEET_ID"; // Google Sheets spreadsheet ID (the long ID in the sheet's URL). Also used to build the link back to the row.
-export const CLAIMS_TABLE_ID = "REPLACE_CLAIMS_TABLE_ID"; // Zapier Table ID for the claims database (the table's ID from its URL).
+export const SPREADSHEET_ID = "REPLACE_SPREADSHEET_ID"; // Ask the user which spreadsheet holds the claims, then look up its ID (the long ID in its URL) with their Google Sheets connection. Also used to build the link back to the row.
+export const CLAIMS_TABLE_ID = "REPLACE_CLAIMS_TABLE_ID"; // Ask the user which Zapier Table holds the claims, then take its ID from the table's URL.
 
 // Worksheet (tab) ID; the first tab is "0".
 export const WORKSHEET_ID = "0";

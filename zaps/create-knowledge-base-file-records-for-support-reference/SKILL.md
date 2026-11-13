@@ -1,6 +1,6 @@
 ---
 name: create-knowledge-base-file-records-for-support-reference
-description: Build a Zapier Next Gen Zap that runs hourly, finds the files in a HubSpot knowledge-base folder and adds one record per file (public URL and name) to a Zapier Table, skipping files already listed. Use when a support team keeps its reference articles in HubSpot files and wants a central index table of them without copying by hand.
+description: Build a Zap on Zapier that runs hourly, finds the files in a HubSpot knowledge-base folder and adds one record per file (public URL and name) to a Zapier Table, skipping files already listed. Use when a support team keeps its reference articles in HubSpot files and wants a central index table of them without copying by hand.
 license: MIT
 metadata:
   author: zapier
@@ -13,58 +13,56 @@ metadata:
 
 # Create knowledge base file records for support reference
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/create-knowledge-base-file-records-for-support-reference. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** every hour, Schedule by Zapier starts the workflow. The spec's new-ticket trigger is not used (see Build it).
-2. **HubSpot:** lists the files in the knowledge-base parent folder, up to 100, and keeps those that have a public URL.
-3. **Zapier Tables:** for each file, looks up the table for a record whose URL field exactly matches the file's URL. If none exists, it creates a record with the URL, the file name as title, and a fixed note.
-4. **Result:** the run returns counts of files found, records created, duplicates skipped, and any per-file failures. A failure on one file does not stop the others.
+1. **Trigger:** every hour, on weekdays and weekends, Schedule by Zapier starts the Zap (`schedule`, `everyHour`).
+2. **HubSpot** (`hubspot`) lists the files in the knowledge-base folder, up to 100, and keeps those that have a public URL.
+3. **Zapier Tables** (`zapier-tables`) checks each file in turn: if no record already has the file's URL, it creates one with the URL, the file name as the title, and a fixed note.
+4. **Result:** the run reports how many files it found, how many records it created, how many were already listed, and any per-file failures. A failure on one file does not stop the others.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-knowledge-base-file-records-for-support-reference` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-knowledge-base-file-records-for-support-reference` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Schedule by Zapier, Every Hour (`schedule` / `everyHour`, time offset `0`, weekends on). No connection; `authentication_id` is `null`. The spec's HubSpot "new ticket" trigger was replaced with this, because the spec's Defaults say to run hourly and the HubSpot connection was unavailable.
-2. **Connections** (each alias in the code is the app's slug):
-   - `hubspot`: the HubSpot connection for the account that owns the knowledge-base folder. Used by `sdk.fetch` to the HubSpot Files API.
-   - `zapier-tables`: Zapier Tables, for the table that holds the file records.
-3. **Constants:**
-   - `KB_PARENT_FOLDER_ID`: the HubSpot File Manager folder ID of the knowledge-base folder.
-   - `TABLE_ID`: the Zapier Table that holds the records.
-   - `URL_FIELD`, `TITLE_FIELD`, `NOTES_FIELD`: the table's field keys (shaped like `new__data__f1`), taken from the table's create-record schema. They are not column names.
-   - `NOTES_TEXT`: the note written to each new record.
+The Zap only adds records. It never changes or deletes a HubSpot file or a table record.
 
 ## Ask the user
 
-- Which HubSpot folder holds the knowledge-base files, and what is its folder ID?
-- Which Zapier Table should hold the records? Which of its fields holds the file URL (the dedupe key), the title, and the notes?
-- Should the scan run only hourly, or also when a ticket is created? The spec's second trigger was not built.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting               | What goes there                                                       |
+| --------------------- | --------------------------------------------------------------------- |
+| `KB_PARENT_FOLDER_ID` | The HubSpot File Manager folder that holds the knowledge-base files   |
+| `TABLE_ID`            | The Zapier Table that holds one record per knowledge-base file        |
+| `URL_FIELD`           | The table field for each file's public URL. It is also the dedupe key |
+| `TITLE_FIELD`         | The table field for the file name                                     |
+| `NOTES_FIELD`         | The table field for notes                                             |
 
-When the connections exist, run this sample as a draft test run (`run_workflow_draft`) before publishing. The workflow takes no input, so the test is a run of the draft itself:
+The field values are the table's field keys, shaped like `new__data__f1`, not column names. Look them up from the table's create-record schema.
+
+Also review the default `NOTES_TEXT` in `config.ts` (the note written to each new record) with them. The schedule in `triggers/every-hour.ts` runs hourly, weekends included.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `hubspot` (the account that owns the knowledge-base folder) and `zapier-tables` (the account that owns the table) to the user's connections. Schedule by Zapier needs none.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/every-hour.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test before publishing, against a table the user can delete test records from. The workflow takes no input, so the sample is an empty object:
 
 ```json
 {}
 ```
 
-Check that: the run lists the files in the folder; each new file gets one record with its URL, name and note; running again creates no duplicates; and a file with no URL is left out rather than failing the run. Then delete the test records you created, and only those.
-
-## Customize
-
-- **Import only HTML files or one subfolder:** add a filter on the file type or folder before the lookup step.
-- **Audit columns:** write the file's last-modified date, or a source ticket reference, into the records.
+Check that the run lists the files in the folder; each new file gets one record with its URL, name and note; running it again creates no duplicates; and a file with no URL is left out rather than failing the run. If run-status tools aren't available, check the result in Zapier Tables directly. Ask the user to delete the test records; the agent does not delete them.
 
 ## Notes
 
-- The HubSpot file listing uses the raw HubSpot Files API through `sdk.fetch`, because no Zapier HubSpot action lists files. Its parameters were not checked against a live account.
+- The HubSpot listing calls the HubSpot Files API directly through `sdk.fetch`, because no Zapier HubSpot action lists files. Its parameters have not been checked against a live account, so confirm the first test run lists the expected files.
 - The listing reads one page of up to 100 files. A folder with more files needs paging, which is not built.
-- A scheduled run has no ticket, so the spec's "ticket reference in notes" is not built. Each record gets the fixed note instead.
+- A scheduled run has no ticket, so each record gets the fixed note only.
+- To narrow the import, add a filter on file type or subfolder before the lookup step. To add audit columns, write the file's last-modified date into a field.
 - Never commit a real folder ID, table ID or field key. The records hold public links to support material.

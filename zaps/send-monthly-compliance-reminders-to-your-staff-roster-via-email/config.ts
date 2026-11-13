@@ -1,8 +1,8 @@
 // This zap's settings. Each "REPLACE_…" value is set per person before deploying; its comment says how to get it.
 // The other values are defaults you can change.
 
-export const SPREADSHEET_ID = "REPLACE_SPREADSHEET_ID"; // Google Sheets spreadsheet ID of the staff roster (the long ID in the sheet's URL).
-export const TO_ADDRESS = "REPLACE_TO_ADDRESS"; // Address in the To field. Roster addresses go in BCC so recipients can't see each other.
+export const SPREADSHEET_ID = "REPLACE_SPREADSHEET_ID"; // Ask the user which sheet is the staff roster, then look up its ID with their Google Sheets connection. It is the long ID in the sheet's URL.
+export const TO_ADDRESS = "REPLACE_TO_ADDRESS"; // Ask the user which address goes in the To field. Use one they control, since the roster goes in BCC so recipients can't see each other.
 
 // Worksheet (tab) ID; the first tab is "0".
 export const WORKSHEET_ID = "0";

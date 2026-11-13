@@ -1,7 +1,7 @@
 // This zap's settings. Each "REPLACE_…" value is set per person before deploying; its comment says how to get it.
 // The other values are defaults you can change.
 
-export const TABLE_ID = "REPLACE_TABLE_ID"; // Zapier Tables table that holds your stocks (its table ID).
+export const TABLE_ID = "REPLACE_TABLE_ID"; // Ask the user which Zapier Tables table holds their stocks, then look up its ID with their Zapier Tables connection.
 
 // Field key the ticker is matched on when looking for an existing row ("f1" = first field).
 export const TICKER_LOOKUP_FIELD = "f1";

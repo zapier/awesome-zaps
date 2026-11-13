@@ -12,8 +12,8 @@ import {
 
 const sdk = createZapierSdk();
 
-// Stripe price/plan nicknames that count as membership invoices. Invoices for any other plan are skipped.
-const QUALIFYING_PLAN_NAMES = ["YOUR_MEMBERSHIP_PLAN_NAME"];
+// Ask the user which Stripe price or plan nicknames are membership plans; invoices for any other plan are skipped.
+const QUALIFYING_PLAN_NAMES = ["REPLACE_MEMBERSHIP_PLAN_NAME"];
 // Seconds to wait before CRM lookups, so upstream systems finish processing the invoice.
 const UPSTREAM_WAIT_SECONDS = 300;
 

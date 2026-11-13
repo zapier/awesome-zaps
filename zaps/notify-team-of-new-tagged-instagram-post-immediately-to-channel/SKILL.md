@@ -1,6 +1,6 @@
 ---
 name: notify-team-of-new-tagged-instagram-post-immediately-to-channel
-description: Build a Zapier Next Gen Zap that posts an alert to a team Slack channel as soon as the business's Instagram account is tagged in a post, with the author, caption, link and a media preview. Use when a marketing or community team wants to review, re-share or confirm usage rights for tagged content quickly, without watching Instagram by hand.
+description: Build a Zap on Zapier that posts an alert to a team Slack channel as soon as the business's Instagram account is tagged in a post, with the author, caption, link and a media preview. Use when a marketing or community team wants to review, re-share or confirm usage rights for tagged content quickly, without watching Instagram by hand.
 license: MIT
 metadata:
   author: zapier
@@ -13,44 +13,40 @@ metadata:
 
 # Notify team of new tagged Instagram post immediately to channel
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/notify-team-of-new-tagged-instagram-post-immediately-to-channel. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** Instagram for Business fires on each new post that tags your account (New Tagged Media).
-2. **Slack** posts one message to your team channel. It names the author (`@username`), includes the caption (cut to a set length), the link to the post, and a media preview. The message posts under a bot name and icon.
+1. **Trigger:** someone tags the business's Instagram account in a new post (`instagram-for-business`, `new_tag`). The trigger brings the author's username, the caption, the post's link and its media.
+2. **Slack** posts one message to the team channel. It names the author (`@username`), includes the caption (cut to a set length), the link to the post, and a media preview. The message posts under a bot name and icon.
 
-Nothing is filtered: every tagged post produces one message, and the message mentions nobody unless you turn mentions on.
-
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/notify-team-of-new-tagged-instagram-post-immediately-to-channel` (it makes a zap project if you aren't in one), then `npx zap-pack deploy notify-team-of-new-tagged-instagram-post-immediately-to-channel` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Instagram for Business, New Tagged Media (`instagram-for-business`, `new_tag`). Set its Instagram account to the business account whose tags you want to watch. Its `authentication_id` is the user's Instagram connection.
-2. **Connections** (each alias in the code is the app's slug):
-   - `slack`: the user's Slack connection for the workspace where the channel lives.
-3. **Constants:**
-   - `SLACK_CHANNEL`: the channel ID to post into (not its name).
-   - `BOT_NAME`, `BOT_ICON`: how the bot appears in the channel.
-   - `MENTION_ENABLED`, `MENTION_TEXT`: leave `false` unless the team wants a group mention on every alert. `MENTION_TEXT` takes the Slack group markup for that group.
-   - `MAX_CAPTION_LENGTH`: how much of the caption to keep.
-4. Test with the steps below, then publish, wait until the trigger is active, and confirm the Instagram account is connected.
+Nothing is filtered: every tagged post produces one message, and the message mentions nobody unless mentions are turned on.
 
 ## Ask the user
 
-- Which Instagram business account should be watched? The trigger needs its account ID, and the account must be an admin's Instagram Business account linked to a Facebook Page.
-- Which Slack channel should receive the alerts? Use its channel ID.
-- Should the bot have a different name or icon?
-- Should every alert mention a coordinator role or channel group? If yes, which group?
+Each `REPLACE_…` value is set per person. Resolve channel and group names to IDs with the user's own Slack connection; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                 | What goes there                                                                                |
+| ----------------------- | ---------------------------------------------------------------------------------------------- |
+| `REPLACE_SLACK_CHANNEL` | The channel that gets the alerts, by its ID (`C…`). The Slack bot must be added to it.         |
+| `REPLACE_GROUP_ID`      | The Slack user group to mention, by its ID (`S…`). Needed only if `MENTION_ENABLED` is `true`. |
 
-Run this sample as a test run before publishing, with a sample that matches what the trigger returns:
+Which Instagram business account to watch is set on the trigger through the `instagram-for-business` connection. It must be an admin's Instagram Business account linked to a Facebook Page.
+
+Also review the defaults with them: `BOT_NAME` and `BOT_ICON` (how the bot appears), `MENTION_ENABLED` (`false` in `workflow.ts`, so no one is mentioned unless they ask), and `MAX_CAPTION_LENGTH` (280 characters in `workflow.ts`).
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `instagram-for-business` to the user's Instagram Business account whose tags are watched (the trigger uses it), and `slack` to the user's Slack connection for the workspace with the alert channel. No other apps need a connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/new-tag.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test with a sample that matches what the trigger returns, posted to a channel the user controls:
 
 ```json
 {
@@ -63,16 +59,12 @@ Run this sample as a test run before publishing, with a sample that matches what
 }
 ```
 
-Confirm that one message appears in the channel: the bot name and icon are set, the text names `@example_creator`, includes the caption and the permalink, and shows the picture as an attachment. Then delete the test message if it was not meant to stay.
-
-## Customize
-
-- **Filter for qualifying posts:** add a check before the Slack step so only posts with a minimum engagement or specific hashtags continue.
-- **Mention a coordinator role or channel group** when higher-priority tags arrive: set `MENTION_ENABLED` to `true` and the group markup in `MENTION_TEXT`, or add a rule that picks the group by hashtag.
+Check that one message appears in the channel: the bot name and icon are set, the text names `@example_creator`, includes the caption and the permalink, and shows the picture as an attachment. If run-status tools aren't available, check the channel in Slack directly. Then publish, confirm the trigger is active, and ask the user to delete the test message. The user deletes test data, not the agent.
 
 ## Notes
 
-- Instagram does not report whether a tagged post is public, so every tag alerts. Filter for that if the team only wants public posts.
+- Every tag alerts, because Instagram does not report whether a tagged post is public. To alert only on public posts, or only on posts with a minimum engagement or specific hashtags, add a check before the Slack step.
+- To mention a group on every alert, set `MENTION_ENABLED` to `true` and fill in `REPLACE_GROUP_ID`. To pick the group by hashtag instead, add a rule before the Slack step.
 - The trigger returns the username but not a display name, so the alert shows `@username`.
 - A video's preview is its thumbnail; a photo's preview is the image itself.
 - The Slack bot can post only in channels it has been added to. The message includes a link to the automation for editing unless the Slack action's "Include a link to this automation" option is turned off.

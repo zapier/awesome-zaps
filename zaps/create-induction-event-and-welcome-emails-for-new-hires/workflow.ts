@@ -165,9 +165,13 @@ const workflow = defineDurable(
     return {
       recordId,
       invitedAt,
-      welcomeEmailId: welcome.data?.[0]?.id ?? null,
-      internalEmailId: internal.data?.[0]?.id ?? null,
-      eventId: event.data?.[0]?.id ?? null,
+      welcomeEmailId:
+        (welcome.data?.[0] as { id?: string | number } | undefined)?.id ?? null,
+      internalEmailId:
+        (internal.data?.[0] as { id?: string | number } | undefined)?.id ??
+        null,
+      eventId:
+        (event.data?.[0] as { id?: string | number } | undefined)?.id ?? null,
     };
   },
 );

@@ -65,7 +65,8 @@ const workflow = defineDurable(
       }),
     );
 
-    const answer = String(completion.data[0]?.disposition ?? "").trim();
+    const result = (completion.data[0] ?? {}) as Record<string, unknown>;
+    const answer = String(result.disposition ?? "").trim();
     const match = ALLOWED_DISPOSITIONS.find(
       (label) => label.toLowerCase() === answer.toLowerCase(),
     );

@@ -1,7 +1,8 @@
 // This zap's settings. Each "REPLACE_…" value is set per person before deploying; its comment says how to get it.
 // The other values are defaults you can change.
 
-export const SPREADSHEET_ID = "REPLACE_SPREADSHEET_ID"; // Google Sheets spreadsheet ID of the vendor alert tracker (the long ID in the sheet's URL).
+export const SPREADSHEET_ID = "REPLACE_SPREADSHEET_ID"; // Ask the user which sheet is the vendor alert tracker, then look up its ID (the long ID in the sheet's URL) with their Google Sheets connection.
+export const DEFAULT_RECIPIENTS = ["REPLACE_CRISIS_TEAM_EMAIL"]; // Ask the user which crisis team inbox gets alerts for rows with no recipients of their own; one address per list entry.
 
 // Worksheet (tab) ID the trigger watches; the first tab is "0".
 export const WORKSHEET_ID = "0";

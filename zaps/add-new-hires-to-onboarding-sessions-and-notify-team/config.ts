@@ -1,8 +1,8 @@
 // This zap's settings. Each "REPLACE_…" value is set per person before deploying; its comment says how to get it.
 // The other values are defaults you can change.
 
-export const ONBOARDING_CHANNEL_ID = "REPLACE_ONBOARDING_CHANNEL_ID"; // Slack channel ID of the onboarding channel where account owners are notified.
-export const ONBOARDING_CALENDAR_ID = "REPLACE_ONBOARDING_CALENDAR_ID"; // Google Calendar ID of the calendar that holds the recurring onboarding sessions.
+export const ONBOARDING_CHANNEL_ID = "REPLACE_ONBOARDING_CHANNEL_ID"; // Ask the user which Slack channel account owners are notified in, then look up its ID (C…) with their Slack connection.
+export const ONBOARDING_CALENDAR_ID = "REPLACE_ONBOARDING_CALENDAR_ID"; // Ask the user which calendar holds the recurring onboarding sessions, then look up its ID with their Google Calendar connection.
 
 // Reminder appended to the Slack message for the people who provision accounts and tools.
 export const PROVISIONING_REMINDER =

@@ -117,7 +117,7 @@ const workflow = defineDurable(
         },
       }),
     );
-    const recordId = record.data?.[0]?.id;
+    const recordId = (record.data?.[0] as { id?: string } | undefined)?.id;
 
     const posted = await ctx.step("post-to-onboarding-api", async () =>
       sdk.runAction({
@@ -145,7 +145,7 @@ const workflow = defineDurable(
         },
       }),
     );
-    const externalId = posted.data?.[0]?.id;
+    const externalId = (posted.data?.[0] as { id?: string } | undefined)?.id;
     const syncStatus = externalId ? "Synced" : "Failed";
 
     await ctx.step("update-onboarding-record", async () =>

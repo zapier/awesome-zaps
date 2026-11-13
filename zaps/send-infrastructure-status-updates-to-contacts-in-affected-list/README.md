@@ -6,16 +6,18 @@ When a contact is added to your affected-contacts list, they get a short infrast
 
 **Based on:** [Send infrastructure status updates to contacts in affected list](https://zapier.com/automations/executives/crisis-incident-management/crisis-communication-distribution/send-infrastructure-status-updates-to-contacts-in-affected-list) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/send-infrastructure-status-updates-to-contacts-in-affected-list/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/send-infrastructure-status-updates-to-contacts-in-affected-list
+
+The agent follows `SKILL.md`: it asks you for the HubSpot list of affected contacts and the status email wording, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings, such as the email subject
 - `connections/`: the accounts it uses (`gmail`, `hubspot`)
-- `triggers/`: what starts it
+- `triggers/`: what starts it; the `REPLACE_…` list ID is filled in for each person

@@ -1,6 +1,6 @@
 ---
 name: create-induction-event-and-welcome-emails-for-new-hires
-description: Build a Zapier Next Gen Zap that, when a new hire's start date is entered in a Zapier Tables onboarding table, emails the new hire a welcome, notifies IT and license owners, and creates an induction calendar event. Use when an HR or people team keeps new hires in a table and wants onboarding messages and the induction event sent automatically.
+description: Build a Zap on Zapier that, when a new hire's start date is entered in a Zapier Tables onboarding table, emails the new hire a welcome, notifies IT and license owners, and creates an induction calendar event. Use when an HR or people team keeps new hires in a table and wants onboarding messages and the induction event sent automatically.
 license: MIT
 metadata:
   author: zapier
@@ -13,58 +13,55 @@ metadata:
 
 # Create induction event and welcome emails for new hires
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/create-induction-event-and-welcome-emails-for-new-hires. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a record in a Zapier Tables table is updated (Updated Record).
+1. **Trigger:** a record in a Zapier Tables table is updated (`zapier-tables`, `updated_record`).
 2. **Checks:** the record must have a start date and a valid contact email, and must not already have an Invited At value. Otherwise the run stops and writes nothing.
-3. **Zapier Tables** sets Invited At on the record, so later updates to the same record do not send the emails again.
-4. **Gmail** sends a welcome email to the new hire, CC'ing the HR coordinator. The body includes the start date (formatted as "November 12, 2026") and the induction link from the record.
-5. **Gmail** sends one internal email to the IT and license-owner addresses with the new hire's name, email, start date, hiring manager and induction link.
-6. **Google Calendar** creates an induction event on the HR calendar, one day before the start date, one hour long. The hiring manager and IT are invited.
+3. **`zapier-tables`** sets Invited At on the record, so later updates to the same record do not send the emails again.
+4. **`gmail`** sends a welcome email to the new hire, CC'ing the HR coordinator. The body includes the start date (formatted as "November 12, 2026") and the induction link from the record.
+5. **`gmail`** sends one internal email to the IT and license-owner addresses with the new hire's name, email, start date, hiring manager and induction link.
+6. **`google-calendar`** creates an induction event on the HR calendar, one day before the start date, one hour long. The hiring manager and IT are invited.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-induction-event-and-welcome-emails-for-new-hires` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-induction-event-and-welcome-emails-for-new-hires` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Zapier Tables, Updated Record (`zapier-tables`, `updated_record`), with `table_id` set to the table that holds the new-hire records. It uses the Zapier Tables connection as its authentication ID.
-2. **Connections** (each alias in the code is the app's slug):
-   - `zapier-tables`: the Zapier Tables connection for the account that owns the table.
-   - `gmail`: the Gmail connection that sends the emails.
-   - `google-calendar`: the Google Calendar connection that owns the HR calendar.
-3. **Constants:**
-   - `TABLE_ID`: the Zapier Tables table ID. Use the same ID as the trigger's `table_id`.
-   - `HR_CALENDAR_ID`: the calendar ID of the HR calendar (for example, the calendar's email address).
-   - `HR_COORDINATOR_EMAIL`: CC'd on the welcome email.
-   - `IT_EMAIL`: receives the internal email and is invited to the induction event.
-   - `LICENSE_OWNERS_EMAIL`: receives the internal email.
-   - `INDUCTION_OFFSET_DAYS` (default `1`) and `INDUCTION_LENGTH_MINUTES` (default `60`): when the event is scheduled and how long it lasts.
-4. The table needs these fields, using these keys: `f1` Name (text), `f2` Email (email), `f3` Start Date (date/time), `f4` Induction Link (text), `f5` Hiring Manager Email (email), `f6` Invited At (text). If the table's field order is different, change the `f1`…`f6` constants to match.
-5. Test with the steps below, then publish, wait until the trigger is active, and tell the user to check the trigger before relying on it.
+The Zap changes only the record's Invited At value, so nothing else in the table is written.
 
 ## Ask the user
 
-- Which Zapier Tables table holds the new hires, and which fields hold the name, email, start date, induction link, hiring manager email and an Invited At text field?
-- Which Google Calendar is the HR calendar?
-- Who is the HR coordinator (CC on the welcome email), and who are the IT and license-owner addresses?
-- Should the induction event be one day before the start date, and how long should it last?
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                        | Where                                                                   | What goes there                                                         |
+| ------------------------------ | ----------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `REPLACE_TABLE_ID`             | `config.ts` (`TABLE_ID`) and `table_id` in `triggers/updated-record.ts` | The Zapier Tables table that holds the new-hire records                 |
+| `REPLACE_HR_CALENDAR_ID`       | `config.ts` (`HR_CALENDAR_ID`)                                          | The HR calendar the induction event is created on                       |
+| `REPLACE_HR_COORDINATOR_EMAIL` | `config.ts` (`HR_COORDINATOR_EMAIL`)                                    | The HR coordinator's address, CC'd on the welcome email                 |
+| `REPLACE_IT_EMAIL`             | `config.ts` (`IT_EMAIL`)                                                | The IT address: gets the provisioning email and is invited to the event |
+| `REPLACE_LICENSE_OWNERS_EMAIL` | `config.ts` (`LICENSE_OWNERS_EMAIL`)                                    | The license owners' address, which gets the provisioning email          |
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing. Use a test record in a test table, with the email fields set to an address you control (not a real new hire):
+Also review the defaults with them:
+
+- `INDUCTION_OFFSET_DAYS` (`1`) and `INDUCTION_LENGTH_MINUTES` (`60`) in `workflow.ts`: when the event is scheduled and how long it lasts.
+- The field keys in `config.ts` (`NAME` to `INVITED_AT`, `f1` to `f6`) must match the table's fields, in this order: `f1` Name (text), `f2` Email (email), `f3` Start Date (date/time), `f4` Induction Link (text), `f5` Hiring Manager Email (email), `f6` Invited At (text). If the table's order differs, change those constants to match.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `zapier-tables` to the Zapier Tables connection for the account that owns the table, `gmail` to the Gmail connection that sends the emails, and `google-calendar` to the Google Calendar connection that owns the HR calendar. Every app here needs a connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/updated-record.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test, with the table and the email addresses set to ones the user controls (not a real new hire's):
 
 ```json
 {
-  "record_id": "YOUR_TEST_RECORD_ID",
-  "table_id": "YOUR_TEST_TABLE_ID",
+  "record_id": "rec_test_0001",
+  "table_id": "tbl_test_0001",
   "new": {
-    "id": "YOUR_TEST_RECORD_ID",
+    "id": "rec_test_0001",
     "data": {
       "f1": "Test New Hire",
       "f2": "you@example.com",
@@ -77,16 +74,12 @@ Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before 
 }
 ```
 
-Confirm that: the welcome email arrived at the test address (with the CC), the internal email arrived at the IT address, one induction event exists on the HR calendar the day before the start date with the new hire's name in its summary, and the record's Invited At field is now set. Then clear Invited At on the test record so it can be run again.
-
-## Customize
-
-- **Task for manual onboarding:** add a step that creates a task in your project board for the manual items on the new hire's checklist.
-- **Remote hires or contractors:** add an alternative welcome email template chosen by a field on the record.
+Check that the welcome email reached the test address with the HR coordinator CC'd, the internal email reached the IT address, one induction event sits on the HR calendar the day before the start date with the new hire's name in its summary, and the record's Invited At is set. If run-status tools aren't available, check Gmail, Google Calendar and the table directly. Then clear Invited At on the test record so it can run again. Publish only after the test passes, then confirm the trigger is active. The user deletes the test emails, event and record; the agent doesn't.
 
 ## Notes
 
-- The Zapier Tables trigger fires on every update to a record. The Invited At field stops the workflow from sending the emails twice, but it also means that changing the start date on a record that was already invited does not send a new welcome email.
-- Dates are formatted in UTC. If your team is in another time zone, the displayed date and the event time can differ by a day near midnight.
-- Induction links are plain text in this version. File attachments from the record are not included.
-- Never commit a real calendar ID, email address or table ID.
+- The trigger fires on every update to a record. Invited At stops a second run from sending the emails, so changing the start date on an already-invited record does not send a new welcome email.
+- Dates are formatted in UTC. In another time zone, the displayed date and the event time can differ by a day near midnight.
+- The induction link is sent as plain text, and file attachments on the record are not included.
+- To extend it: add a task for manual onboarding items to your project board, or choose an alternative welcome email for remote hires or contractors by a field on the record.
+- Keep real calendar IDs, email addresses and table IDs out of commits.

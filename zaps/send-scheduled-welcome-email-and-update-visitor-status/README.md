@@ -6,16 +6,18 @@ When a visitor's row in your Zapier Table reaches the milestone you set, they ge
 
 **Based on:** [Send scheduled welcome email and update visitor status](https://zapier.com/automations/customer-service-success/customer-onboarding/customer-welcome-sequences/send-scheduled-welcome-email-and-update-visitor-status) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/send-scheduled-welcome-email-and-update-visitor-status/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/send-scheduled-welcome-email-and-update-visitor-status
+
+The agent follows `SKILL.md`: it asks you which table holds your visitors and what the welcome email says, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
 - `connections/`: the accounts it uses (`gmail`, `zapier-tables`)
 - `triggers/`: what starts it

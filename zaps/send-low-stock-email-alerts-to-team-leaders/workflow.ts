@@ -10,7 +10,10 @@ const sdk = createZapierSdk();
 // Add one entry per branch, keyed by the identifier that appears in BRANCH_COLUMN.
 const BRANCH_LEADERS: Record<string, { emails: string[]; threshold: number }> =
   {
-    YOUR_BRANCH_ID: { emails: ["YOUR_TEAM_LEADER_EMAIL"], threshold: 5 },
+    REPLACE_BRANCH_ID: {
+      emails: ["REPLACE_TEAM_LEADER_EMAIL"], // Ask the user for this branch's team leaders' email addresses, and the branch's identifier as it appears in the branch column (the key).
+      threshold: 5, // Default minimum stock count, below which the leaders are alerted. Review it with the user.
+    },
   };
 
 const InputSchema = z

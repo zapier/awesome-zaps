@@ -1,6 +1,6 @@
 ---
 name: increment-company-engagement-totals-from-incoming-marketing-emails
-description: Build a Zapier Next Gen Zap that keeps a per-company engagement total for marketing emails. Each HubSpot email engagement event adds one to the total of every company it relates to, and creates the company's row in a Zapier Table the first time. Use when a campaign or sales team wants up-to-date engagement totals per company to prioritize follow-up, and tracks them in a Zapier Table.
+description: Build a Zap on Zapier that keeps a per-company engagement total for marketing emails. Each HubSpot email engagement event adds one to the total of every company it relates to, and creates the company's row in a Zapier Table the first time. Use when a campaign or sales team wants up-to-date engagement totals per company to prioritize follow-up, and tracks them in a Zapier Table.
 license: MIT
 metadata:
   author: zapier
@@ -13,9 +13,11 @@ metadata:
 
 # Increment company engagement totals from incoming marketing emails
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/increment-company-engagement-totals-from-incoming-marketing-emails. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a new HubSpot email engagement event (HubSpot "New Email Event", all event types).
+1. **Trigger:** a new HubSpot email engagement event (`hubspot`, `email_event`). It counts every event type unless one is set.
 2. **Filter:** if the event has no related company IDs, the run stops and writes nothing.
 3. **Loop:** for each company ID, once, in the order given:
    - **Zapier Tables** searches the tracking table for a row whose Company ID matches.
@@ -23,34 +25,34 @@ metadata:
    - If not, **Zapier Tables** creates the row with that Company ID and an Engagement Count of `INCREMENT_AMOUNT`.
 4. A company that fails is recorded in the run's output and doesn't stop the others.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/increment-company-engagement-totals-from-incoming-marketing-emails` (it makes a zap project if you aren't in one), then `npx zap-pack deploy increment-company-engagement-totals-from-incoming-marketing-emails` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** HubSpot, New Email Event (`hubspot`, `email_event`). Leave the event type unset to take every email event, or set it to a single type such as `OPEN` or `CLICK` if you only count those. It needs a HubSpot connection.
-2. **Connections** (each alias in the code is the app's slug):
-   - `zapier-tables`: the Zapier Tables connection that owns the tracking table.
-3. **Constants:**
-   - `TABLE_ID`: the ID of the tracking table, from its URL.
-   - `COMPANY_ID_FIELD`, `ENGAGEMENT_COUNT_FIELD`: the table's field keys (`data__f1`, `data__f2` in the test table). Check them with `inspect_zapier_actions` on the table, since they're generated per table.
-   - `INCREMENT_AMOUNT`: what each engagement adds. Defaults to `"1"`.
+The Zap only reads and writes the tracking table. It sends nothing to HubSpot.
 
 ## Ask the user
 
-- Which Zapier Table holds the company engagement counts, and which columns are the Company ID and the Engagement Count?
-- Which HubSpot email events should count: all of them, or only some (for example opens and clicks)?
-- Which field in the HubSpot payload holds the related company IDs? The code reads `associatedCompanyIds`; if the payload uses another name, change it in the input schema and the filter before publishing.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting            | What goes there                                                                                                                                                       |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `REPLACE_TABLE_ID` | The Zapier Table that holds the company engagement counts, the one with Company ID and Engagement Count columns. Look it up with the user's Zapier Tables connection. |
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing, with two company IDs that aren't in the user's table yet, then run it again to see the increment path:
+Also review the defaults with them:
+
+- `COMPANY_ID_FIELD` and `ENGAGEMENT_COUNT_FIELD`: the table's field keys, which are generated per table (`data__f1` and `data__f2` in the test table). Check them against the table before the first test run.
+- `INCREMENT_AMOUNT` (`"1"`): how much each engagement adds.
+- The trigger's event type in `triggers/email-event.ts`: unset counts every HubSpot email event. Set it to one type, such as `OPEN` or `CLICK`, to count only that type.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `zapier-tables` (the Zapier Tables connection that owns the tracking table) and `hubspot` (the HubSpot account the trigger watches for email events).
+2. **Source:** publish `workflow.ts` and `config.ts`, with `REPLACE_TABLE_ID` replaced by the user's answer. `triggers/email-event.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match. The create step writes `new__data__f1` and `new__data__f2` directly, so match those to the table's keys too.
+
+## Test it
+
+Run this sample as a draft test (`run_workflow_draft`) before publishing, with two company IDs that aren't in the table yet:
 
 ```json
 {
@@ -58,15 +60,12 @@ Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before 
 }
 ```
 
-Confirm that the first run created one row per company with an Engagement Count of 1, and that the second run brought both to 2. Then delete the test rows from the table.
-
-## Customize
-
-- **Aggregate events into daily batches** instead of per-event increments, so each company is updated once per day.
-- **Weight increments by engagement type**, for example a click counts more than an open.
+The first run should create one row per company, each with an Engagement Count of 1. Run it again: both rows should reach 2. If run-status tools aren't available, check the rows in Zapier Tables directly. Publish only after both runs pass. The user deletes the test rows, not the agent.
 
 ## Notes
 
-- Find-then-create is not atomic. If two events for a company that has no row arrive at the same moment, the table can end up with two rows for it, and each count only includes its own event.
-- A HubSpot email event may relate to more than one company; each one is counted once per event.
-- Anyone who can edit the table can change its counts, so keep the table private to the team that reads it.
+- Find-then-create is not atomic. If two events for a company with no row arrive at the same moment, the table can end up with two rows for it, and each count only includes its own event.
+- A HubSpot event may relate to more than one company; each one is counted once per event.
+- Anyone who can edit the table can change its counts, so keep it private to the team that reads it.
+- If HubSpot's payload uses another name for the related company IDs, change it in the input schema and the filter in `workflow.ts` before publishing.
+- To extend it: aggregate events into daily batches so each company updates once a day, or weight increments by type, so a click counts more than an open.

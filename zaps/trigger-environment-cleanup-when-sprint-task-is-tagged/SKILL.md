@@ -1,6 +1,6 @@
 ---
 name: trigger-environment-cleanup-when-sprint-task-is-tagged
-description: Build a Zapier Next Gen Zap that sends a teardown request to your removal API when a teardown tag is added to a sprint task in an Asana project, so ephemeral environments are reclaimed without manual steps. Use when a team creates per-task environments and wants them removed by tagging the task.
+description: Build a Zap on Zapier that sends a teardown request to your removal API when a teardown tag is added to a sprint task in an Asana project, so ephemeral environments are reclaimed without manual steps. Use when a team creates per-task environments and wants them removed by tagging the task.
 license: MIT
 metadata:
   author: zapier
@@ -13,43 +13,40 @@ metadata:
 
 # Trigger environment cleanup when sprint task is tagged
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/trigger-environment-cleanup-when-sprint-task-is-tagged. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** an Asana "Tag Added to Task" trigger fires when the teardown tag is added to a task in the configured project.
+1. **Trigger:** an Asana "Tag Added to Task" trigger (`asana`, `task_tagged`) fires when the teardown tag is added to a task in the configured project.
 2. **Webhooks by Zapier** POSTs JSON to your removal API with `task_id` (the Asana task ID), `summary` (the task name) and `action: "remove"`.
 
 The trigger only fires for the one tag and one project you set, so no separate filter step runs.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/trigger-environment-cleanup-when-sprint-task-is-tagged` (it makes a zap project if you aren't in one), then `npx zap-pack deploy trigger-environment-cleanup-when-sprint-task-is-tagged` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Asana, Tag Added to Task (`asana`, action `task_tagged`), on your Asana connection. Set these trigger params:
-   - `workspace`: your Asana workspace ID (the test build used `1060121423582`).
-   - `project_id`: the Asana project to watch (the test build used `1202707318967873`).
-   - `tag_id`: the Asana tag that means "tear this down" (the test build used `78482953817892`, the existing "test" tag).
-2. **Connections:**
-   - `asana`: the user's Asana connection. The alias is the app key, as in the code.
-   - Webhooks by Zapier needs no connection.
-3. **Constants:**
-   - `REMOVAL_API_URL`: the removal endpoint that receives the POST. The published test build pointed it at `https://httpbin.org/post`. Replace it with the real endpoint, which the deployed copy in this folder leaves as `YOUR_REMOVAL_API_URL`.
-
 ## Ask the user
 
-- Which Asana project holds the sprint tasks, and which tag means "tear down this environment"?
-- What is the removal API URL, and what does it expect in the body? The POST sends `task_id`, `summary` and `action`. If the API wants different field names, change the `data` object in `workflow.ts` before installing.
-- Should the trigger's tag be one that only the teardown process uses? Any tag on the chosen project fires the workflow when it is added.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                      | Where                                   | What goes there                                      |
+| ---------------------------- | --------------------------------------- | ---------------------------------------------------- |
+| `REPLACE_ASANA_WORKSPACE_ID` | `triggers/task-tagged.ts`, `workspace`  | The Asana workspace that holds the sprint project    |
+| `REPLACE_ASANA_PROJECT_ID`   | `triggers/task-tagged.ts`, `project_id` | The sprint project whose tasks get the teardown tag  |
+| `REPLACE_ASANA_TAG_ID`       | `triggers/task-tagged.ts`, `tag_id`     | The tag that means "tear this down"                  |
+| `REPLACE_REMOVAL_API_URL`    | `config.ts`                             | The removal endpoint that receives the teardown POST |
 
-Run a draft test (`run_workflow_draft` in Zapier MCP) with this sample input before publishing. It is shaped like an Asana task record, and the name marks it as a test:
+Also check that the teardown tag is one only the teardown process uses, since any tag on the chosen project fires the workflow when it is added. If the removal API expects different field names, change the `data` object in `workflow.ts` before installing.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `asana` (the trigger's account, from `triggers/task-tagged.ts`) to the user's Asana connection. Webhooks by Zapier needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/task-tagged.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test with this sample input. It is shaped like an Asana task record, and the name marks it as a test:
 
 ```json
 {
@@ -58,14 +55,10 @@ Run a draft test (`run_workflow_draft` in Zapier MCP) with this sample input bef
 }
 ```
 
-Check the run output: the `post-removal-request` step should show a POST to your removal URL with `task_id`, `summary` and `action: "remove"` in the body. Then tag a real test task in the chosen project and confirm one run starts from the trigger. Do not do the tag test against a project with live environments.
-
-## Customize
-
-- **Log responses to a team table** for auditing: add a step after the POST that writes the response to a sheet or table.
-- **Notify on failure or confirmation:** add a Slack or email step after the POST, to report failed or completed teardowns.
+Check that the `post-removal-request` step shows a POST to the removal URL with `task_id`, `summary` and `action: "remove"` in the body. If run-status tools aren't available, check the result in your removal API directly. Then publish, confirm the trigger is active, and tag a real test task in the chosen project to confirm one run starts from the trigger. Don't run that tag test against a project with live environments. Ask the user to delete the test data, not the agent.
 
 ## Notes
 
 - The Asana trigger fires on each tag event, so the same task can start more than one removal if its tag is added twice. Make the removal API idempotent.
 - Never commit a real removal API URL. Anyone who can reach it can trigger teardowns.
+- To customize, add a step after the POST that logs responses to a sheet, or a Slack or email step that reports failed or completed teardowns.

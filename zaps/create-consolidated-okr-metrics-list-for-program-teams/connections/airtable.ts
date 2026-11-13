@@ -1,4 +1,4 @@
-// The account this zap uses as "airtable"; workflow.ts and triggers/ refer to it by that alias.
+// The account this zap uses as "airtable"; workflow.ts refers to it by that alias.
 export default {
   app: "airtable",
   description:

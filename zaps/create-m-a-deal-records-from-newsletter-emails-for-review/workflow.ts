@@ -107,22 +107,24 @@ const workflow = defineDurable(
     const failures: number[] = [];
     for (const [index, deal] of deals.entries()) {
       try {
-        await ctx.step(`create-deal-record-${index}`, async () =>
-          sdk.runAction({
-            appKey: "zapier-tables",
-            actionType: "write",
-            actionKey: "create_record",
-            connection: "zapier-tables",
-            inputs: {
-              table_id: TABLE_ID,
-              new__data__f1: deal.seller ?? "",
-              new__data__f2: deal.buyer ?? "",
-              new__data__f3: deal.deal_description ?? "",
-              new__data__f4: deal.date ?? "",
-              new__data__f5: deal.advisor ?? "",
-              new__data__f6: deal.deal_number ?? "",
-            },
-          }),
+        await ctx.step(
+          `create-deal-record-${deal.deal_number ?? ""}`,
+          async () =>
+            sdk.runAction({
+              appKey: "zapier-tables",
+              actionType: "write",
+              actionKey: "create_record",
+              connection: "zapier-tables",
+              inputs: {
+                table_id: TABLE_ID,
+                new__data__f1: deal.seller ?? "",
+                new__data__f2: deal.buyer ?? "",
+                new__data__f3: deal.deal_description ?? "",
+                new__data__f4: deal.date ?? "",
+                new__data__f5: deal.advisor ?? "",
+                new__data__f6: deal.deal_number ?? "",
+              },
+            }),
         );
         created.push(deal);
       } catch {

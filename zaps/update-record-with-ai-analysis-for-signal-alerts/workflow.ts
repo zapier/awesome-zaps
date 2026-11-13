@@ -63,7 +63,9 @@ const workflow = defineDurable(
       }),
     );
 
-    const verdict = String(review.data?.[0]?.output ?? "").trim();
+    const verdict = String(
+      (review.data?.[0] as { output?: string } | undefined)?.output ?? "",
+    ).trim();
 
     const reviewedAt = await ctx.step("capture-reviewed-at", async () =>
       new Date().toISOString(),

@@ -78,9 +78,8 @@ const workflow = defineDurable(
         },
       }),
     );
-    const { company, poNumber } = parseFields(
-      String(fields.data[0]?.output ?? ""),
-    );
+    const reply = fields.data[0] as { output?: unknown } | undefined;
+    const { company, poNumber } = parseFields(String(reply?.output ?? ""));
 
     if (!poNumber || poNumber === NOT_FOUND) {
       return { skipped: true, reason: "po-number-not-found", fileName };

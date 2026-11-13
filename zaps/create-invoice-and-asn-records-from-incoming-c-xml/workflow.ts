@@ -72,7 +72,9 @@ const workflow = defineDurable(
         },
       }),
     );
-    const fileLink = rawFile.data[0]?.webViewLink ?? "";
+    const fileLink =
+      (rawFile.data[0] as { webViewLink?: string } | undefined)?.webViewLink ??
+      "";
 
     const match = await ctx.step("find-table-record", async () =>
       sdk.runAction({
@@ -92,7 +94,7 @@ const workflow = defineDurable(
       }),
     );
 
-    const existing = match.data[0] ?? null;
+    const existing = (match.data[0] ?? null) as { record_id?: string } | null;
     let recordId = existing?.record_id ?? null;
     if (!existing) {
       const created = await ctx.step("create-table-record", async () =>
@@ -113,7 +115,9 @@ const workflow = defineDurable(
           },
         }),
       );
-      recordId = created.data[0]?.record_id ?? null;
+      recordId =
+        (created.data[0] as { record_id?: string } | undefined)?.record_id ??
+        null;
     }
 
     const invoiceId = doc.documentId;

@@ -1,6 +1,6 @@
 ---
 name: publish-new-meeting-recordings-to-team-video-archive
-description: Build a Zapier Next Gen Zap that uploads each finished Zoom cloud recording to Vimeo as an unlisted video and records it in an Airtable archive table, matched by recording GUID. Use when a team wants meeting recordings archived and easy to find without manual uploads or spreadsheet entries.
+description: Build a Zap on Zapier that uploads each finished Zoom cloud recording to Vimeo as an unlisted video and records it in an Airtable archive table, matched by recording GUID. Use when a team wants meeting recordings archived and easy to find without manual uploads or spreadsheet entries.
 license: MIT
 metadata:
   author: zapier
@@ -13,66 +13,57 @@ metadata:
 
 # Publish new meeting recordings to team video archive
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/publish-new-meeting-recordings-to-team-video-archive. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a Zoom cloud recording completes (Zoom, New Cloud Recording). The run carries the recording's GUID, title, start time and download URLs.
+1. **Trigger:** a Zoom cloud recording completes (`zoom`, `new_recording`). The run carries the recording's GUID, title, start time and download URLs.
 2. **Loop:** each recording file URL is uploaded to Vimeo, one step per file. A recording with several files produces several uploads.
 3. **Vimeo** uploads each file as an unlisted video, named after the meeting title.
 4. **Airtable** finds the row whose recording GUID matches and updates it, or creates a new row when none matches. The row gets the title, the Vimeo video link(s) and the meeting start date.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/publish-new-meeting-recordings-to-team-video-archive` (it makes a zap project if you aren't in one), then `npx zap-pack deploy publish-new-meeting-recordings-to-team-video-archive` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Zoom, New Cloud Recording (`zoom`, `new_recording`). It has no filter settings. Its `authentication_id` is the user's Zoom connection.
-2. **Connections** (each alias in the code is the app's slug):
-   - `zoom`: the user's Zoom connection, for the account that hosts the meetings.
-   - `vimeo`: the user's Vimeo connection, for the account that should hold the archive.
-   - `airtable`: the user's Airtable connection, for the account that owns the archive base.
-3. **Constants:**
-   - `AIRTABLE_BASE_ID`: the base's ID (the `app...` ID in its URL).
-   - `AIRTABLE_TABLE`: the table name that holds the archive.
-   - `GUID_FIELD`: the column that stores the Zoom recording GUID. Rows are matched on it.
-   - `TITLE_FIELD`, `VIDEO_URL_FIELD`, `DATE_FIELD`: the columns for the title, the Vimeo link and the start date.
-   - `VIMEO_PRIVACY`: the Vimeo privacy setting for uploads. `"unlisted"` is the default.
-4. Test with the steps below, then publish, wait until the trigger is active, and give the user their Zoom setup step (below).
-
 ## Ask the user
 
-- Which Airtable base and table hold the archive, and which columns hold the recording GUID, title, video link and date?
-- Should uploads stay unlisted, or use another Vimeo privacy setting?
-- Is the Vimeo account on the same team as the Zoom host? Uploads go to whichever Vimeo account is connected.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting            | What goes there                                                                                          |
+| ------------------ | -------------------------------------------------------------------------------------------------------- |
+| `AIRTABLE_BASE_ID` | The Airtable base that holds the archive: its ID (the `app…` ID), looked up from the base the user names |
+| `AIRTABLE_TABLE`   | The table in that base that holds the archive                                                            |
+| `GUID_FIELD`       | The column that stores the Zoom recording GUID. Existing rows are matched on it                          |
+| `TITLE_FIELD`      | The column for the recording title                                                                       |
+| `VIDEO_URL_FIELD`  | The column for the Vimeo video link                                                                      |
+| `DATE_FIELD`       | The column for the meeting start date                                                                    |
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing. Use a recording in the user's own Zoom account and a GUID that is not yet in the archive:
+Also review the default `VIMEO_PRIVACY` with them: `"unlisted"` keeps videos off public listings. Confirm the Vimeo account is on the same team as the Zoom host, since uploads go to whichever Vimeo account is connected.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `vimeo` (the account that should hold the archive) and `airtable` (the account that owns the archive base) to the user's connections. Bind `zoom` (the account that hosts the meetings) for the trigger. Name any apps that need no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/new-recording.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections (and sample the trigger, if it has one) before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run this sample as a draft test run (`run_workflow_draft`) before publishing, with a GUID that is not yet in the archive:
 
 ```json
 {
-  "uuid": "YOUR_TEST_RECORDING_GUID",
+  "uuid": "sample-recording-guid-001",
   "topic": "Weekly sync",
   "start_time": "2026-10-29T10:00:00Z",
   "video_dl_urls": "https://example.com/recording-1.mp4"
 }
 ```
 
-Confirm that the Vimeo upload appears as an unlisted video named after the meeting, and that one Airtable row holds the GUID, title, Vimeo link and start date. Run it again with the same GUID and confirm the same row is updated rather than duplicated. Then delete the test video and row if they were only a test.
-
-## Customize
-
-- **Other video hosts:** replace Vimeo with any video service that accepts a file URL upload.
-- **Other databases:** swap Airtable for any database or ticketing system that can store a recording GUID and a video link.
+Check that the Vimeo upload appears as an unlisted video named "Weekly sync", and that one Airtable row holds the GUID, title, Vimeo link and start date. Run it again with the same GUID and check that the same row is updated rather than duplicated. If run-status tools aren't available, check Vimeo and Airtable directly. The user deletes the test video and row, not the agent. Then publish, and confirm the trigger is active.
 
 ## Notes
 
 - Zoom gives the GUID as the meeting UUID, so a recording that is re-sent updates its existing row.
-- If one file fails to upload, the other files still upload and the row is still written. The run's return value reports how many uploads failed.
-- If every upload fails, the run stops and writes no row, so the failure is visible in the run history.
-- Zoom download links expire, so the run should follow the recording promptly after it completes.
+- If one file fails to upload, the others still upload and the row is still written; the run reports how many failed. If every upload fails, the run stops and writes no row.
+- Zoom download links expire, so the run should follow the recording promptly.
+- To archive elsewhere, replace Vimeo with any video service that accepts a file URL, or Airtable with any database or ticketing system that can store a GUID and a video link.

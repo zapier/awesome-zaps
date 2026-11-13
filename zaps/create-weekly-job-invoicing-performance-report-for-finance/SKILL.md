@@ -1,6 +1,6 @@
 ---
 name: create-weekly-job-invoicing-performance-report-for-finance
-description: Build a Zapier Next Gen Zap that runs every week, counts the jobs closed in the previous seven days in a Zapier Table, and writes the count as an item in a Notion finance database. Use when a finance team wants a weekly closed-jobs and invoicing summary kept in Notion without manual counting.
+description: Build a Zap on Zapier that runs every week, counts the jobs closed in the previous seven days in a Zapier Table, and writes the count as an item in a Notion finance database. Use when a finance team wants a weekly closed-jobs and invoicing summary kept in Notion without manual counting.
 license: MIT
 metadata:
   author: zapier
@@ -13,61 +13,52 @@ metadata:
 
 # Create weekly job invoicing performance report for finance
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/create-weekly-job-invoicing-performance-report-for-finance. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** Schedule by Zapier, every week on Monday at 9:00 AM in the account timezone.
-2. **Date range:** the run date is captured once. The workflow then works out the seven full days before it (the previous week), formatted MM/DD/YY.
-3. **Zapier Tables** searches the jobs table once per day in that range (seven lookups), each on the closed-date field. A lookup that fails is recorded and does not stop the others.
-4. **Count:** the closed jobs found across the seven days are totalled, and the failed days are listed.
+1. **Trigger:** `schedule`, `everyWeek`, every week on Monday at 9:00 AM in the account timezone.
+2. **Date range:** the run date is captured once. The Zap then works out the seven full days before it (the previous week), formatted MM/DD/YY.
+3. **Zapier Tables** searches the jobs table once per day in that range (seven lookups), each on the closed-date field.
+4. **Count:** the closed jobs found across the seven days are totalled, and any failed days are listed.
 5. **Notion** creates one item in the finance database with the period and the counts as its content.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-weekly-job-invoicing-performance-report-for-finance` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-weekly-job-invoicing-performance-report-for-finance` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Schedule by Zapier, `everyWeek` (`schedule`). It needs no connection, so its `authentication_id` is `null`. Params: `dow: ["0"]` (Monday), `hod: "9:00 AM"`.
-2. **Connections** (each alias in the code is the app's slug):
-   - `zapier-tables`: the Zapier Tables connection that owns the jobs table.
-   - `notion`: the Notion connection that owns the finance database.
-3. **Constants:**
-   - `TABLE_ID`: the Zapier Tables table ID of the jobs table.
-   - `CLOSED_DATE_FIELD`: the field key of the closed date in that table.
-   - `LOOKUP_VALUE_FIELD`: the field key that receives the search value. Placeholder; confirm against the real table before use.
-   - `NOTION_DATA_SOURCE_ID`: the data source ID of the finance database.
-   - `LOOKBACK_DAYS`: `7`, the number of full days counted before the run date.
-4. Test with the steps below, then publish, wait until the trigger is active, and tell the user when the first run is due.
+A lookup that fails is recorded in the report and does not stop the others.
 
 ## Ask the user
 
-- Which Zapier Table holds the jobs, and which fields hold the closed date, the billing methodology and the invoice number?
-- Which Notion database receives the report, and which of its properties should hold the report date and the counts?
-- Should the report run on a day other than Monday at 9:00 AM, or in a timezone other than the account's?
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                 | What goes there                                                                                                                                 |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TABLE_ID`              | The Zapier Table that holds the jobs. Ask which table, then look up its ID with the user's Zapier Tables connection                             |
+| `CLOSED_DATE_FIELD`     | The field key of the closed date in that table. Ask which field holds it, then look up its key with the user's Zapier Tables connection         |
+| `LOOKUP_VALUE_FIELD`    | The field key that receives each day's search value. Normally the closed-date field. Not yet verified against a real table, so confirm it first |
+| `NOTION_DATA_SOURCE_ID` | The finance database that receives the report. Ask which database, then look up its data source ID with the user's Notion connection            |
 
-When the constants are filled in and a test connection is available, run the workflow as a draft test run (`run_workflow_draft` in Zapier MCP) with an empty input, since the trigger supplies none. Expect:
+Also review the defaults with them: the run day and time in `triggers/every-week.ts` (Monday at 9:00 AM) and `LOOKBACK_DAYS` in `workflow.ts` (7, the previous week).
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `zapier-tables` (the account that owns the jobs table) and `notion` (the account that owns the finance database) to the user's connections. Schedule by Zapier needs none.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/every-week.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections (and sample the trigger, if it has one) before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+The trigger supplies no input, so run the workflow once as a draft test with an empty input. Expect:
 
 - Seven Zapier Tables lookups, one per day, each returning its record IDs.
 - One Notion item whose content reads `Closed jobs MM/DD/YY to MM/DD/YY: N. Failed day lookups: none.`
 
-Confirm the Notion item exists and that its count matches the jobs in the table for those days. Delete the test item afterwards.
-
-## Customize
-
-- **Billing methodology split:** count jobs by billing methodology, not just in total.
-- **Uninvoiced pending list:** list the jobs with no invoice number. Needs the same field reads.
-- **Threshold alert:** add a Slack message or digest when the pending list is over a limit.
-- **CSV export:** write the counts to a CSV before the Notion item is created, for an external archive.
+Check that the Notion item exists and that its count matches the jobs in the table for those days. If run-status tools aren't available, check the result in Notion directly. Ask the user to delete the test item, not the agent. Then publish, confirm the trigger is active, and tell the user when the first run is due.
 
 ## Notes
 
-- Zapier Tables' Find Records action matches one field against one value, and returns only record IDs. The spec's counts by billing methodology and the pending invoice list cannot be built from it alone.
-- The Notion step writes a single text summary. The spec's separate number and date properties are not mapped yet.
-- Never commit a real table ID, Notion data source ID or webhook URL.
+- Zapier Tables' Find Records action matches one field against one value and returns only record IDs, so counts by billing methodology and a list of jobs with no invoice number need more reads than this Zap makes.
+- The Notion step writes one text summary; the separate number and date properties are not mapped yet.
+- To extend it: split the counts by billing methodology, list jobs with no invoice number, post to Slack when that list is over a limit, or write a CSV archive before the Notion item is created.
+- Keep real table IDs and Notion data source IDs out of commits.

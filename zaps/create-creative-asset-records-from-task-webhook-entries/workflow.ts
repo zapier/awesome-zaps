@@ -92,7 +92,7 @@ const workflow = defineDurable(
     );
 
     let requestId: string | null =
-      (existing.data[0]?.id as string | undefined) ?? null;
+      (existing.data[0] as { id?: string } | undefined)?.id ?? null;
     let requestCreated = false;
 
     if (!requestId) {
@@ -110,14 +110,14 @@ const workflow = defineDurable(
           },
         }),
       );
-      requestId = (created.data[0]?.id as string | undefined) ?? null;
+      requestId = (created.data[0] as { id?: string } | undefined)?.id ?? null;
       requestCreated = true;
     }
 
     let recorded = 0;
     let failed = 0;
 
-    for (const [index, asset] of assets.entries()) {
+    for (const asset of assets) {
       const assetId = String(asset.id);
       const meta = parseFilename(asset.title);
       const url = input.board_id
@@ -125,7 +125,7 @@ const workflow = defineDurable(
         : `${ASSET_URL_BASE}/${assetId}`;
 
       const result = await ctx.step(
-        `create-asset-record-${index}`,
+        `create-asset-record-${assetId}`,
         async () => {
           try {
             const item = await sdk.runAction({
@@ -148,7 +148,10 @@ const workflow = defineDurable(
                 ),
               },
             });
-            return { ok: true, id: item.data[0]?.id ?? null };
+            return {
+              ok: true,
+              id: (item.data[0] as { id?: string } | undefined)?.id ?? null,
+            };
           } catch (error) {
             return { ok: false, error: String(error) };
           }

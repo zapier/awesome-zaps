@@ -1,6 +1,6 @@
 ---
 name: send-vibration-alert-to-on-call-channel-with-formatted-value
-description: Build a Zapier Next Gen Zap that receives vibration readings from a device by webhook, formats the value, and posts an alert to an on-call Telegram chat when the reading is above a threshold. Use when an IoT or industrial device sends vibration telemetry and technicians need a fast, readable alert in their on-call chat.
+description: Build a Zap on Zapier that receives vibration readings from a device by webhook, formats the value, and posts an alert to an on-call Telegram chat when the reading is above a threshold. Use when an IoT or industrial device sends vibration telemetry and technicians need a fast, readable alert in their on-call chat.
 license: MIT
 metadata:
   author: zapier
@@ -13,43 +13,45 @@ metadata:
 
 # Send vibration alert to on-call channel with formatted value
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/send-vibration-alert-to-on-call-channel-with-formatted-value. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a device or script posts a telemetry reading to a Webhooks by Zapier catch hook.
+1. **Trigger:** a device or script posts a telemetry reading to a Webhooks by Zapier catch hook (`webhook`, `hook_v2`).
 2. **Check:** if there is no numeric vibration reading, the run stops. If the reading is at or below the threshold, the run stops and sends nothing.
 3. **Format:** the reading is rounded to one decimal place.
-4. **Alert:** one Telegram message goes to the on-call chat with the device ID, the formatted value, the raw reading, the threshold and the timestamp.
+4. **Telegram** sends one alert to the on-call chat with the device ID, the formatted value, the raw reading, the threshold and the timestamp.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/send-vibration-alert-to-on-call-channel-with-formatted-value` (it makes a zap project if you aren't in one), then `npx zap-pack deploy send-vibration-alert-to-on-call-channel-with-formatted-value` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Webhooks by Zapier, Catch Hook (`webhook`, `hook_v2`). It needs no connection, so its `authentication_id` is `null`.
-2. **Connections** (each alias in the code is the app's slug):
-   - `telegram`: a Telegram bot connection, with the bot added to the on-call chat.
-3. **Constants:**
-   - `ON_CALL_CHAT_ID`: the Telegram chat ID of the on-call chat or group, or a channel username starting with `@`.
-   - `VIBRATION_THRESHOLD`: the reading above which an alert is sent. Defaults to `100`.
-   - `VALUE_PRECISION`: decimal places for the formatted value. Defaults to `1`.
-   - `MENTION_ON_CALL` and `ON_CALL_MENTION`: set `MENTION_ON_CALL` to `true` and enter a Telegram username to prefix each alert with a mention. Defaults to off.
+Readings at or below the threshold never send a message.
 
 ## Ask the user
 
-- Which Telegram chat or group is on call, and what is its chat ID? The bot must already be a member of it.
-- What threshold should trigger an alert? The default is 100.
-- What does the sender call its fields? The workflow reads `device_id`, `vibration` and `timestamp`. If the sender uses other names, change the schema in `workflow.ts` before installing.
-- Should each alert mention a specific on-call person? If so, set `MENTION_ON_CALL` to `true` and enter their Telegram username.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                   | Where       | What goes there                                                                                                     |
+| ------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------- |
+| `REPLACE_ON_CALL_CHAT_ID` | `config.ts` | The Telegram chat or group that is on call. The bot must already be a member.                                       |
+| `REPLACE_ON_CALL_MENTION` | `config.ts` | The on-call person's Telegram username, including the @. Only used when `MENTION_ON_CALL` is true (off by default). |
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing, with a chat ID that is safe for test messages:
+Also review these defaults with them, in the constants at the top of `workflow.ts`:
+
+- `VIBRATION_THRESHOLD` (default `100`): the reading above which an alert is sent.
+- `VALUE_PRECISION` (default `1`): decimal places for the formatted value.
+- `MENTION_ON_CALL` (default `false`): whether each alert starts with a mention.
+- The sender's field names. The workflow reads `device_id`, `vibration` and `timestamp`. If the sender uses other names, change the schema in `workflow.ts` before installing.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `telegram` to the user's Telegram bot connection, with the bot added to the on-call chat. The webhook trigger needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/hook.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections, and sample the trigger, before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test, with a chat the user controls, using this sample input:
 
 ```json
 {
@@ -63,14 +65,11 @@ Check that one Telegram message arrives in the chat and reads `Vibration alert: 
 
 Then run a sample at or below the threshold, such as `"vibration": 88.1`. Check that no Telegram message is sent and the run ends as skipped with `below-threshold`.
 
-## Customize
-
-- **Incident ticket:** add a project management step that creates an incident ticket when alerts repeat for the same device.
-- **Fallback for high severity:** add an SMS or voice step for readings well above the threshold, so the alert still reaches someone if Telegram is missed.
+If run-status tools aren't available, check the result in Telegram directly. Ask the user to delete the test messages; the agent doesn't delete test data. Then publish, confirm the trigger is active, and send a real reading above the threshold to check the live alert.
 
 ## Notes
 
-- The spec's threshold comparison is "above", so a reading exactly equal to the threshold does not alert.
-- The spec's "match events by device identifier if present" is handled by including the device ID in the alert. There is no lookup against prior events.
-- Alerts are sent for each qualifying reading. If one device reports many readings above the threshold, the chat gets many messages.
-- Never commit a real chat ID, bot token or webhook URL. Anyone with the webhook URL can trigger alerts.
+- Above means strictly above: a reading exactly equal to the threshold does not alert.
+- Each qualifying reading sends its own message, so a device that reports many high readings fills the chat. The device ID is in each alert; nothing is looked up against earlier events.
+- To open an incident ticket when alerts repeat for one device, add a project management step. To reach someone when Telegram is missed on high readings, add an SMS or voice step.
+- Never put a real chat ID, bot token or webhook URL in the code or docs. Anyone with the webhook URL can trigger alerts.

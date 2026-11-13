@@ -1,6 +1,6 @@
 ---
 name: create-claims-database-entry-from-updated-sheet-rows
-description: Build a Zapier Next Gen Zap that copies each updated row of an insurance claims sheet into a Zapier Table as a claim record, once per claim ID, with a link back to the row. Use when a claims or intake team tracks claims in Google Sheets and wants a structured, deduplicated claims database in Zapier Tables without manual copying.
+description: Build a Zap on Zapier that copies each updated row of an insurance claims sheet into a Zapier Table as a claim record, once per claim ID, with a link back to the row. Use when a claims or intake team tracks claims in Google Sheets and wants a structured, deduplicated claims database in Zapier Tables without manual copying.
 license: MIT
 metadata:
   author: zapier
@@ -13,47 +13,47 @@ metadata:
 
 # Create claims database entry from updated sheet rows
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/create-claims-database-entry-from-updated-sheet-rows. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a row in your claims sheet is updated (Google Sheets "Updated Spreadsheet Row").
+1. **Trigger:** a row in your claims sheet is updated (`google-sheets`, `updated_row_only`, "Updated Spreadsheet Row").
 2. **Filter:** if the row has no Claim ID, the run stops and writes nothing.
 3. **Zapier Tables** looks for a record whose Claim ID matches. If one exists, the run stops: the claim is already in the table.
 4. **Zapier Tables** creates a record with the claim ID, claimant name, policy number, claim amount, status, received-at time, and a link to the sheet row.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-claims-database-entry-from-updated-sheet-rows` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-claims-database-entry-from-updated-sheet-rows` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Google Sheets, `updated_row_only` ("Updated Spreadsheet Row", app version 2.17.3). Set its `spreadsheet` and `worksheet` to the same values as the constants below. The trigger does not read them from the code.
-2. **Connections** (each alias in the code is the app's slug):
-   - `google-sheets`: the user's Google Sheets connection, for the account that owns the claims sheet.
-   - Zapier Tables needs no connection. Its alias is `zapier-tables`, used directly in each step.
-3. **Constants:**
-   - `SPREADSHEET_ID`: the long ID in the sheet's URL.
-   - `WORKSHEET_ID`: the tab. The first tab is `"0"`.
-   - `CLAIMS_TABLE_ID`: the Zapier Table's ID, from its URL.
-   - `REFERENCE_FIELD`: the table field key that holds the claim ID. `"f1"` is the first field. If you build the table in a different order, use that field's key.
-   - `CLAIM_ID_COLUMN`, `CLAIMANT_NAME_COLUMN`, `POLICY_NUMBER_COLUMN`, `CLAIM_AMOUNT_COLUMN`, `STATUS_COLUMN`, `RECEIVED_AT_COLUMN`: column keys such as `COL$A`, not header names. Map the user's headers to their column letters.
-4. The Zapier Table needs seven fields in this order: Claim ID (text), Claimant Name (text), Policy Number (text), Claim Amount (number), Status (text), Received At (date and time), Sheet Row Link (text). Build it first, then put its ID in `CLAIMS_TABLE_ID`.
-5. Test with the steps below, then publish with the trigger enabled, check it is active, and give the user the trigger's details to confirm.
+The Zap only skips duplicates. It never updates or deletes a claim record that already exists.
 
 ## Ask the user
 
-- Which sheet and tab hold the claims, and which columns hold the claim ID, claimant name, policy number, claim amount, status and received time?
-- Which Zapier Table should receive the records? Should it be the table described above, or one that already exists?
-- The trigger only fires when an existing row is updated. Should brand-new rows also create records? If yes, switch the trigger to "New or Updated Spreadsheet Row" (`updated_row_notify_hook`) and check it fires as expected.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
+
+| Setting           | Where       | What goes there                                                            |
+| ----------------- | ----------- | -------------------------------------------------------------------------- |
+| `SPREADSHEET_ID`  | `config.ts` | The claims spreadsheet, looked up from the user's Google Sheets connection |
+| `CLAIMS_TABLE_ID` | `config.ts` | The Zapier Table that receives the claims, taken from its URL              |
+
+Also review the defaults with them: `WORKSHEET_ID` (`"0"` is the first tab), `REFERENCE_FIELD` (`"f1"` is the table's first field, which holds the claim ID), and the column keys `COL$A` to `COL$F` in `config.ts`. Ask which columns hold the claim ID, claimant name, policy number, claim amount, status and received time, and map each to its column letter.
+
+The table needs seven fields in this order: Claim ID (text), Claimant Name (text), Policy Number (text), Claim Amount (number), Status (text), Received At (date and time), Sheet Row Link (text). If the user doesn't have it yet, build it first, then use its ID.
+
+Also confirm:
+
+- Should brand-new rows also create records? The trigger only fires when an existing row is updated. If yes, switch it to "New or Updated Spreadsheet Row" (`updated_row_notify_hook`) and check it fires as expected.
 - What time zone is the "Received At" column in? Zapier Tables reads the text as a time in the account's time zone, so a sheet in another zone will show shifted times.
 
-## Test
+## Build it
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing. It is the row shape the sheet trigger sends. Use a Claim ID that is not yet in the table:
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `google-sheets` to the user's Google Sheets connection, for the account that owns the claims sheet. The trigger uses it. Zapier Tables (`zapier-tables`) needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/updated-row-only.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. Set the trigger's `spreadsheet` and `worksheet` to `SPREADSHEET_ID` and `WORKSHEET_ID` from `config.ts`, since the trigger doesn't read them from the code. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run this sample as a draft test run before publishing. It is the row shape the sheet trigger sends. Use a Claim ID that is not yet in the table:
 
 ```json
 {
@@ -69,16 +69,11 @@ Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before 
 }
 ```
 
-Check that one record appears in the table with the claim ID, claimant, policy number, amount, status, received time and a link to row 2. Then run the same sample again. It should skip with `claim-already-in-table` and write nothing. Afterwards, delete the test record and row if they were real data.
-
-## Customize
-
-- **Notify on urgent claims:** add an email or Slack step after the create. Send it to the connected account or to the owner only.
-- **Update instead of skip on a match:** when the Claim ID already exists, update that record's status and amount instead of skipping, so the table follows later sheet changes.
+Check that one record appears in the table with the claim ID, claimant, policy number, amount, status, received time and a link to row 2. Then run the same sample again. It should skip with `claim-already-in-table` and write nothing. If run-status tools aren't available, check the result in Zapier Tables directly. Ask the user to delete the test record and the test row; the agent doesn't delete data. Then publish with the trigger enabled, check it is active, and give the user the trigger's details to confirm.
 
 ## Notes
 
-- The workflow only skips duplicates. It does not update an existing record. The Customize item above adds that.
-- Zapier Tables reads "Received At" text in the account's time zone.
+- To update an existing record's status and amount when its Claim ID already exists, change the create step to an update, so the table follows later sheet changes.
+- To notify on urgent claims, add an email or Slack step after the create, sent to the connected account or to the owner only.
 - If two sheet rows share a Claim ID, only the first one written gets a record.
 - Never commit a real spreadsheet ID or table ID to a public repository.

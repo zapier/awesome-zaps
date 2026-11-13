@@ -107,7 +107,8 @@ const workflow = defineDurable(
               lookup_value: row.recordKey,
             },
           });
-          const existingId = found.data[0]?.id;
+          const existingId = (found.data[0] as { id?: unknown } | undefined)
+            ?.id;
           return { id: existingId ? String(existingId) : null };
         } catch (error) {
           return { id: null, error: String(error) };

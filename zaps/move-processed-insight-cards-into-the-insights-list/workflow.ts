@@ -51,10 +51,10 @@ const workflow = defineDurable(
     const results: { cardId: string; moved: boolean; error?: string }[] = [];
     for (const [index, cardId] of cardIds.entries()) {
       if (index > 0) {
-        await ctx.wait(`wait-before-move-${index}`, SECONDS_BETWEEN_MOVES);
+        await ctx.wait(`wait-before-move-${cardId}`, SECONDS_BETWEEN_MOVES);
       }
       try {
-        await ctx.step(`move-card-${index}`, async () =>
+        await ctx.step(`move-card-${cardId}`, async () =>
           sdk.runAction({
             appKey: "trello",
             actionType: "write",

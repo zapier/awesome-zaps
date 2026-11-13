@@ -15,6 +15,14 @@ import {
   PROFIT_ESTIMATE_COLUMN,
 } from "./config.ts";
 
+// The sandbox provides Buffer; the compiler is not given node types.
+declare const Buffer: {
+  from(
+    data: string,
+    encoding: "base64",
+  ): { toString(encoding: "utf8"): string };
+};
+
 const sdk = createZapierSdk();
 
 // Absolute prediction errors at or above this value count toward the high-error RMSE.
@@ -61,7 +69,9 @@ const workflow = defineDurable(
       }),
     );
 
-    const fileId = targetsFile.data?.[0]?.id;
+    const fileId = (
+      targetsFile.data?.[0] as { id?: string | number } | undefined
+    )?.id;
     if (!fileId) {
       return { skipped: true, reason: "targets-file-not-found", batchId };
     }
@@ -78,9 +88,13 @@ const workflow = defineDurable(
 
     // Targets JSON: { "<workshop selector>": [{ "id": ..., "actual": number }, ...] }
     const targets = JSON.parse(
-      Buffer.from(String(download.data?.[0]?.content ?? ""), "base64").toString(
-        "utf8",
-      ),
+      Buffer.from(
+        String(
+          (download.data?.[0] as { content?: string } | undefined)?.content ??
+            "",
+        ),
+        "base64",
+      ).toString("utf8"),
     ) as Record<string, { id: string | number; actual: number }[]>;
 
     const window = targets[input.workshop];

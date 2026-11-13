@@ -57,7 +57,9 @@ const workflow = defineDurable(
         connection: "google-docs",
         inputs: { title: INTEL_DOC_TITLE },
       });
-      return { id: result.data[0]?.id ?? null };
+      return {
+        id: (result.data[0] as { id?: string } | undefined)?.id ?? null,
+      };
     });
 
     let docId: string | null = found.id;
@@ -73,7 +75,9 @@ const workflow = defineDurable(
             file: "Competitor intelligence. Flagged channel messages are appended below.",
           },
         });
-        return { id: result.data[0]?.id ?? null };
+        return {
+          id: (result.data[0] as { id?: string } | undefined)?.id ?? null,
+        };
       });
       docId = created.id;
     }
@@ -91,7 +95,8 @@ const workflow = defineDurable(
         connection: "google-docs",
         inputs: { document_id: docId },
       });
-      return { text: String(result.data[0]?.text_content ?? "") };
+      const row = result.data[0] as { text_content?: unknown } | undefined;
+      return { text: String(row?.text_content ?? "") };
     });
 
     if (existing.text.includes(input.ts) && existing.text.includes(text)) {

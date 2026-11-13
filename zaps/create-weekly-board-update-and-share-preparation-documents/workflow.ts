@@ -40,7 +40,9 @@ const workflow = defineDurable(
       }),
     );
 
-    let docId = existing.data.find((file) => file.name === dates.docName)?.id;
+    let docId = (existing.data as { id?: string; name?: string }[]).find(
+      (file) => file.name === dates.docName,
+    )?.id;
     let created = false;
 
     if (!docId) {
@@ -58,7 +60,7 @@ const workflow = defineDurable(
           },
         }),
       );
-      docId = copy.data[0]?.id;
+      docId = (copy.data[0] as { id?: string } | undefined)?.id;
       created = true;
     }
 
@@ -83,7 +85,7 @@ const workflow = defineDurable(
         },
       }),
     );
-    const link = share.data[0]?.url;
+    const link = (share.data[0] as { url?: string } | undefined)?.url;
 
     const body = [
       `Board update for the week of ${dates.weekStart}: ${link}`,

@@ -6,16 +6,18 @@ When a device reports a vibration reading above your limit, the on-call chat get
 
 **Based on:** [Send vibration alert to on call channel with formatted value](https://zapier.com/automations/it/io-t-connected-operations/device-alert-management/send-vibration-alert-to-on-call-channel-with-formatted-value) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/send-vibration-alert-to-on-call-channel-with-formatted-value/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/send-vibration-alert-to-on-call-channel-with-formatted-value
+
+The agent follows `SKILL.md`: it asks you which Telegram chat is on call and what threshold to use, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
-- `connections/`: the accounts it uses (`telegram`)
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
+- `connections/`: the account it uses (`telegram`)
 - `triggers/`: what starts it

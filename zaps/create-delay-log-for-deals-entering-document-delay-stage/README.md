@@ -6,16 +6,18 @@ When a Pipedrive deal moves into the document delay stage, a row is added to a Z
 
 **Based on:** [Create delay log for deals entering document delay stage](https://zapier.com/automations/sales/pipeline-management/deal-tracking/create-delay-log-for-deals-entering-document-delay-stage) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/create-delay-log-for-deals-entering-document-delay-stage/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/create-delay-log-for-deals-entering-document-delay-stage
+
+The agent follows `SKILL.md`: it asks you for the document-delay stage and the delay log table, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
 - `connections/`: the accounts it uses (`pipedrive`, `zapier-tables`)
 - `triggers/`: what starts it

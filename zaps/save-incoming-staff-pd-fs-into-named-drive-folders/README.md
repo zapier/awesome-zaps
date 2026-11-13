@@ -6,16 +6,18 @@ Each PDF a staff member emails you is filed into a Drive folder named after the 
 
 **Based on:** [Save incoming staff PDFs into named Drive folders](https://zapier.com/automations/business-owners/business-document-management/document-archival-retrieval/save-incoming-staff-pd-fs-into-named-drive-folders) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/save-incoming-staff-pd-fs-into-named-drive-folders/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/save-incoming-staff-pd-fs-into-named-drive-folders
+
+The agent follows `SKILL.md`: it asks you which Gmail account receives the staff PDFs and which Drive folder holds the staff folders, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
-- `connections/`: the accounts it uses (`gmail`)
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
+- `connections/`: the account it uses (`gmail`)
 - `triggers/`: what starts it

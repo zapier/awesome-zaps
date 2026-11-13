@@ -43,7 +43,10 @@ const workflow = defineDurable(
       }),
     );
 
-    const roster = (lookup.data?.[0]?.formatted_rows ?? []).map((row) =>
+    const formatted = (lookup.data?.[0] ?? {}) as {
+      formatted_rows?: unknown[];
+    };
+    const roster = (formatted.formatted_rows ?? []).map((row) =>
       RosterRowSchema.parse(row),
     );
     const complete = roster.filter(

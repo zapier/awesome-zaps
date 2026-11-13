@@ -6,16 +6,18 @@ When a membership cancellation comes in, the departing customer gets a short, pe
 
 **Based on:** [Send exit feedback request to departing customer owner](https://zapier.com/automations/customer-service-success/customer-experience-management/customer-feedback-management/send-exit-feedback-request-to-departing-customer-owner) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/send-exit-feedback-request-to-departing-customer-owner/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/send-exit-feedback-request-to-departing-customer-owner
+
+The agent follows `SKILL.md`: it asks you for your feedback survey link, the Outlook account that sends the email and whether to copy a retention inbox, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
-- `connections/`: the accounts it uses (`microsoft-outlook`)
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
+- `connections/`: the account it uses (`microsoft-outlook`)
 - `triggers/`: what starts it

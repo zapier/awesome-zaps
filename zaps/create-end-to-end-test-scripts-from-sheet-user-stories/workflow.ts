@@ -61,7 +61,9 @@ const workflow = defineDurable(
       }),
     );
 
-    const testCaseText = String(testCaseResult.data[0]?.output ?? "");
+    const testCaseText = String(
+      (testCaseResult.data[0] as { output?: string } | undefined)?.output ?? "",
+    );
     const testIds = [...testCaseText.matchAll(/Test ID:\s*(\S+)/g)].map(
       (match) => match[1],
     );
@@ -96,7 +98,9 @@ const workflow = defineDurable(
       [OUTPUT_ID_COLUMN]: storyId,
       [OUTPUT_TEST_IDS_COLUMN]: testIds.join(", "),
       [OUTPUT_SUMMARY_COLUMN]: testNames.join("; "),
-      [OUTPUT_SCRIPT_COLUMN]: String(scriptResult.data[0]?.output ?? ""),
+      [OUTPUT_SCRIPT_COLUMN]: String(
+        (scriptResult.data[0] as { output?: string } | undefined)?.output ?? "",
+      ),
     };
 
     const existing = await ctx.step("find-output-row", async () =>

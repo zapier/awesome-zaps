@@ -1,6 +1,6 @@
 ---
 name: update-experiment-record-status-from-task-changes
-description: Build a Zapier Next Gen Zap that keeps an experiments table's status in step with ClickUp task changes, matching each record by its task permalink and creating a record when none exists. Use when a product team tracks feature experiments in Airtable and wants the experiment status to follow the delivery task's status without manual edits.
+description: Build a Zap on Zapier that keeps an experiments table's status in step with ClickUp task changes, matching each record by its task permalink and creating a record when none exists. Use when a product team tracks feature experiments in Airtable and wants the experiment status to follow the delivery task's status without manual edits.
 license: MIT
 metadata:
   author: zapier
@@ -13,65 +13,55 @@ metadata:
 
 # Update experiment record status from task changes
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/update-experiment-record-status-from-task-changes. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a ClickUp task changes (ClickUp, Task Changes). The run reads the task's permalink, title, assigned owner and status.
+1. **Trigger:** a ClickUp task changes (`clickup`, `tasks`). The run reads the task's permalink, title, assigned owner and status.
 2. **Airtable** searches the experiments table for a record whose permalink column exactly matches the task permalink.
 3. If no record matches, **Airtable** creates one with the task's permalink, title, owner and status, and the run ends.
 4. If a record matches and its status already equals the task's status, the run stops and writes nothing.
 5. Otherwise **Airtable** updates the matching record: status, title, owner and permalink.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run. Airtable column keys depend on the table, so check them against the user's table.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/update-experiment-record-status-from-task-changes` (it makes a zap project if you aren't in one), then `npx zap-pack deploy update-experiment-record-status-from-task-changes` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** ClickUp, Task Changes (`clickup`, `tasks`). Set its Workspace field to `CLICKUP_TEAM_ID`, and leave Include Subtasks off.
-2. **Connections** (each alias in the code is the app's slug):
-   - `clickup`: the user's ClickUp connection, for the trigger.
-   - `airtable`: the user's Airtable connection, for the base that holds the experiments table.
-3. **Constants:**
-   - `CLICKUP_TEAM_ID`: the ClickUp workspace ID to watch.
-   - `AIRTABLE_BASE_ID`: the base ID from the Airtable URL.
-   - `AIRTABLE_TABLE_NAME`: the experiments table's name.
-   - `PERMALINK_FIELD`, `STATUS_FIELD`, `TITLE_FIELD`, `OWNER_FIELD`: the column names in the user's table. The code matches records on the permalink column.
-4. Test with the steps below, then publish, wait until the trigger is active, and tell the user where to see the workflow.
-
 ## Ask the user
 
-- Which ClickUp workspace holds the delivery tasks, and what is its ID?
-- Which Airtable base and table are the experiments, and which columns hold the task permalink, status, title and owner?
-- Should a status change also notify the task's owner in chat or by comment? This template does not do that; it can be added later (see Customize).
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting               | What goes there                                                                                              |
+| --------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `CLICKUP_TEAM_ID`     | The ClickUp workspace to watch. Also set the trigger's Workspace field to it, and leave Include Subtasks off |
+| `AIRTABLE_BASE_ID`    | The Airtable base that holds the experiments table: the ID from its URL                                      |
+| `AIRTABLE_TABLE_NAME` | The experiments table's name inside that base                                                                |
 
-Run a draft test run (`run_workflow_draft` in Zapier MCP) before publishing, using a task that exists in the user's ClickUp workspace and a test row in a test table. Use this sample input, with `url` set to that task's permalink:
+Also review the defaults with them: `PERMALINK_FIELD`, `STATUS_FIELD`, `TITLE_FIELD` and `OWNER_FIELD` are the column names in `config.ts` (`Task permalink`, `Status`, `Task title`, `Owner`). They must match the user's table exactly, and records are matched on the permalink column.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `airtable` (the base that holds the experiments table) to the user's Airtable connection, and `clickup` (the trigger) to the user's ClickUp connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/tasks.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections (and sample the trigger, if it has one) before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test, with `url` set to the permalink of a test task in the user's ClickUp workspace and the test table in place of the real experiments table:
 
 ```json
 {
-  "url": "https://app.clickup.com/t/YOUR_TASK_ID",
+  "url": "https://app.clickup.com/t/8600000001",
   "name": "Checkout copy test",
   "status": "In review",
   "assignee": "Jordan Lee"
 }
 ```
 
-Check that only the matching record changed: its status now reads `In review`, and its title, owner and permalink match the task. Then run it again with the same input and check that the run stops without writing. If the test table is real data, restore the row afterwards.
-
-## Customize
-
-- **Swap the source tool:** replace ClickUp with any project tool that exposes a task permalink or ID.
-- **Swap the database:** replace Airtable with any team database or CRM used for experiment tracking.
-- **Notify the owner:** after the update, add a chat message or task comment to the assigned owner about the status change.
+Check that only the matching record changed: its status now reads `In review`, and its title, owner and permalink match the task. Then run it again with the same input and check that the run stops without writing. If run-status tools aren't available, check the result in Airtable directly. Ask the user to delete the test rows, since the agent doesn't delete test data. Then publish, confirm the trigger is active, and tell the user where to see the workflow.
 
 ## Notes
 
 - Records are matched on the permalink only. If two rows share a permalink, the first one found is updated.
 - A record is created only when no row has the permalink, so a task that is never tracked in the table is not added until its first change.
-- Keep the status values in the table and in ClickUp spelled the same, or every change will look different and update the row.
+- Keep the status values spelled the same in the table and in ClickUp, or every change will look different and update the row.
+- To notify the task's owner after an update, add a chat message or task comment step. To use another tool, swap ClickUp for any project tool that exposes a task permalink, or Airtable for any team database.

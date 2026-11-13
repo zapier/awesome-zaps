@@ -15,8 +15,8 @@ import {
 
 const sdk = createZapierSdk();
 
-// Design owners to CC on each delivery.
-const CC_ADDRESSES = ["YOUR_DESIGN_OWNER_EMAIL"];
+// Design owners to CC on each delivery. Ask the user for the design owner's email address(es).
+const CC_ADDRESSES = ["REPLACE_DESIGN_OWNER_EMAIL"];
 
 const InputSchema = z
   .object({

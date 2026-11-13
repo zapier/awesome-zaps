@@ -75,7 +75,9 @@ const workflow = defineDurable(
       }),
     );
 
-    const replyHtml = String(draft.data?.[0]?.html ?? "").trim();
+    const replyHtml = String(
+      (draft.data?.[0] as { html?: unknown } | undefined)?.html ?? "",
+    ).trim();
     if (!replyHtml) {
       return { skipped: true, reason: "empty-reply", senderAddress };
     }

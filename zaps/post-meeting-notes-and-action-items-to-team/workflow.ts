@@ -74,7 +74,9 @@ const workflow = defineDurable(
         actionKey: "get",
         inputs: { url: textUrl, as_json: "no" },
       });
-      return String(response.data[0]?.text ?? "");
+      return String(
+        (response.data[0] as { text?: string } | undefined)?.text ?? "",
+      );
     });
 
     const actionItems = extractActionItems(transcript);

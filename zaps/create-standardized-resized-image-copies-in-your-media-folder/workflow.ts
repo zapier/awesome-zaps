@@ -12,6 +12,11 @@ const sdk = createZapierSdk();
 
 type DriveFile = { id?: string; name?: string; mimeType?: string };
 
+type Outcome =
+  | { status: "copied"; name: string; id: string | null }
+  | { status: "already-exists"; name: string }
+  | { status: "failed"; name: string; error: string };
+
 function sizedName(name: string): string {
   const dot = name.lastIndexOf(".");
   if (dot <= 0) return `${name}${SIZE_SUFFIX}`;
@@ -44,13 +49,13 @@ const workflow = defineDurable(
       return { skipped: true, reason: "no-image-files-in-source-folder" };
     }
 
-    const results = [];
-    for (const [index, file] of images.entries()) {
+    const results: Outcome[] = [];
+    for (const file of images) {
       const newName = sizedName(file.name as string);
 
       const outcome = await ctx.step(
-        `copy-resized-image-${index}`,
-        async () => {
+        `copy-resized-image-${file.id}`,
+        async (): Promise<Outcome> => {
           try {
             const existing = await sdk.runAction({
               appKey: "google-drive",
@@ -82,7 +87,7 @@ const workflow = defineDurable(
             return {
               status: "copied",
               name: newName,
-              id: copy.data?.[0]?.id ?? null,
+              id: (copy.data?.[0] as { id?: string } | undefined)?.id ?? null,
             };
           } catch (error) {
             return { status: "failed", name: newName, error: String(error) };

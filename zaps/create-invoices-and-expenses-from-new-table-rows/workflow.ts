@@ -102,7 +102,9 @@ const workflow = defineDurable(
           },
         }),
       );
-      const customerId = customer.data?.[0]?.id;
+      const customerId = (
+        customer.data?.[0] as { id?: string | number } | undefined
+      )?.id;
       if (!customerId) {
         return { skipped: true, reason: "customer-not-found", documentNumber };
       }
@@ -159,7 +161,8 @@ const workflow = defineDurable(
         inputs: { name: counterpartyName || DEFAULT_VENDOR_NAME },
       }),
     );
-    const vendorId = vendor.data?.[0]?.id;
+    const vendorId = (vendor.data?.[0] as { id?: string | number } | undefined)
+      ?.id;
     if (!vendorId) {
       return { skipped: true, reason: "vendor-not-found", documentNumber };
     }

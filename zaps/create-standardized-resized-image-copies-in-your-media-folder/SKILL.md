@@ -1,6 +1,6 @@
 ---
 name: create-standardized-resized-image-copies-in-your-media-folder
-description: Build a Zapier Next Gen Zap that runs hourly, finds new image files in a source Google Drive folder, and writes a copy of each into a destination folder with a size-specific filename, such as photo-1080x1080.jpg. Use when a content team keeps originals in one Drive folder and needs standardized, size-named copies ready in another without manual renaming.
+description: Build a Zap on Zapier that runs hourly, finds new image files in a source Google Drive folder, and writes a copy of each into a destination folder with a size-specific filename, such as photo-1080x1080.jpg. Use when a content team keeps originals in one Drive folder and needs standardized, size-named copies ready in another without manual renaming.
 license: MIT
 metadata:
   author: zapier
@@ -13,62 +13,50 @@ metadata:
 
 # Create standardized resized image copies in your media folder
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/create-standardized-resized-image-copies-in-your-media-folder. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** Schedule by Zapier, every hour at :00, every day of the week.
+1. **Trigger:** Schedule by Zapier (`schedule`, `everyHour`), every hour at :00, every day of the week.
 2. **Google Drive** lists the files in the source folder. Only files whose MIME type starts with `image/` continue.
-3. For each image, one step: if the destination folder already has a file with the target name, it's skipped; otherwise Google Drive copies the file into the destination folder under the new name. Each item fails on its own without stopping the others.
+3. For each image, Google Drive checks the destination folder. If a file with the new name is already there, the image is skipped; otherwise Google Drive copies the file into the destination folder under the new name. Each image fails on its own without stopping the others.
 4. The run returns counts of copied, already-existing and failed files.
 
-**Note:** the copy is a byte-for-byte duplicate with a new name. The spec describes no pixel resizing, so the workflow doesn't resize. The filename carries the size label.
-
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-standardized-resized-image-copies-in-your-media-folder` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-standardized-resized-image-copies-in-your-media-folder` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Schedule by Zapier, `everyHour` (`schedule`). No connection, so `authentication_id` is `null`. Params: `moh: 0`, `weekends: "yes"`.
-2. **Connections** (each alias in the code is the app's slug):
-   - `google-drive`: the Google Drive connection for the account that owns both folders.
-3. **Actions used:**
-   - `ae_50140_google_drive_get_files_from_folder_custom` (write type) to list the source folder.
-   - `file_v2` (search) to check for an existing destination file by exact name.
-   - `copy_file` (write) to create the resized copy.
-4. **Constants:**
-   - `SOURCE_FOLDER_ID`: the folder ID in the source folder's URL.
-   - `DESTINATION_FOLDER_ID`: the folder ID in the media folder's URL.
-   - `SIZE_SUFFIX`: appended before the extension. Defaults to `-1080x1080`.
-   - `MIME_PREFIX`: defaults to `image/`.
+The copy is a byte-for-byte duplicate with a new name. The Zap does not resize pixels; the filename carries the size label.
 
 ## Ask the user
 
-- Which Drive folder holds the originals, and which holds the media folder for the resized copies?
-- Which size label should the suffix use? The default is `-1080x1080`. Customize lists other sizes.
-- Should a file that already exists in the destination be skipped? The default is yes.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                         | What goes there                                                                                                             |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `REPLACE_SOURCE_FOLDER_ID`      | The Drive folder holding the original images. Ask which folder, then look up its ID with their Google Drive connection      |
+| `REPLACE_DESTINATION_FOLDER_ID` | The media folder that receives the resized copies. Ask which folder, then look up its ID with their Google Drive connection |
 
-Once a Google Drive connection is available, run one draft test (`run_workflow_draft`) with the source folder holding one test image named `[install-test] sample.jpg`, and check that:
+Also review the defaults with them: `SIZE_SUFFIX` (`-1080x1080`, appended before the extension; change it for other sizes) and `MIME_PREFIX` (`image/`, the MIME type prefix that counts as an image).
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `google-drive` to the user's Google Drive connection for the account that owns both folders. Schedule by Zapier needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/every-hour.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connection (and sample the trigger, if it has one) before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test with a source folder that holds one test image named `[install-test] sample.jpg`, and a destination folder the user controls. Check that:
 
 - the destination folder gets `[install-test] sample-1080x1080.jpg`, with the same bytes as the original;
 - running it again copies nothing and reports `already-exists`;
 - the source image itself is unchanged.
 
-Then delete the `[install-test]` files and disable the workflow.
-
-## Customize
-
-- **Other sizes:** change `SIZE_SUFFIX` (e.g. `-1080x1080` or `-640x640`) to produce other sizes.
-- **Image processing:** add a crop or compress step before upload for tighter quality control.
+If run-status tools aren't available, check the destination folder in Google Drive directly. Then publish, confirm the trigger is active, and ask the user to delete the `[install-test]` files; the agent doesn't delete test data.
 
 ## Notes
 
-- Google Drive file lists don't filter by MIME type, so the code filters in JavaScript after the folder listing.
-- The step that lists the folder uses a custom Drive action.
+- Google Drive file lists don't filter by MIME type, so the code filters the listing after it returns. The listing uses a custom Drive action.
 - If two source files share a name, the second copy is skipped as already existing.
+- To change the size label, edit `SIZE_SUFFIX` in `config.ts`.
+- The Zap only copies. To crop or compress, add a processing step before the copy.

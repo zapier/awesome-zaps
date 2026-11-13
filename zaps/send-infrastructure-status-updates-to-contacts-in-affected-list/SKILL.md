@@ -1,6 +1,6 @@
 ---
 name: send-infrastructure-status-updates-to-contacts-in-affected-list
-description: Build a Zapier Next Gen Zap that emails a templated infrastructure status update to each contact added to an affected-contacts list in HubSpot, after a short wait. Use when an incident hits infrastructure and support wants every affected contact told at once, without manual sends or a flood of tickets.
+description: Build a Zap on Zapier that emails a templated infrastructure status update to each contact added to an affected-contacts list in HubSpot, after a short wait. Use when an incident hits infrastructure and support wants every affected contact told at once, without manual sends or a flood of tickets.
 license: MIT
 metadata:
   author: zapier
@@ -13,46 +13,39 @@ metadata:
 
 # Send infrastructure status updates to contacts in affected list
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/send-infrastructure-status-updates-to-contacts-in-affected-list. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** HubSpot, New Contact in List (`new_contact_in_list_resthook_v3`). It fires when a contact is added to the list you choose.
+1. **Trigger:** a contact is added to the affected-contacts list in HubSpot (`hubspot`, `new_contact_in_list_resthook_v3`).
 2. **Wait:** one minute, so a batch of additions goes out together.
 3. **Skip:** if the contact has no email address, the run stops and sends nothing.
-4. **Gmail** sends the status email to the contact's address, with the fixed subject and template in `workflow.ts`.
+4. **Gmail** sends the status email to the contact's address, with the subject and template in the Zap's code.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/send-infrastructure-status-updates-to-contacts-in-affected-list` (it makes a zap project if you aren't in one), then `npx zap-pack deploy send-infrastructure-status-updates-to-contacts-in-affected-list` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** HubSpot, New Contact in List (`hubspot`, `new_contact_in_list_resthook_v3`). Set `params.list_id` to your HubSpot list ID in the trigger settings, not in the code. Connect a HubSpot account with access to that list. It needs a connection, so its `authentication_id` is that connection's ID.
-2. **Connections** (each alias in the code is the app's slug):
-   - `gmail`: the Gmail account that should send the status emails.
-3. **Constants:**
-   - `DELAY_SECONDS`: how long to wait after a contact is added. Defaults to `60`.
-   - `STATUS_SUBJECT`: the email subject.
-   - `STATUS_TEMPLATE`: the email body. `{name}` becomes the contact's first name, or "there" when none is set.
-
-No SMS step. The "SMS by Zapier" send action has no recipient field, so it can only text the connected number, not a contact. See `lossy` in the result for the details.
+The Zap never sends to a contact without an email address, and never texts anyone.
 
 ## Ask the user
 
-- Which HubSpot list holds the affected contacts? Set it as `list_id` on the trigger.
-- Which HubSpot account should the trigger use, and which Gmail account should send?
-- Is the status template right? It is a generic holding message; replace it with the wording the incident team has approved.
-- Should contacts with only a phone number be texted instead? That needs a different send step, since SMS by Zapier cannot reach contacts directly.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting           | Where                                                        | What goes there                                   |
+| ----------------- | ------------------------------------------------------------ | ------------------------------------------------- |
+| `REPLACE_LIST_ID` | `triggers/new-contact-in-list-resthook.ts`, `params.list_id` | The HubSpot list that holds the affected contacts |
 
-The HubSpot trigger has no connection on the account, and the CRM test rule allows a run only on a test or integration connection. To test once one is connected:
+Also review the defaults with them: `STATUS_SUBJECT` (`config.ts`, the email subject), and `STATUS_TEMPLATE` and `DELAY_SECONDS` (top of `workflow.ts`). The template is a generic holding message; replace it with the wording the incident team has approved.
 
-1. Run a draft test with this sample input, pointing the email at a mailbox you control:
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `gmail` to the Gmail account that should send the status emails. The HubSpot trigger uses `hubspot`, which needs a HubSpot connection with access to the affected-contacts list; bind it to that connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/new-contact-in-list-resthook.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections (and sample the trigger, if it has one) before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+The HubSpot trigger needs a test or integration connection to run in a draft test. Run it once as a draft test with this sample input, pointing the email at a mailbox you control:
 
 ```json
 {
@@ -64,17 +57,10 @@ The HubSpot trigger has no connection on the account, and the CRM test rule allo
 }
 ```
 
-2. Check that the run waits about a minute, then sends one email with the subject and the body filled in with "Test". Check that the run output has `sent: true` and a message ID.
-3. Check that a contact with no email returns `skipped: true` and sends nothing.
-
-Confirm them against a real trigger sample before you publish.
-
-## Customize
-
-- **Send a follow-up reminder three hours later** for unresolved incidents. Not built.
-- **Create a support task** for high-severity contacts. Not built.
+Check that the run waits about a minute, then sends one email with the subject and the body filled in with "Test". Check that the run output has `sent: true` and a message ID. Then run a contact with no email address and check that it returns `skipped: true` and sends nothing. If run-status tools aren't available, check the result in Gmail directly. Ask the user to delete the test email; the agent doesn't delete it. Confirm the sample against a real trigger sample before you publish, then confirm the trigger is active.
 
 ## Notes
 
-- Nothing is deduplicated. The spec's "not previously contacted for this incident" filter needs stored state the workflow does not have, so a contact added to the list twice gets two emails.
+- Nothing is deduplicated. A contact added to the list twice gets two emails, because the Zap keeps no record of who it has already contacted.
 - Test with your own address only. Email goes to whatever address the contact record holds.
+- Not built: a follow-up reminder three hours later, a support task for high-severity contacts, and texting contacts who have only a phone number (the SMS send action can only reach the connected number). Add them as steps after the email.

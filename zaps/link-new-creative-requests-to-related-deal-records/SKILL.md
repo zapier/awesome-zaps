@@ -1,6 +1,6 @@
 ---
 name: link-new-creative-requests-to-related-deal-records
-description: Build a Zapier Next Gen Zap that, when a new creative request is created on a monday.com requests board, finds the deal in your monday.com deal tracker whose name matches the request and links the request to that deal. Use when a marketing or creative team tracks design requests in monday.com and wants each request tied to its related deal without manual searching.
+description: Build a Zap on Zapier that, when a new creative request is created on a monday.com requests board, finds the deal in your monday.com deal tracker whose name matches the request and links the request to that deal. Use when a marketing or creative team tracks design requests in monday.com and wants each request tied to its related deal without manual searching.
 license: MIT
 metadata:
   author: zapier
@@ -13,43 +13,43 @@ metadata:
 
 # Link new creative requests to related deal records
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/link-new-creative-requests-to-related-deal-records. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a new item is created on your creative requests board in monday.com.
+1. **Trigger:** a new item is created on the creative requests board in monday.com (`monday`, `item_created_in_board`).
 2. **Normalize:** the request's title is split on common separators and the first word is taken as the search token. If the title is empty, the run stops and writes nothing.
-3. **monday.com** searches your deal board for items whose name matches that token. If nothing matches, the run stops and no deal record is created.
-4. **monday.com** updates the new request item and sets its board-relation column to the first matching deal.
+3. **monday** searches the deal board for items whose name matches that token. If nothing matches, the run stops and no deal record is created.
+4. **monday** updates the new request item and sets its board-relation column to the first matching deal.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run. The trigger's board field and the update's column keys are dynamic and need a live connection to resolve.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/link-new-creative-requests-to-related-deal-records` (it makes a zap project if you aren't in one), then `npx zap-pack deploy link-new-creative-requests-to-related-deal-records` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** monday.com, New Item in Board (`monday`, `item_created_in_board`). Set its board to your requests board.
-2. **Connections** (each alias in the code is the app's slug):
-   - `monday`: the user's monday.com connection, for the account that can read the deal board and edit the requests board.
-3. **Constants:**
-   - `REQUESTS_BOARD_ID`: the monday.com board ID of the creative requests board.
-   - `DEAL_BOARD_ID`: the monday.com board ID of the deal tracker.
-   - `DEAL_NAME_COLUMN`: the column key on the deal board to match against. Defaults to `name`, the item name column.
-   - `RELATION_COLUMN_ID`: the board-relation column on the requests board that points to deals.
+The Zap only reads the requests and deal boards and edits the request's relation column. Nothing is sent to anyone.
 
 ## Ask the user
 
-- Which monday.com board holds creative requests, and which holds deals?
-- Which column on the deal board holds the deal name the request should match? The default is the item name.
-- Which board-relation column on the requests board should receive the matched deal?
-- If a title has several words, is the first word a good enough match? The default is yes, and the first search result is used when several deals match.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                      | Where                                                                             | What goes there                                                        |
+| ---------------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `REPLACE_REQUESTS_BOARD_ID`  | `config.ts`, `REQUESTS_BOARD_ID`; `triggers/item-created-in-board.ts`, `board_id` | The creative requests board the trigger watches                        |
+| `REPLACE_DEAL_BOARD_ID`      | `config.ts`, `DEAL_BOARD_ID`                                                      | The deal tracker board to search for a matching deal                   |
+| `REPLACE_RELATION_COLUMN_ID` | `config.ts`, `RELATION_COLUMN_ID`                                                 | The board-relation column on the requests board that receives the deal |
 
-Build the workflow, then run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) with a request that has a deal in your tracker:
+The trigger and `config.ts` share `REPLACE_REQUESTS_BOARD_ID`, so one answer fills both.
+
+Also review the default with them: `DEAL_NAME_COLUMN` is `name`, the item name column of the deal board. The match uses the title's first word, so confirm that is specific enough for their titles.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `monday` to the user's monday.com connection, for the account that can read the deal board and edit the requests board. It is the only account.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/item-created-in-board.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connection and sample the trigger, since it has one, before the first test run. Fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test, using a test request on the requests board and a test deal on the deal board whose name starts with `Acme`:
 
 ```json
 {
@@ -58,15 +58,10 @@ Build the workflow, then run this sample as a draft test run (`run_workflow_draf
 }
 ```
 
-Confirm that the request item's relation column now links to the deal whose name starts with `Acme`, and that no other item changed. Then tell the user to unlink it if the request was real data.
-
-## Customize
-
-- **Create a deal when none matches:** add a monday.com create-item step on the deal board when the search returns no results.
-- **Assign the request owner from the deal:** after the link, copy the matched deal's owner field into the request's person column.
+Confirm that the request item's relation column now links to the deal whose name starts with `Acme`, and that no other item changed. If run-status tools aren't available, check the result in monday.com directly. Then publish and confirm the trigger is active. The user deletes test data, not the agent.
 
 ## Notes
 
-- The matching uses only the first word of the title, so short or generic first words can match the wrong deal. Check the deal name column is distinctive.
-- If several deals match, the first result is linked. Duplicate deal names will link to whichever monday.com returns first.
-- Only the trigger's board and the deal board are read. Nothing is sent to anyone.
+- The match uses only the first word of the title, so a short or generic first word can match the wrong deal. Make sure the deal name column is distinctive.
+- If several deals match, the first result is linked, so duplicate deal names link to whichever monday.com returns first.
+- To create a deal when none matches, add a create-item step on the deal board after the search. To copy the matched deal's owner onto the request, add a step after the link that sets the request's person column.

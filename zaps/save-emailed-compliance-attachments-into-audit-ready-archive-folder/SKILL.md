@@ -1,6 +1,6 @@
 ---
 name: save-emailed-compliance-attachments-into-audit-ready-archive-folder
-description: Build a Zapier Next Gen Zap that saves each new email attachment in Outlook into a compliance archive folder in Google Drive, named by email date, sender and subject. Use when a team collects compliance evidence by email and needs it filed in an audit-ready folder without manual uploads.
+description: Build a Zap on Zapier that saves each new email attachment in Outlook into a compliance archive folder in Google Drive, named by email date, sender and subject. Use when a team collects compliance evidence by email and needs it filed in an audit-ready folder without manual uploads.
 license: MIT
 metadata:
   author: zapier
@@ -13,45 +13,46 @@ metadata:
 
 # Save emailed compliance attachments into audit-ready archive folder
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/save-emailed-compliance-attachments-into-audit-ready-archive-folder. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a new attachment arrives in the connected Outlook inbox (Microsoft Outlook, New Attachment).
+1. **Trigger:** a new attachment arrives in the connected Outlook inbox (`microsoft-outlook`, `new_attachment`).
 2. **Code step:** builds the file name from the email's date, sender and subject plus the original attachment name, with characters that Drive or Windows dislike replaced. If the attachment has no name, the file is named from the date and sender only.
 3. **Google Drive** searches the archive folder for a file with that exact name. If one exists, the run stops and uploads nothing.
 4. **Google Drive** uploads the attachment to the archive folder under the built name.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/save-emailed-compliance-attachments-into-audit-ready-archive-folder` (it makes a zap project if you aren't in one), then `npx zap-pack deploy save-emailed-compliance-attachments-into-audit-ready-archive-folder` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Microsoft Outlook, New Attachment (`microsoft-outlook`, `new_attachment`). Leave the shared inbox and folder fields empty to use the connected user's own inbox. The trigger needs the Outlook connection.
-2. **Connections** (each alias in the code is the app's slug):
-   - `google-drive`: the Google Drive connection for the account that owns the archive folder.
-   - `microsoft-outlook`: the Outlook connection for the mailbox whose attachments should be archived. The trigger reads it.
-3. **Constants:**
-   - `ARCHIVE_FOLDER_ID`: the Google Drive folder ID of the audit-ready archive, the long ID at the end of the folder's URL.
-   - `FILENAME_PREFIX`: text added to the start of every file name. Leave it empty for real use.
-   - `MAX_FILENAME_LENGTH`: the longest file name written. Defaults to 180.
-4. Test with the steps below, then publish, wait until the trigger is active, and tell the user the trigger is live.
+The Zap never overwrites or deletes a file already in the archive.
 
 ## Ask the user
 
-- Which Google Drive folder is the audit-ready archive? Give its folder ID for `ARCHIVE_FOLDER_ID`.
-- Which mailbox should be watched: the user's own inbox (the default here), or a shared inbox? A shared inbox needs its address in the trigger's Shared Inbox field.
-- Should only attachments from a specific folder count? The trigger can be limited to a Parent Folder.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                     | What goes there                                                                                               |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `REPLACE_ARCHIVE_FOLDER_ID` | The Google Drive folder that is the audit-ready archive. Its ID is the long ID at the end of the folder's URL |
 
-Before testing, connect a Microsoft Outlook account and a test or integration Google Drive account, and create a test folder named `[install-test] Compliance archive`.
+Review these defaults with them: keep `FILENAME_PREFIX` in `config.ts` empty for real use, and `MAX_FILENAME_LENGTH` in `workflow.ts` (180) unless a reviewer needs shorter names.
 
-Run a draft test with a sample like this. The Outlook field names are not verified yet, so check them against the trigger's real sample first:
+Also ask:
+
+- Which mailbox should be watched: the user's own inbox (the default, with the trigger's shared inbox field left empty), or a shared inbox? A shared inbox needs its address in the trigger's Shared Inbox field.
+- Should only attachments from one folder count? The trigger can be limited to a Parent Folder.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `google-drive` to the user's Google Drive connection for the account that owns the archive folder, and `microsoft-outlook` to the Outlook connection for the mailbox whose attachments should be archived. The trigger reads `microsoft-outlook`. No other app needs a connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/new-attachment.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Before testing, connect a Microsoft Outlook account and a test or integration Google Drive account, and create a test folder named `[install-test] Compliance archive`. Point the archive folder at that test folder for the draft run.
+
+Run a draft test with a sample like this:
 
 ```json
 {
@@ -65,14 +66,11 @@ Run a draft test with a sample like this. The Outlook field names are not verifi
 
 Expected: one file named `2026-10-29 auditor@example.com - Q3 evidence - vendor-soc2-report.pdf` in the test folder. Running the same sample again should upload nothing and return `reason: "duplicate"`.
 
-## Customize
-
-- **Audit log row:** add a spreadsheet or table row for each saved file, for audit logging and indexing.
-- **High-risk alert:** send an internal notification when an attachment matches high-risk criteria.
+If run-status tools aren't available, check the test folder in Google Drive directly. Then publish, confirm the trigger is active, and tell the user the Zap is live. Ask the user to delete the test file and the test folder; the agent doesn't delete them.
 
 ## Notes
 
 - Dedupe works by file name in the archive folder, not by email message ID. Two different emails with the same date, sender, subject and attachment name count as duplicates.
-- The email metadata (sender, subject, date) is built into the file name only. The Google Drive upload action has no description field, so it is not stored as file metadata.
-- Outlook payload field names (`attachment_name`, `attachment_url`, `sender`, `subject`, `date`) are guesses, not yet checked against a live sample. Match them to the real trigger output before publishing.
-- Never commit a real folder ID.
+- The email metadata (sender, subject, date) is only in the file name. The Google Drive upload action has no description field, so it isn't stored as file metadata.
+- The Outlook payload field names (`attachment_name`, `attachment_url`, `sender`, `subject`, `date`) are not yet checked against a live sample. Match them to the trigger's real output before publishing.
+- To extend it: add a spreadsheet or table row for each saved file as an audit log, or send an internal alert when an attachment matches high-risk criteria.

@@ -2,12 +2,10 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { SPREADSHEET_ID, WORKSHEET_ID } from "./config.ts";
+import { RECRUITER_EMAILS, SPREADSHEET_ID, WORKSHEET_ID } from "./config.ts";
 
 const sdk = createZapierSdk();
 
-// Recruiter addresses that get the alert email. Send-from is the connected Outlook account.
-const RECRUITER_EMAILS = ["YOUR_RECRUITER_EMAIL@example.com"];
 // Keys of the lead fields in the Facebook Lead Ads payload. Confirm these against a real lead before publishing.
 const FIELD_KEYS = {
   submissionId: "id",

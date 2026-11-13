@@ -53,7 +53,8 @@ const workflow = defineDurable(
       }),
     );
 
-    const taskId = created.data[0]?.id;
+    const taskId = (created.data[0] as { id?: string | number } | undefined)
+      ?.id;
     if (!taskId) {
       return {
         skipped: true,

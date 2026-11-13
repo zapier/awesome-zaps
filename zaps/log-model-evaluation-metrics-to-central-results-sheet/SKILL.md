@@ -1,6 +1,6 @@
 ---
 name: log-model-evaluation-metrics-to-central-results-sheet
-description: Use when a model evaluation service posts prediction batches to a webhook and you want each batch scored against a canonical targets file in Google Drive, with total and high-error RMSE appended as one row to a shared Google Sheet for workshop review. Good for ML teams that keep a central results sheet and want evaluations logged without manual copying.
+description: Build a Zap on Zapier that scores each prediction batch a model evaluation service posts to a webhook against a canonical targets file in Google Drive, and appends its total and high-error RMSE as one row to a shared Google Sheet for workshop review. Use when ML teams keep a central results sheet and want evaluations logged without manual copying.
 license: MIT
 metadata:
   author: zapier
@@ -13,9 +13,11 @@ metadata:
 
 # Log model evaluation metrics to central results sheet
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/log-model-evaluation-metrics-to-central-results-sheet. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a prediction batch arrives at a Webhooks by Zapier catch hook (the evaluation service posts JSON to it).
+1. **Trigger:** a prediction batch arrives at a Webhooks by Zapier catch hook (`webhook`, `hook_v2`). The evaluation service posts JSON to it.
 2. **Google Drive** finds the targets file by exact name (first match) and downloads its contents.
 3. The workflow parses the targets, selects the entries for the batch's `workshop`, pairs each prediction with its target by `id`, and computes:
    - total RMSE across all paired predictions;
@@ -23,39 +25,40 @@ metadata:
      If no targets match the workshop, or no predictions pair with a target, the run stops and writes nothing.
 4. **Google Sheets** appends one new row with the batch ID, submission time, workshop, team, both RMSE values and the profit estimate.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/log-model-evaluation-metrics-to-central-results-sheet` (it makes a zap project if you aren't in one), then `npx zap-pack deploy log-model-evaluation-metrics-to-central-results-sheet` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Webhooks by Zapier, Catch Hook (`webhook`, `hook_v2`). It needs no connection, so its `authentication_id` is `null`.
-2. **Connections** (each alias in the code is the app's slug):
-   - `google-drive`: the Google Drive account that holds the targets file. Use a work or test account.
-   - `google-sheets`: the Google Sheets account that owns the results sheet.
-3. **Settings** (in `config.ts`; an `ask(…)` is asked when each person deploys):
-   - `TARGETS_FILE_NAME`: exact name of the targets JSON file in Drive.
-   - `SPREADSHEET_ID`: the long ID in the results sheet's URL.
-   - `WORKSHEET_ID`: the tab. The first tab is `"0"`.
-   - `BATCH_ID_COLUMN` … `PROFIT_ESTIMATE_COLUMN`: column keys such as `COL$A`, not header names. Map the sheet's headers to column letters.
-   - `HIGH_ERROR_THRESHOLD`: absolute error at which a prediction counts as high-error (default 1.0).
-4. Test with the steps below, then publish, wait until the trigger is active, and give the user their webhook URL to point the evaluation service at.
+The Zap only appends rows; it never changes rows already in the sheet.
 
 ## Ask the user
 
-- Which Drive file holds the targets, and what is its exact name?
-- What JSON layout does that file use? The workflow assumes `{ "<workshop>": [{ "id": ..., "actual": number }] }`. If it differs, change the lookup code before installing.
-- Which sheet and tab collect the results, and which columns hold each field?
-- What is the high-error threshold, if not 1.0? And how is the profit estimate computed, if it should be more than a pass-through of the payload's `profit_estimate`?
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                     | What goes there                                                                                            |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `REPLACE_TARGETS_FILE_NAME` | The exact name of the targets JSON file in Google Drive, looked up with the user's Google Drive connection |
+| `REPLACE_SPREADSHEET_ID`    | The central results sheet, looked up with the user's Google Sheets connection                              |
 
-To test, use a sample batch whose `workshop` and prediction `id`s exist in the targets file, for example:
+Review these defaults with the user:
+
+- `WORKSHEET_ID` in `config.ts`: `"0"` is the first tab.
+- `BATCH_ID_COLUMN` to `PROFIT_ESTIMATE_COLUMN` in `config.ts`: column keys such as `COL$A`, not header names. Map them to the sheet's columns: batch ID, submitted at, workshop, team, total RMSE, high-error RMSE, profit estimate.
+- `HIGH_ERROR_THRESHOLD` in `workflow.ts`: the absolute error at which a prediction counts as high-error (1.0 by default).
+
+Confirm two things before building:
+
+- The targets file is JSON shaped `{ "<workshop>": [{ "id": ..., "actual": number }] }`. If it differs, the lookup code must change first.
+- How the profit estimate is computed, if it should be more than a pass-through of the payload's `profit_estimate`.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `google-drive` (the Drive account that holds the targets file; a work or test account works) and `google-sheets` (the account that owns the results sheet) to the user's connections. Webhooks by Zapier needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/hook.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it. The trigger has no connection, so its `authentication_id` is `null`.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections (and sample the trigger, if it has one) before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test (`run_workflow_draft` in Zapier MCP) with a sample batch whose `workshop` and prediction `id`s exist in the targets file:
 
 ```json
 {
@@ -71,15 +74,11 @@ To test, use a sample batch whose `workshop` and prediction `id`s exist in the t
 }
 ```
 
-Run it as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing. Check that exactly one row was appended with the right batch ID and workshop, that the RMSE values match a hand calculation from the targets file, and that the row is the one you expect in the sheet. Then tell the user to delete the test row.
-
-## Customize
-
-- **Alert on high error:** add a Slack or email step when the high-error RMSE exceeds a configured threshold.
-- **Keep raw samples:** write the paired predictions and targets to a second worksheet for post-mortem analysis.
+Check that exactly one row was appended with the right batch ID and workshop, and that the RMSE values match a hand calculation from the targets file. If run-status tools aren't available, check the result in Google Sheets directly. Then publish, confirm the trigger is active, and give the user the webhook URL to point the evaluation service at. Ask the user to delete the test row; the agent doesn't delete test data.
 
 ## Notes
 
 - Skipped batches write nothing and notify no one. A failed Drive or Sheets call stops the run with an error.
 - Google Sheets may show the timestamp in the sheet's own format and time zone.
-- Never commit a real spreadsheet ID, file name or webhook URL. Anyone with the webhook URL can write rows to the sheet.
+- Keep the webhook URL private: anyone with it can write rows to the sheet.
+- To customize: add a Slack or email step that alerts when the high-error RMSE exceeds a threshold, or write the paired predictions and targets to a second worksheet for post-mortem analysis.

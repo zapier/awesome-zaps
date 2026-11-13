@@ -1,6 +1,6 @@
 ---
 name: send-exit-feedback-request-to-departing-customer-owner
-description: Build a Zapier Next Gen Zap that sends a personalized exit-feedback email to a customer as soon as their cancellation arrives by webhook, copying your retention inbox if you want. Use when a subscription or membership business wants to ask why a customer left, right away, without someone writing the email by hand.
+description: Build a Zap on Zapier that sends a personalized exit-feedback email to a customer as soon as their cancellation arrives by webhook, copying your retention inbox if you want. Use when a subscription or membership business wants to ask why a customer left, right away, without someone writing the email by hand.
 license: MIT
 metadata:
   author: zapier
@@ -13,46 +13,48 @@ metadata:
 
 # Send exit feedback request to departing customer owner
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/send-exit-feedback-request-to-departing-customer-owner. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a cancellation notice arrives at a Webhooks by Zapier catch hook (the billing system posts to it).
+1. **Trigger:** a cancellation notice arrives at a catch hook (`webhook`, `hook_v2`). The billing system posts to it.
 2. The payload's customer email is trimmed and lowercased. If it is missing, the run stops and sends nothing.
 3. The first name, the cancellation date and the customer's reason are tidied into the email. The feedback link is the payload's `feedback_url`, or `FEEDBACK_FORM_URL` if the payload has none.
 4. **Microsoft Outlook** sends the email to the customer, from the connected Outlook account. The retention inbox is copied only if `RETENTION_INBOX_CC` is set.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/send-exit-feedback-request-to-departing-customer-owner` (it makes a zap project if you aren't in one), then `npx zap-pack deploy send-exit-feedback-request-to-departing-customer-owner` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Webhooks by Zapier, Catch Hook (`webhook`, `hook_v2`). It needs no connection, so its `authentication_id` is `null`.
-2. **Connections** (each alias in the code is the app's slug):
-   - `microsoft-outlook`: the user's Microsoft Outlook connection, for the account that sends the feedback email.
-3. **Constants:**
-   - `FEEDBACK_FORM_URL`: the link to the feedback survey, used when the payload has no `feedback_url`.
-   - `RETENTION_INBOX_CC`: an address to copy on every email. Leave it empty to send to the customer only.
-4. Test with the steps below, then publish, wait until the trigger is active, and give the user the webhook URL to point their billing system at.
+The zap sends one email per notice and nothing else.
 
 ## Ask the user
 
-- Which Outlook account sends the email? (The Outlook connection is not set up on the account this was built in, so connect it first.)
-- What is the feedback survey link?
-- Should the retention inbox be copied on each email? If so, which address?
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
+
+| Setting                     | What goes there                                                            |
+| --------------------------- | -------------------------------------------------------------------------- |
+| `REPLACE_FEEDBACK_FORM_URL` | The feedback survey link, used when the cancellation has no `feedback_url` |
+
+Also review the defaults with them: `RETENTION_INBOX_CC` (empty by default, so the email goes to the customer only; set it to an address to copy it on every email).
+
+Then ask:
+
+- Which Outlook account sends the email? Connect it first if the user's account doesn't have one.
 - What does the billing system send? The workflow reads these top-level fields: `customer_email`, `customer_name`, `owner_name`, `cancellation_reason`, `cancelled_at`, `submission_id` and `feedback_url`. If the sender uses other names, change the schema to match before installing.
 
-## Test
+## Build it
 
-When the Outlook connection exists, run this sample as a draft test (`run_workflow_draft` in Zapier MCP) before publishing. Use the address of the connected Outlook account as the customer email, so the test email goes only to you:
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `microsoft-outlook` (the account that sends the feedback email) to the user's Microsoft Outlook connection. Webhooks by Zapier needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/hook.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections (and sample the trigger, if it has one) before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test. Set `customer_email` to the address of the connected Outlook account, so the test email goes only to the user:
 
 ```json
 {
-  "customer_email": "YOUR_OUTLOOK_ADDRESS",
+  "customer_email": "<the connected Outlook address>",
   "customer_name": "Test Customer",
   "owner_name": "Retention Team",
   "cancellation_reason": "Too expensive for what I use",
@@ -62,15 +64,10 @@ When the Outlook connection exists, run this sample as a draft test (`run_workfl
 }
 ```
 
-Check that one email arrived in the connected Outlook inbox, addressed to the customer's first name, with the cancellation date and reason in the body and the feedback link at the end. Then delete the test email.
-
-## Customize
-
-- **Add a CRM update** that marks the subscription canceled and tags it for nurture.
-- **Route responses** to a retention channel, or create a follow-up task for the account owner.
+Check that one email arrived in the connected Outlook inbox, addressed to the customer's first name, with the cancellation date and reason in the body and the feedback link at the end. If run-status tools aren't available, check the result in Outlook directly. Ask the user to delete the test email, not the agent. Then publish, confirm the trigger is active, and give the user the webhook URL to point their billing system at.
 
 ## Notes
 
 - Nothing is deduplicated. If the billing system can send the same cancellation twice, the customer gets two emails. A submission-ID check needs a place to store IDs, which this version does not have.
-- The email is sent immediately on receipt, as the spec asks.
-- Never commit a real feedback link, retention inbox address or webhook URL. Anyone with the webhook URL can trigger an email to whatever address they send.
+- Anyone with the webhook URL can trigger an email to any address they send, so keep the URL private.
+- To extend it: add a CRM update that marks the subscription canceled and tags it for nurture, or route responses to a retention channel or create a follow-up task for the account owner.

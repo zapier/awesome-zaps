@@ -54,7 +54,8 @@ const workflow = defineDurable(
       }),
     );
 
-    if (existing.data?.[0]?.id) {
+    const existingRow = existing.data?.[0] as { id?: unknown } | undefined;
+    if (existingRow?.id) {
       return { skipped: true, reason: "duplicate-message", messageId };
     }
 

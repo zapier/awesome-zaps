@@ -20,6 +20,10 @@ function formatMMDDYY(date: Date): string {
   return `${mm}/${dd}/${yy}`;
 }
 
+type DayResult =
+  | { day: string; recordIds: unknown[] }
+  | { day: string; failed: true; reason: string };
+
 const workflow = defineDurable(
   "create-weekly-job-invoicing-performance-report-for-finance",
   async (ctx) => {
@@ -37,27 +41,31 @@ const workflow = defineDurable(
     const periodEnd = days[0];
 
     const dayResults = await Promise.all(
-      days.map((day, index) =>
-        ctx.step(`find-closed-jobs-${index}`, async () => {
-          try {
-            const result = await sdk.runAction({
-              appKey: "zapier-tables",
-              actionType: "search",
-              actionKey: "find_record",
-              connection: "zapier-tables",
-              inputs: {
-                table_id: TABLE_ID,
-                filter_count: "1",
-                use_stored_order: false,
-                field_data_key: CLOSED_DATE_FIELD,
-                [LOOKUP_VALUE_FIELD]: day,
-              },
-            });
-            return { day, recordIds: result.data.map((row) => row.record_id) };
-          } catch (error) {
-            return { day, failed: true, reason: String(error) };
-          }
-        }),
+      days.map((day) =>
+        ctx.step(
+          `find-closed-jobs-${day.replaceAll("/", "-")}`,
+          async (): Promise<DayResult> => {
+            try {
+              const result = await sdk.runAction({
+                appKey: "zapier-tables",
+                actionType: "search",
+                actionKey: "find_record",
+                connection: "zapier-tables",
+                inputs: {
+                  table_id: TABLE_ID,
+                  filter_count: "1",
+                  use_stored_order: false,
+                  field_data_key: CLOSED_DATE_FIELD,
+                  [LOOKUP_VALUE_FIELD]: day,
+                },
+              });
+              const rows = result.data as { record_id: unknown }[];
+              return { day, recordIds: rows.map((row) => row.record_id) };
+            } catch (error) {
+              return { day, failed: true, reason: String(error) };
+            }
+          },
+        ),
       ),
     );
 

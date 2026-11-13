@@ -47,7 +47,7 @@ const workflow = defineDurable<Input, unknown>(
       }),
     );
 
-    const deal = found.data[0];
+    const deal = found.data[0] as { id: number | string } | undefined;
     if (!deal) {
       return { skipped: true, reason: "deal-not-found" };
     }

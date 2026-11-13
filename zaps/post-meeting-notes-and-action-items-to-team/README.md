@@ -6,16 +6,18 @@ When new meeting notes appear in your project folder, the action items are pulle
 
 **Based on:** [Post meeting notes and action items to team](https://zapier.com/automations/executives/meeting-management/meeting-notes-distribution/post-meeting-notes-and-action-items-to-team) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/post-meeting-notes-and-action-items-to-team/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/post-meeting-notes-and-action-items-to-team
+
+The agent follows `SKILL.md`: it asks you for your meeting notes folder, team Slack channel and meetings table, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
 - `connections/`: the accounts it uses (`google-drive`, `slack`, `zapier-tables`)
 - `triggers/`: what starts it

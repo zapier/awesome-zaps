@@ -79,7 +79,7 @@ const workflow = defineDurable(
     const parsed = InputSchema.parse(
       typeof rawInput === "string" ? JSON.parse(rawInput) : rawInput,
     );
-    const hire = "data" in parsed ? parsed.data : parsed;
+    const hire = "data" in parsed ? HirePayload.parse(parsed.data) : parsed;
     const { application } = hire;
 
     const team = application.hiringTeam ?? [];
@@ -91,26 +91,24 @@ const workflow = defineDurable(
 
     const startDate = hire.offer?.latestVersion?.startDate ?? "";
 
-    const created = await ctx.step(
-      `add-onboarding-row-${application.id}`,
-      async () =>
-        sdk.runAction({
-          appKey: "google-sheets",
-          actionType: "write",
-          actionKey: "add_row",
-          connection: "google-sheets",
-          inputs: {
-            spreadsheet: SPREADSHEET_ID,
-            worksheet: WORKSHEET_ID,
-            [START_DATE_COLUMN]: startDate,
-            [TITLE_COLUMN]: application.job?.title ?? "",
-            [NAME_COLUMN]: application.candidate?.name ?? "",
-            [CONTACT_EMAIL_COLUMN]:
-              application.candidate?.primaryEmailAddress?.value ?? "",
-            [MANAGER_NAME_COLUMN]: managerName,
-            [MANAGER_EMAIL_COLUMN]: manager?.email ?? "",
-          },
-        }),
+    const created = await ctx.step("add-onboarding-row", async () =>
+      sdk.runAction({
+        appKey: "google-sheets",
+        actionType: "write",
+        actionKey: "add_row",
+        connection: "google-sheets",
+        inputs: {
+          spreadsheet: SPREADSHEET_ID,
+          worksheet: WORKSHEET_ID,
+          [START_DATE_COLUMN]: startDate,
+          [TITLE_COLUMN]: application.job?.title ?? "",
+          [NAME_COLUMN]: application.candidate?.name ?? "",
+          [CONTACT_EMAIL_COLUMN]:
+            application.candidate?.primaryEmailAddress?.value ?? "",
+          [MANAGER_NAME_COLUMN]: managerName,
+          [MANAGER_EMAIL_COLUMN]: manager?.email ?? "",
+        },
+      }),
     );
 
     return {

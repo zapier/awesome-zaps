@@ -1,8 +1,8 @@
 // This zap's settings. Each "REPLACE_…" value is set per person before deploying; its comment says how to get it.
 // The other values are defaults you can change.
 
-export const STAGING_FOLDER_ID = "REPLACE_STAGING_FOLDER_ID"; // Google Drive folder ID of the staging folder (the last part of the folder's URL).
-export const SPREADSHEET_ID = "REPLACE_SPREADSHEET_ID"; // Google Sheets spreadsheet ID (the long ID in the sheet's URL).
+export const STAGING_FOLDER_ID = "REPLACE_STAGING_FOLDER_ID"; // Ask the user which Drive folder is the staging folder, then look up its ID with their Google Drive connection. It is the last part of the folder's URL.
+export const SPREADSHEET_ID = "REPLACE_SPREADSHEET_ID"; // Ask the user which sheet is the content planning sheet, then look up its ID with their Google Sheets connection. It is the long ID in the sheet's URL.
 
 // Worksheet (tab) ID; the first tab is "0".
 export const WORKSHEET_ID = "0";

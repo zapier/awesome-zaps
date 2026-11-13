@@ -6,16 +6,18 @@ When an ingestion pipeline reports a finished run or any errors, a short success
 
 **Based on:** [Send ingestion pipeline status to team channel immediately](https://zapier.com/automations/data-analytics/etl-management/pipeline-monitoring-alerting/send-ingestion-pipeline-status-to-team-channel-immediately) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/send-ingestion-pipeline-status-to-team-channel-immediately/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/send-ingestion-pipeline-status-to-team-channel-immediately
+
+The agent follows `SKILL.md`: it asks you which Slack channel gets the summary, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
-- `connections/`: the accounts it uses (`slack`)
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
+- `connections/`: the account it uses (`slack`)
 - `triggers/`: what starts it

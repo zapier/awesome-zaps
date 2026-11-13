@@ -71,7 +71,8 @@ const workflow = defineDurable(
       }),
     );
 
-    const rowId = existing.data?.[0]?.record_id as string | undefined;
+    const rowId = (existing.data?.[0] as { record_id?: string } | undefined)
+      ?.record_id;
 
     if (rowId) {
       const updated = await ctx.step("update-review-row", async () =>
@@ -104,7 +105,9 @@ const workflow = defineDurable(
     return {
       externalId,
       action: "created",
-      recordId: created.data?.[0]?.record_id ?? null,
+      recordId:
+        (created.data?.[0] as { record_id?: string } | undefined)?.record_id ??
+        null,
     };
   },
 );

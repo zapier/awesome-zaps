@@ -1,6 +1,6 @@
 ---
 name: create-design-request-cards-from-inbound-email-requests
-description: Use when a design or creative team takes requests by email and wants each one to become a Trello card on its intake list, with the subject, the body's details, the contact, the links and any due date filled in. Not for internal chatter or replies; it only acts on emails whose subject matches the request pattern.
+description: Build a Zap on Zapier that turns each design request forwarded by email into a Trello card on the design team's intake list, with the subject, the body's details, the contact, the links and any due date filled in. Use when a design or creative team takes requests by email and wants each one on its intake list. Not for internal chatter or replies; it only acts on emails whose subject matches the request pattern.
 license: MIT
 metadata:
   author: zapier
@@ -13,47 +13,43 @@ metadata:
 
 # Create design request cards from inbound email requests
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/create-design-request-cards-from-inbound-email-requests. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a new email is forwarded to your Email by Zapier address (`inbound_v2`, a custom `zapiermail.com` mailbox).
+1. **Trigger:** a new email is forwarded to your Email by Zapier mailbox (`email`, `inbound_v2`).
 2. **Filter:** if the subject does not match `SUBJECT_PATTERN`, the run stops and creates nothing.
 3. **Format:** the HTML body becomes plain text with normalised line breaks. Contact details, budget lines and URLs are pulled out of it.
 4. **Extract:** a due date is read from a phrase such as `Due: 2026-12-01` or `Deadline: December 1, 2026`, if one is present.
 5. **Match:** Trello is searched for an open card with the same name and the same received time. If one exists, nothing new is created.
 6. **Trello:** otherwise a card is created at the bottom of the intake list, with the body, contact, budget and links in its description and the due date set if one was found.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-design-request-cards-from-inbound-email-requests` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-design-request-cards-from-inbound-email-requests` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Email by Zapier, New Inbound Email (`email`, `inbound_v2`). It needs no connection, so `authentication_id` is `null`. Set the trigger parameter `identifier` to the same value as `MAIL_IDENTIFIER`, and leave `account_wide` as `user` unless the team wants a shared address.
-2. **Connections** (each alias in the code is the app's slug):
-   - `trello`: the Trello account whose board receives the cards.
-3. **Constants:**
-   - `MAIL_IDENTIFIER`: the name before `@zapiermail.com` that receives the forwarded requests. Lowercase letters and numbers only.
-   - `SUBJECT_PATTERN`: the pattern a subject must match to count as a request. Defaults to `/design request/i`.
-   - `TRELLO_BOARD_ID`: the board's ID.
-   - `TRELLO_INTAKE_LIST_ID`: the ID of the list new request cards go into.
-
-Each constant ships with a placeholder. Replace every one before publishing.
+The Zap only creates cards. It never replies to the sender.
 
 ## Ask the user
 
-- What name should the forwarding mailbox use (`MAIL_IDENTIFIER`)? Should it be user-specific or account-wide?
-- Which subject marks a design request? Keep the default or give another pattern.
-- Which Trello board and intake list should the cards go to?
-- Should only certain senders count? The workflow checks the subject only.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                 | Where                                                  | What goes there                                                                                           |
+| ----------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| `MAIL_IDENTIFIER`       | `config.ts`, and `identifier` in `triggers/inbound.ts` | The name before `@zapiermail.com` that receives the requests. Lowercase letters and numbers only.         |
+| `TRELLO_BOARD_ID`       | `config.ts`                                            | The design project board; look it up with the user's Trello connection                                    |
+| `TRELLO_INTAKE_LIST_ID` | `config.ts`                                            | The list new request cards go into: ask which list, then look up its ID with the user's Trello connection |
 
-Send a test email to the forwarding mailbox, or run this sample through the workflow's test run, using a test board and list:
+Also review the defaults with them: `SUBJECT_PATTERN` in `workflow.ts` (`/design request/i`, the pattern a subject must match) and the trigger's `account_wide` (`user`, so the mailbox is the user's own; set it to a shared address only if the team wants one). The workflow checks only the subject, so ask whether only certain senders should count. That needs a change to `workflow.ts`.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `trello` (the account whose board receives the cards) to the user's Trello connection. Email by Zapier needs none.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/inbound.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run this sample through the workflow's test run, with a test board and list:
 
 ```json
 {
@@ -73,17 +69,13 @@ Check that:
 - running the same email again creates no second card;
 - an email whose subject has no "design request" in it stops with `not-a-design-request` and creates nothing.
 
-Delete the test cards afterwards.
-
-## Customize
-
-- **Team chat notification for urgent requests:** add a Slack message after the card step for requests marked urgent.
-- **Calendar event on a due date:** create a calendar event when a valid due date is extracted.
+If run-status tools aren't available, check the result in Trello directly. Ask the user to delete the test cards; the agent doesn't delete them.
 
 ## Notes
 
 - Trello stores descriptions as Markdown, so line breaks and links from the email carry over as text.
 - Sections are read with simple text rules, not an AI step. A request phrased very differently may give a less complete card, but the full body always stays in the description.
 - Contact details go into the description as text, not as card members, because Trello needs member IDs for that.
-- The Trello search returns at most 50 open cards, so a very busy board could miss an existing duplicate.
-- Never commit a real board ID or mailbox address to a shared copy of this file.
+- The duplicate check searches at most 50 open cards, so a very busy board could miss an existing duplicate.
+- To extend it, add a step after the card: a Slack message for urgent requests, or a calendar event on a valid due date.
+- Don't commit a real board ID or mailbox address to a shared copy of this skill.

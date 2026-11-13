@@ -6,16 +6,18 @@ When a release goes on the calendar, the owner gets a Slack message with the tit
 
 **Based on:** [Send release calendar alert to product marketing manager](https://zapier.com/automations/product/product-launch-management/launch-coordination/send-release-calendar-alert-to-product-marketing-manager) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/send-release-calendar-alert-to-product-marketing-manager/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/send-release-calendar-alert-to-product-marketing-manager
+
+The agent follows `SKILL.md`: it asks you which Google Calendar is the release calendar and who gets the alert when no Slack user matches the organizer, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
 - `connections/`: the accounts it uses (`google-calendar`, `slack`)
 - `triggers/`: what starts it

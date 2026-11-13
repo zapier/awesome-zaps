@@ -2,26 +2,21 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { LOAN_OBJECT, EXTERNAL_LOAN_ID_FIELD } from "./config.ts";
+import {
+  LOAN_OBJECT,
+  EXTERNAL_LOAN_ID_FIELD,
+  STATUS_FIELD,
+  PROPERTY_STREET_FIELD,
+  PROPERTY_CITY_FIELD,
+  PROPERTY_STATE_FIELD,
+  PROPERTY_POSTAL_CODE_FIELD,
+  PRINCIPAL_BALANCE_FIELD,
+  INTEREST_RATE_FIELD,
+  NEXT_PAYMENT_DATE_FIELD,
+  MATURITY_DATE_FIELD,
+} from "./config.ts";
 
 const sdk = createZapierSdk();
-
-// CRM field keys for the values the feed updates. Set each to the matching field's key on LOAN_OBJECT.
-const CRM_FIELDS = {
-  // Loan status picklist.
-  status: "YOUR_LOAN_STATUS_FIELD",
-  // Property address parts.
-  propertyStreet: "YOUR_PROPERTY_STREET_FIELD",
-  propertyCity: "YOUR_PROPERTY_CITY_FIELD",
-  propertyState: "YOUR_PROPERTY_STATE_FIELD",
-  propertyPostalCode: "YOUR_PROPERTY_POSTAL_CODE_FIELD",
-  // Finance amounts and rate.
-  principalBalance: "YOUR_PRINCIPAL_BALANCE_FIELD",
-  interestRate: "YOUR_INTEREST_RATE_FIELD",
-  // Key dates.
-  nextPaymentDate: "YOUR_NEXT_PAYMENT_DATE_FIELD",
-  maturityDate: "YOUR_MATURITY_DATE_FIELD",
-};
 
 // The feed's field names are the keys below. Confirm them against a real sample payload before going live.
 const InputSchema = z
@@ -96,15 +91,15 @@ const workflow = defineDurable(
     }
 
     const values: Record<string, string | number | null> = {
-      [CRM_FIELDS.status]: input.status ?? null,
-      [CRM_FIELDS.propertyStreet]: input.property_street ?? null,
-      [CRM_FIELDS.propertyCity]: input.property_city ?? null,
-      [CRM_FIELDS.propertyState]: input.property_state ?? null,
-      [CRM_FIELDS.propertyPostalCode]: input.property_postal_code ?? null,
-      [CRM_FIELDS.principalBalance]: toNumber(input.principal_balance),
-      [CRM_FIELDS.interestRate]: toNumber(input.interest_rate),
-      [CRM_FIELDS.nextPaymentDate]: toIsoDate(input.next_payment_date),
-      [CRM_FIELDS.maturityDate]: toIsoDate(input.maturity_date),
+      [STATUS_FIELD]: input.status ?? null,
+      [PROPERTY_STREET_FIELD]: input.property_street ?? null,
+      [PROPERTY_CITY_FIELD]: input.property_city ?? null,
+      [PROPERTY_STATE_FIELD]: input.property_state ?? null,
+      [PROPERTY_POSTAL_CODE_FIELD]: input.property_postal_code ?? null,
+      [PRINCIPAL_BALANCE_FIELD]: toNumber(input.principal_balance),
+      [INTEREST_RATE_FIELD]: toNumber(input.interest_rate),
+      [NEXT_PAYMENT_DATE_FIELD]: toIsoDate(input.next_payment_date),
+      [MATURITY_DATE_FIELD]: toIsoDate(input.maturity_date),
     };
 
     const update = await ctx.step("update-crm-loan", async () =>

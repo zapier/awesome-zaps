@@ -6,16 +6,18 @@ Log each finished call to a Google Sheets call log, with its timing and recordin
 
 **Based on:** [Create call logs and email recording link to owner](https://zapier.com/automations/customer-service-success/call-center-operations/post-call-processing/create-call-logs-and-email-recording-link-to-owner) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/create-call-logs-and-email-recording-link-to-owner/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/create-call-logs-and-email-recording-link-to-owner
+
+The agent follows `SKILL.md`: it asks you for the call-log sheet and the owner's email address, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
 - `connections/`: the accounts it uses (`gmail`, `google-sheets`)
 - `triggers/`: what starts it

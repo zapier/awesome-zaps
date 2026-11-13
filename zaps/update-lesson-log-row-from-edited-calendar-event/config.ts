@@ -1,7 +1,7 @@
 // This zap's settings. Each "REPLACE_…" value is set per person before deploying; its comment says how to get it.
 // The other values are defaults you can change.
 
-export const SPREADSHEET_ID = "REPLACE_SPREADSHEET_ID"; // The calendar is set in the trigger config (`calendarid` on Google Calendar's "New or Updated Event" trigger), not in this file. Google Sheets spreadsheet ID (the long ID in the sheet's URL).
+export const SPREADSHEET_ID = "REPLACE_SPREADSHEET_ID"; // Ask the user which sheet is the lesson log, then look up its ID (the long ID in the sheet's URL) with their Google Sheets connection. The calendar is set on the trigger, not here.
 
 // Worksheet (tab) ID; the first tab is "0".
 export const WORKSHEET_ID = "0";

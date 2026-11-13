@@ -1,9 +1,9 @@
 // This zap's settings. Each "REPLACE_…" value is set per person before deploying; its comment says how to get it.
 // The other values are defaults you can change.
 
-export const AIRTABLE_BASE_ID = "REPLACE_AIRTABLE_BASE_ID"; // Airtable base ID that holds the request log (the long ID in the base's URL).
-export const AIRTABLE_TABLE_NAME = "REPLACE_AIRTABLE_TABLE_NAME"; // Table in that base that holds one row per palette request.
-export const SLACK_CHANNEL_ID = "REPLACE_SLACK_CHANNEL_ID"; // Slack channel ID that receives the palette (the long ID from the channel's details).
+export const AIRTABLE_BASE_ID = "REPLACE_AIRTABLE_BASE_ID"; // Ask the user which base holds the request log, then look up its ID (the long ID in the base's URL) with their Airtable connection.
+export const AIRTABLE_TABLE_NAME = "REPLACE_AIRTABLE_TABLE_NAME"; // Ask the user which table in that base holds one row per palette request, then look up its name with their Airtable connection.
+export const SLACK_CHANNEL_ID = "REPLACE_SLACK_CHANNEL_ID"; // Ask the user which channel receives the palette, then look up its ID (the long ID from the channel's details) with their Slack connection.
 
 // Column names in that table. They must match the table's field names exactly.
 export const AIRTABLE_REQUESTER_ID_FIELD = "Requester ID";

@@ -6,16 +6,18 @@ When a contract request lands or changes in your tracking sheet, the assigned ad
 
 **Based on:** [Send contract request emails to assigned advisors today](https://zapier.com/automations/legal/contract-management/contract-review/send-contract-request-emails-to-assigned-advisors-today) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/send-contract-request-emails-to-assigned-advisors-today/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/send-contract-request-emails-to-assigned-advisors-today
+
+The agent follows `SKILL.md`: it asks you which sheet is the contract request tracker, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
 - `connections/`: the accounts it uses (`google-sheets`, `microsoft-outlook`)
 - `triggers/`: what starts it

@@ -59,7 +59,7 @@ const workflow = defineDurable(
     for (const [index, attachment] of attachments.entries()) {
       const filename = attachment.filename ?? `attachment-${index + 1}`;
       try {
-        await ctx.step(`upload-attachment-${index}`, async () =>
+        await ctx.step(`upload-attachment-${filename}`, async () =>
           sdk.runAction({
             appKey: "google-drive",
             actionType: "write",

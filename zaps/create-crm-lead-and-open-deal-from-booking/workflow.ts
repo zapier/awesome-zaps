@@ -2,14 +2,9 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { EVENT_NAME_MATCH } from "./config.ts";
+import { EVENT_NAME_MATCH, INCOMING_STAGE_ID, OWNER_ID } from "./config.ts";
 
 const sdk = createZapierSdk();
-
-// Pipedrive stage ID (a number) that new deals open in. Replace 0 with your stage ID (YOUR_STAGE_ID).
-const INCOMING_STAGE_ID = 0;
-// Pipedrive user ID (a number) that owns new deals. Replace 0 with your user ID (YOUR_OWNER_ID).
-const OWNER_ID = 0;
 
 const InputSchema = z
   .object({
@@ -54,7 +49,9 @@ const workflow = defineDurable(
         },
       }),
     );
-    const personId = personResult.data[0]?.id;
+    const personId = (
+      personResult.data[0] as { id?: number | string } | undefined
+    )?.id;
     if (!personId) {
       throw new Error("Pipedrive did not return a person ID");
     }
@@ -68,14 +65,19 @@ const workflow = defineDurable(
         inputs: {
           title: `${eventName || "Booking"}: ${inviteeName}`,
           person_id: Number(personId),
-          stage_id: INCOMING_STAGE_ID,
-          owner_id: OWNER_ID,
+          stage_id: Number(INCOMING_STAGE_ID),
+          owner_id: Number(OWNER_ID),
           status: "open",
         },
       }),
     );
 
-    return { personId, dealId: dealResult.data[0]?.id ?? null };
+    return {
+      personId,
+      dealId:
+        (dealResult.data[0] as { id?: number | string } | undefined)?.id ??
+        null,
+    };
   },
 );
 

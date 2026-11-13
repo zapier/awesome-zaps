@@ -1,6 +1,6 @@
 ---
 name: send-daily-sales-ops-list-to-regional-stakeholders
-description: Build a Zapier Next Gen Zap that finds a designated sales worksheet in a Google Drive folder each weekday morning and emails it to stakeholders through Outlook, with the ops owner copied. Use when a sales ops or operations team wants the same daily list in regional stakeholders' inboxes before standups, without anyone sending it by hand.
+description: Build a Zap on Zapier that finds a designated sales worksheet in a Google Drive folder each weekday morning and emails it to stakeholders through Outlook, with the ops owner copied. Use when a sales ops or operations team wants the same daily list in regional stakeholders' inboxes before standups, without anyone sending it by hand.
 license: MIT
 metadata:
   author: zapier
@@ -13,58 +13,45 @@ metadata:
 
 # Send daily sales ops list to regional stakeholders
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/send-daily-sales-ops-list-to-regional-stakeholders. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** Schedule by Zapier fires every weekday (Monday to Friday) at the configured morning time, in the configured timezone.
-2. **Google Drive** searches the configured folder for the worksheet whose title exactly matches the configured title.
-3. If no file is found, the run stops and sends nothing.
+1. **Trigger:** Schedule by Zapier fires every weekday (Monday to Friday) at the morning time, in the schedule's timezone (`schedule`, `everyWeek`).
+2. **Google Drive** searches the folder for the worksheet whose title exactly matches the configured title.
+3. If no file is found, the run stops and sends nothing, so a wrong title fails quietly rather than sending an empty email.
 4. **Microsoft Outlook** sends the email: To and CC from the configured lists, the worksheet attached, and a short body naming the file.
-
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/send-daily-sales-ops-list-to-regional-stakeholders` (it makes a zap project if you aren't in one), then `npx zap-pack deploy send-daily-sales-ops-list-to-regional-stakeholders` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Schedule by Zapier, Every Week (`schedule`, `everyWeek`). It needs no connection, so its `authentication_id` is `null`. Set `dow` to Monday through Friday (`"0"` to `"4"`), `hod` to the morning time, and `timezone_override` to the timezone you want.
-2. **Connections** (each alias in the code is the app's slug):
-   - `google-drive`: the Google account that owns the worksheet folder.
-   - `microsoft-outlook`: the Outlook account that sends the email. Emails go from this account.
-3. **Constants:**
-   - `FOLDER_ID`: the Drive folder that holds the worksheet.
-   - `WORKSHEET_TITLE`: the exact file title.
-   - `RECIPIENTS`: the stakeholder email addresses.
-   - `CC_RECIPIENTS`: the ops owner's address.
-   - `SUBJECT`: the email subject.
-4. Test with the steps below, then publish. Wait until the trigger reads `active`, then give the user the editor link.
 
 ## Ask the user
 
-- Which Drive folder holds the worksheet, and what is its exact title (or pattern)?
-- Which Outlook account sends the email, and who are the stakeholders and the ops owner?
-- What morning time and timezone should the schedule use?
-- Should the run post an alert to ops when the worksheet is missing? The default is to stop quietly.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                     | What goes there                                                                  |
+| --------------------------- | -------------------------------------------------------------------------------- |
+| `REPLACE_FOLDER_ID`         | The Drive folder that holds the worksheet, found with their Google Drive account |
+| `REPLACE_WORKSHEET_TITLE`   | The worksheet file's exact title, or the pattern to match                        |
+| `REPLACE_STAKEHOLDER_EMAIL` | The regional stakeholders' email addresses for To, in `workflow.ts`              |
+| `REPLACE_OPS_OWNER_EMAIL`   | The ops owner's email address for CC, in `workflow.ts`                           |
 
-Run this as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing. The trigger is a schedule, so there is no payload; the run input is empty. Use a test folder that holds one copy of the worksheet, and send only to your own address. Then:
+Also review the defaults with them: `SUBJECT` in `config.ts` (the email subject), the weekday schedule and the 9:00 AM morning time in `triggers/every-week.ts` (`dow` and `hod`), and the schedule's timezone (set `timezone_override` on the trigger if it should differ from the default). Ask whether ops should get an alert when the worksheet is missing; the default stops quietly.
 
-- Confirm the Drive search returned exactly one file.
-- Confirm the email arrived at the test address with the worksheet attached and the CC set.
-- Confirm a second run against a folder with no matching file returns `worksheet-not-found` and sends nothing.
+## Build it
 
-## Customize
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
 
-- **Attach a generated summary export** from a spreadsheet row range, before the send.
-- **Route recipients by region or team** using a lookup table.
+1. **Accounts:** bind `google-drive` to the Google account that owns the worksheet folder, and `microsoft-outlook` to the Outlook account that sends the email. Schedule by Zapier needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/every-week.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect the Drive search and the Outlook send with the user's connections before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test with a test folder that holds one copy of the worksheet, and send only to the user's own address. The trigger is a schedule, so the run input is empty. Check that the Drive search returns exactly one file and that the email arrives at the test address with the worksheet attached and the CC set. Then point the test at a folder with no matching file: it should return `worksheet-not-found` and send nothing.
+
+If run-status tools aren't available, check the result in Outlook directly. Ask the user to delete the test email and copy, since the agent does not delete data.
 
 ## Notes
 
-- Drive folder scoping and the attachment link are not verified yet; see the lossy list in `result.json`. Run the test before relying on either.
-- The worksheet is attached through the Drive file's link. Check the attachment on the first real send.
-- Never commit a real folder ID, email address or webhook URL. The `RECIPIENTS` and `CC_RECIPIENTS` constants are placeholders for that reason.
+- The worksheet is attached through the Drive file's link, and folder scoping is not verified yet. Check the attachment and the search on the first real send.
+- Don't commit a real folder ID or email address; the `REPLACE_…` values are placeholders for that reason.
+- To extend it, attach a generated summary export from a spreadsheet row range before the send, or route recipients by region or team with a lookup table.

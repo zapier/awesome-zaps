@@ -1,6 +1,6 @@
 ---
 name: create-weekly-board-update-and-share-preparation-documents
-description: Build a Zapier Next Gen Zap that, every week, copies your board-update template into a dated document in OneDrive, creates an editable share link, and posts it as a monday.com update with a Friday deadline. Use when an executive or chief of staff prepares a weekly board update and wants the document and the team's deadline set up automatically.
+description: Build a Zap on Zapier that, every week, copies your board-update template into a dated document in OneDrive, creates an editable share link, and posts it as a monday.com update with a Friday deadline. Use when an executive or chief of staff prepares a weekly board update and wants the document and the team's deadline set up automatically.
 license: MIT
 metadata:
   author: zapier
@@ -13,6 +13,8 @@ metadata:
 
 # Create weekly board update and share preparation documents
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/create-weekly-board-update-and-share-preparation-documents. Read the files there if this skill was installed on its own.
+
 ## What it does
 
 1. **Trigger:** every week on the configured weekday and time (Schedule by Zapier).
@@ -21,52 +23,45 @@ metadata:
 4. **OneDrive** creates an editable share link for the document, keeping inherited permissions.
 5. **monday.com** posts an update on the configured board item with the link and the deadline.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-weekly-board-update-and-share-preparation-documents` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-weekly-board-update-and-share-preparation-documents` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Schedule by Zapier, Every Week (`schedule`, `everyWeek`). It needs no connection, so its `authentication_id` is `null`. The reference build uses Monday at 9:00 AM.
-2. **Connections** (each alias in the code is the app's slug):
-   - `onedrive`: the Microsoft OneDrive connection for the account that owns the template and the destination folder.
-   - `monday`: the monday.com connection for the account that owns the board item.
-3. **Constants:**
-   - `DESTINATION_FOLDER_ID`: the OneDrive folder ID where dated copies go.
-   - `TEMPLATE_FILE_ID`: the OneDrive file ID of the weekly template.
-   - `DOC_NAME_PREFIX`: the start of the document name. Defaults to `"Board update"`.
-   - `BOARD_ITEM_ID`: the monday.com item ID that receives the update.
+The Zap only creates the document and the update. It never edits the document's contents; the team adds their updates there.
 
 ## Ask the user
 
-- Which OneDrive folder should hold the dated copies, and which file is the template?
-- Which monday.com board item should receive the update?
-- What weekday and time should the run start? (The code does not change; it is set on the trigger.)
-- Should the document name prefix be something other than `Board update`?
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                         | What goes there                                                                                              |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `REPLACE_DESTINATION_FOLDER_ID` | The OneDrive folder that holds the dated copies. Find it with the user's OneDrive connection.                |
+| `REPLACE_TEMPLATE_FILE_ID`      | The weekly board-update template in OneDrive, copied each week. Find it with the user's OneDrive connection. |
+| `REPLACE_BOARD_ITEM_ID`         | The monday.com item that receives the update. Find it with the user's monday.com connection.                 |
 
-No test was run. To test before publishing, use `run_workflow_draft` with no input, once the OneDrive and monday.com connections are bound. Check that:
+Also review the defaults with them:
+
+- `DOC_NAME_PREFIX`: the start of the document name, `"Board update"` by default. The week-of date is appended.
+- The weekday and time on the trigger, set in `triggers/every-week.ts`. The reference build runs Monday at 9:00 AM.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `onedrive` (the account that owns the template and the destination folder) and `monday` (the account that owns the board item) to the user's connections. Schedule by Zapier needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/every-week.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections (and sample the trigger, if it has one) before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test with no input, using a template copy and a test board item the user controls, since the update is visible to everyone on the item:
 
 - A document named `Board update - week of <Monday>` exists in the destination folder, either newly copied from the template or the existing one.
 - The share link opens for editing without sign-in.
 - The monday.com item has a new update containing that link and the "Friday ... end of business" deadline.
 
-Use a template copy and a test board item you control; the update is visible to everyone on the item.
-
-## Customize
-
-- **Post to a team channel** instead of a board item, or add an attachment list for additional resources.
-- **Mention the assigned owners** of the board item in the update body. Not built: it needs the owners column read from monday.com, which requires a connection.
+If run-status tools aren't available, check the result in OneDrive and monday.com directly. Then ask the user to delete the test document and the test update, not the agent. Publish only after the test passes, and confirm the trigger is active.
 
 ## Notes
 
 - Dates are computed in UTC. Set a timezone override on the trigger if the week boundary matters.
-- If a document with the same name already exists, the workflow reuses it and does not copy the template again.
-- Confirm them on the first real run.
+- If a document with the same name already exists, the Zap reuses it and does not copy the template again.
+- To post to a team channel instead of a board item, or to add an attachment list, change the last step. Mentioning the item's assigned owners needs the owners column read from monday.com, which the Zap does not do yet.
 - Never commit a real folder ID, template ID or board item ID.

@@ -6,15 +6,18 @@ Randomly sort each new Kit subscriber into an A or B group with a tag, so your w
 
 **Based on:** [Assign randomized A/B test tags to new subscribers](https://zapier.com/automations/design/user-testing/a-b-test-management/assign-randomized-a-b-test-tags-to-new-subscribers) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/assign-randomized-a-b-test-tags-to-new-subscribers/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/assign-randomized-a-b-test-tags-to-new-subscribers
+
+The agent follows `SKILL.md`: it asks you for the trigger tag and the two group tags, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `connections/`: the accounts it uses (`kit`)
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
+- `connections/`: the account it uses (`kit`)
 - `triggers/`: what starts it

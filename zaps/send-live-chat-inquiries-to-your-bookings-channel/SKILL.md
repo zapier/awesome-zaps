@@ -1,6 +1,6 @@
 ---
 name: send-live-chat-inquiries-to-your-bookings-channel
-description: Build a Zapier Next Gen Zap that posts new website live chat messages from external contacts into your team's Slack bookings channel, with the sender, a message preview and a link to the conversation. Use when a website live chat or chatbot sends messages to a webhook and coordinators want each inquiry in Slack as it arrives.
+description: Build a Zap on Zapier that posts new website live chat messages from external contacts into your team's Slack bookings channel, with the sender, a message preview and a link to the conversation. Use when a website live chat or chatbot sends messages to a webhook and coordinators want each inquiry in Slack as it arrives.
 license: MIT
 metadata:
   author: zapier
@@ -13,40 +13,39 @@ metadata:
 
 # Send live chat inquiries to your bookings channel
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/send-live-chat-inquiries-to-your-bookings-channel. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a chat tool posts each new message to a Webhooks by Zapier catch hook.
+1. **Trigger:** a chat tool posts each new message to a Webhooks by Zapier catch hook (`webhook`, `hook_v2`).
 2. **Filter:** if the payload's `sender_type` is not `external`, the run stops there. Internal and system messages never post.
 3. **Slack** posts a message to the bookings channel. The bot name and icon are set in the code. The text has the sender's email in bold, a preview of the message (cut at 280 characters), and an "Open conversation" link to the chat.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/send-live-chat-inquiries-to-your-bookings-channel` (it makes a zap project if you aren't in one), then `npx zap-pack deploy send-live-chat-inquiries-to-your-bookings-channel` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Webhooks by Zapier, Catch Hook (`webhook`, `hook_v2`). It needs no connection, so its `authentication_id` is `null`.
-2. **Connections** (each alias in the code is the app's slug):
-   - `slack`: the Slack connection for the workspace that has the bookings channel.
-3. **Constants:**
-   - `BOOKINGS_CHANNEL_ID`: the Slack channel ID (starts with `C`), not the channel name.
-   - `BOT_NAME` and `BOT_ICON`: the name and emoji or image URL shown on each alert.
-   - `MESSAGE_PREVIEW_LENGTH`: how many characters of the message to show. Defaults to `280`.
-4. Test with the steps below, then publish, wait until the trigger is active, and give the user their webhook URL to point their chat tool at.
+Nothing is sent back to the chat or the visitor; coordinators reply in the chat tool themselves.
 
 ## Ask the user
 
-- Which Slack channel is the bookings channel? Its ID goes in `BOOKINGS_CHANNEL_ID`.
-- What does the chat tool send? The code expects `sender_email`, `sender_type`, `message_text` and `conversation_url`. If the tool uses other field names, change the `InputSchema` keys to match before installing.
-- What value marks a message as coming from an outside contact? The code expects `sender_type: "external"`. Anything else is skipped.
-- Should the bot name and icon be something other than "Live Chat Inquiries" and `:speech_balloon:`?
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's Slack connection; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                       | What goes there                                                              |
+| ----------------------------- | ---------------------------------------------------------------------------- |
+| `REPLACE_BOOKINGS_CHANNEL_ID` | The Slack channel that gets the alerts: its ID (starts with C), not the name |
+
+Also review the defaults with them: `BOT_NAME` and `BOT_ICON` in `config.ts` (the name and emoji or image URL shown on each alert), and `MESSAGE_PREVIEW_LENGTH` in `workflow.ts` (how many characters of the message show, 280 by default).
+
+- What does the chat tool send? The code expects `sender_email`, `sender_type`, `message_text` and `conversation_url`. If the tool uses other field names, change the `InputSchema` keys in `workflow.ts` to match before installing.
+- What value marks a message as coming from an outside contact? The code expects `sender_type: "external"`. Anything else is skipped.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `slack` to the user's Slack connection for the workspace with the bookings channel, and make sure that connection is a member of that channel. Webhooks by Zapier needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/hook.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
 
 Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing:
 
@@ -59,20 +58,12 @@ Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before 
 }
 ```
 
-Confirm that one message appeared in the bookings channel, with the bot name, the sender in bold, the message text and an "Open conversation" link. The run's Slack step output has the message's permalink, which is a good read-back.
+Check that one message appears in the bookings channel, with the bot name, the sender in bold, the message text and an "Open conversation" link. The run's Slack step output has the message's permalink, which is a good read-back. Then run the same sample with `"sender_type": "internal"`, and check that the run finishes as `skipped` with reason `not-an-external-contact` and that nothing appears in the channel.
 
-Then run the same sample with `"sender_type": "internal"`. Confirm the run finishes as `skipped` with reason `not-an-external-contact`, and that no message appears in the channel.
-
-Delete the test message from the channel afterwards if it was a real channel.
-
-## Customize
-
-- **Route high-intent messages** to a dedicated on-call user, or send a direct message to the booking owner instead of the channel.
-- **Shorten or redact** the message with a text formatter step before it posts, for example to hide phone numbers or card details.
+If run-status tools aren't available, check the result in Slack directly. Ask the user to delete the test messages; the agent doesn't delete them. Then publish and confirm the trigger is active.
 
 ## Notes
 
-- The Slack message is posted as a bot, so it cannot be replied to from a person's name; coordinators reply in the chat tool through the link.
-- The Slack connection must be a member of the bookings channel, or the post will fail. The code does not add it.
-- Anyone with the webhook URL can post into the bookings channel. Keep it out of shared documents and public repositories.
-- Never commit a real channel ID or webhook URL.
+- The alert is posted as a bot, so it can't be replied to from a person's name; coordinators reply in the chat tool through the link.
+- After publishing, give the user the catch hook URL to point their chat tool at. Anyone with that URL can post into the bookings channel, so keep it out of shared documents and public repositories.
+- To route high-intent messages to an on-call user or send a direct message to the booking owner, or to hide phone numbers or card details, add a step before the post.

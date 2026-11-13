@@ -70,7 +70,7 @@ const workflow = defineDurable(
       sent: true,
       to: prospectEmail,
       eventId: input.id ?? null,
-      emailId: sent.data?.[0]?.id ?? null,
+      emailId: (sent.data?.[0] as { id?: string } | undefined)?.id ?? null,
     };
   },
 );

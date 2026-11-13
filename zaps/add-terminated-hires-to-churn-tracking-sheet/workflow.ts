@@ -77,7 +77,7 @@ const workflow = defineDurable(
     const hireDate = toDayMonthYear(input.hire_date);
     const hours = text(input.weekly_working_hours);
 
-    const row = await ctx.step(`add-churn-row-${employeeId}`, async () =>
+    const row = await ctx.step("add-churn-row", async () =>
       sdk.runAction({
         appKey: "google-sheets",
         actionType: "write",

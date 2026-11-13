@@ -104,7 +104,11 @@ const workflow = defineDurable(
         );
         if (
           (existing.data ?? []).some(
-            (card: { name?: string }) => card.name === employee.name,
+            (card) =>
+              typeof card === "object" &&
+              card !== null &&
+              "name" in card &&
+              card.name === employee.name,
           )
         ) {
           results.push({

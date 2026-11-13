@@ -6,16 +6,18 @@ When a new appointment is added in Salesforce, a bonus transaction for the staff
 
 **Based on:** [Create staff bonus records when appointments are added](https://zapier.com/automations/human-resources-hr/payroll-compensation/payroll-processing/create-staff-bonus-records-when-appointments-are-added) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/create-staff-bonus-records-when-appointments-are-added/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/create-staff-bonus-records-when-appointments-are-added
+
+The agent follows `SKILL.md`: it asks you which Salesforce objects and fields hold appointments, staff and bonus transactions, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
-- `connections/`: the accounts it uses (`salesforce`)
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
+- `connections/`: the account it uses (`salesforce`)
 - `triggers/`: what starts it

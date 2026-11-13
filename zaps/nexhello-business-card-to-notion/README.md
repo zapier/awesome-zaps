@@ -2,35 +2,22 @@
 
 Scan a business card with NexHello and the contact lands in your Notion contacts database. Scan the same person again and the row is updated, never duplicated.
 
-Based on [NexHello's guide to sending business cards to Notion with Zapier](https://www.nexhello.com/integrations/business-card-to-notion-with-zapier/).
-
 **Apps:** Webhooks by Zapier, Notion
 
-## How it works
+**Based on:** [NexHello's guide to sending business cards to Notion with Zapier](https://www.nexhello.com/integrations/business-card-to-notion-with-zapier/).
 
-**Starts with:** Webhooks by Zapier Catch Hook
+## Install
 
-1. Skip NexHello's connection test and events without a contact. Stops if it is not a contact event.
-2. Find the contact by NexHello Contact ID (Notion)
-3. **Not found:** Create the contact (Notion)
-4. Update the contact's fields (Notion)
+This folder is a Zap template. Paste this into your AI agent:
 
-## What you need
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/nexhello-business-card-to-notion
 
-- Notion
-
-## Install it
-
-Paste this into Claude, ChatGPT, Cursor, or any agent with [Zapier MCP](https://zapier.com/mcp) connected:
-
-> Install the Next Gen Zap at https://zapier.sh/zaps/nexhello-business-card-to-notion using Zapier MCP.
-
-If you have this repo, the files in this folder are everything the agent needs: it follows `SKILL.md` and deploys `workflow.ts`.
+The agent follows `SKILL.md`: it asks you for the Notion database that holds your contacts, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
-- `connections/`: the accounts it uses (`notion`)
-- `triggers/`: what starts it
-- `SKILL.md`: how an agent builds it, what to ask you, and how to test it
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
+- `connections/`: the account it uses (`notion`)
+- `triggers/`: what starts it (a Webhooks by Zapier catch hook)

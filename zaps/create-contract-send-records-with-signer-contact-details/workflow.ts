@@ -54,7 +54,7 @@ const workflow = defineDurable(
 
       try {
         // Match on email and request ID, so a repeated event does not add a second row.
-        const match = await ctx.step(`find-signer-row-${index}`, async () =>
+        const match = await ctx.step(`find-signer-row-${email}`, async () =>
           sdk.runAction({
             appKey: "zapier-tables",
             actionType: "search",
@@ -78,7 +78,7 @@ const workflow = defineDurable(
           continue;
         }
 
-        await ctx.step(`create-signer-row-${index}`, async () =>
+        await ctx.step(`create-signer-row-${email}`, async () =>
           sdk.runAction({
             appKey: "zapier-tables",
             actionType: "write",

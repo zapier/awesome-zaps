@@ -6,16 +6,18 @@ Every hour, the latest rows from your Salesforce report are written into your re
 
 **Based on:** [Create hourly finance report records in your reporting table](https://zapier.com/automations/finance/financial-reporting/management-reporting/create-hourly-finance-report-records-in-your-reporting-table) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/create-hourly-finance-report-records-in-your-reporting-table/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/create-hourly-finance-report-records-in-your-reporting-table
+
+The agent follows `SKILL.md`: it asks you for the Salesforce report that feeds finance, the Zapier Table that receives its rows, and the order of the report's columns, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
 - `connections/`: the accounts it uses (`salesforce`, `zapier-tables`)
 - `triggers/`: what starts it

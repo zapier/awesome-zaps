@@ -60,7 +60,9 @@ const workflow = defineDurable(
       }),
     );
 
-    return { sent: true, contactId, messageId: sent.data?.[0]?.id ?? null };
+    const messageId =
+      (sent.data?.[0] as { id?: string | null } | undefined)?.id ?? null;
+    return { sent: true, contactId, messageId };
   },
 );
 

@@ -1,6 +1,6 @@
 ---
 name: update-design-records-with-new-render-file-download-links
-description: Build a Zapier Next Gen Zap that writes the share link of each new render into the matching design record in a Notion database, so teams can open the asset from the record. Use when design or CAD renders land in a Dropbox folder and the team tracks them in a Notion database by file name.
+description: Build a Zap on Zapier that writes the share link of each new render into the matching design record in a Notion database, so teams can open the asset from the record. Use when design or CAD renders land in a Dropbox folder and the team tracks them in a Notion database by file name.
 license: MIT
 metadata:
   author: zapier
@@ -13,46 +13,41 @@ metadata:
 
 # Update design records with new render file download links
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/update-design-records-with-new-render-file-download-links. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a new file appears in your render folder in Dropbox (non-recursive). The trigger also creates a public share link for the file.
-2. **Notion** searches your design database for a record whose title equals the file name without its extension. If there is no match, the run stops and writes nothing, and the file name is returned for manual review.
-3. **Notion** writes the share link into the record's download URL property. Records are never created automatically.
+1. **Trigger:** a new file appears in the render folder in Dropbox (`dropbox`, `new_file`, not recursive). The trigger also creates a public share link for the file.
+2. **Notion** searches the design database for a record whose title equals the file name without its extension. If there is no match, the run stops and writes nothing, and the file name is returned for manual review.
+3. **Notion** writes the share link into the record's download URL property.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/update-design-records-with-new-render-file-download-links` (it makes a zap project if you aren't in one), then `npx zap-pack deploy update-design-records-with-new-render-file-download-links` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Dropbox, New File in Folder (`dropbox`, action `new_file`). Set these trigger parameters:
-   - `directory`: the render folder's path from your Dropbox root, such as `/Renders`.
-   - `recursive`: `false`.
-   - `include_file_contents`: `no`. Set it to `no` so large renders do not fail the run. The workflow does not read file contents.
-   - `include_sharing_link`: `yes`, and `sharing_link_audience`: `public`. The share link arrives in the trigger's `share_link` field.
-   - Trigger connection: your Dropbox connection, chosen when you build it. Leave `authentication_id` null until then.
-2. **Connections** (each alias in the code is the app's slug):
-   - `notion`: the Notion connection for the workspace that holds the design database.
-3. **Constants:**
-   - `NOTION_DATA_SOURCE_ID`: the ID of the design database's data source. Open the database in Notion and copy it from the database's settings, or ask Zapier for the data source ID.
-   - `NOTION_TITLE_PROPERTY`: the title property of the design records, `"Name"` by default.
-   - `NOTION_DOWNLOAD_URL_PROPERTY`: the URL property that receives the link, `"Download URL"` by default. Create this property in the database first.
-4. Test with the steps below, then publish, wait until the trigger is active, and give the user the trigger's webhook details if any. The trigger needs no webhook; it watches the folder.
+The Zap never creates a record.
 
 ## Ask the user
 
-- Which Dropbox folder holds the renders? Set it as the trigger's `directory`.
-- Which Notion database is the design database, and what are its title and download-URL properties?
-- Should a record's title equal the file name without its extension? The workflow assumes yes. If the team names records differently, change the match in `workflow.ts`.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                         | Where                               | What goes there                                                                                          |
+| ------------------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `REPLACE_RENDER_FOLDER`         | `triggers/new-file.ts`, `directory` | The Dropbox folder that holds the renders, as a path from the Dropbox root, such as `/Renders`           |
+| `REPLACE_NOTION_DATA_SOURCE_ID` | `config.ts`                         | The Notion database (data source) that holds the design records; look it up from the name the user gives |
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing, with a design record whose title matches the file name. Create the record yourself and name it `[install-test] ...`:
+Also review the defaults with them: `NOTION_TITLE_PROPERTY` (`"Name"`, the title property on the design records) and `NOTION_DOWNLOAD_URL_PROPERTY` (`"Download URL"`, the URL property that receives the link; create it in the database first).
+
+Confirm that each design record's title equals the file name without its extension, since the workflow matches on that. If the team names records differently, change the match in `workflow.ts` before building.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `dropbox` (the account that can see the render folder) and `notion` (the workspace that holds the design database) to the user's connections. The trigger uses `dropbox`.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/new-file.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them, and set the trigger's parameters from its `params`. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections (and sample the trigger, if it has one) before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test, with a design record whose title matches the sample's file name. Create that record yourself and name it `[install-test] bracket-v3.step`:
 
 ```json
 {
@@ -62,15 +57,12 @@ Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before 
 }
 ```
 
-Confirm that the matching record's download URL property holds the sample link. Then clear the test value from the record.
-
-## Customize
-
-- **Filter to final renders:** add a filter step so the workflow continues only for files whose name contains a suffix such as `_final`, or a set of extensions.
-- **Create the share link automatically:** add a Dropbox action that creates a share link before writing it, for files whose trigger returns no link.
+Check that the matching record's download URL property holds the sample link. If run-status tools aren't available, check the record in Notion directly. Then ask the user to delete the test record, since the agent does not delete test data. Publish only after the test passes, and confirm the trigger is active.
 
 ## Notes
 
-- Matching uses the file name without its extension, against the title property. Two records with the same title: the first match is used.
-- Notion's native "Update Data Source Item" action only appends page body content, so the workflow sets the URL property with a direct Notion API request instead. That request needs the Notion connection to authorize it.
-- Do not commit a real Notion data source ID or Dropbox folder path to a shared copy of this file.
+- Matching uses the file name without its extension, against the title property. If two records share a title, the first match is used.
+- To continue only for final renders, add a filter step for names containing a suffix such as `_final`, or for a set of extensions.
+- For files whose trigger returns no share link, add a Dropbox action before the write that creates one.
+- Notion's native "Update Data Source Item" action only appends page body content, so the workflow sets the URL property with a direct Notion API request, which needs the Notion connection.
+- Keep a real Notion data source ID or Dropbox folder path out of any shared copy of this zap.

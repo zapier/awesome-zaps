@@ -6,16 +6,18 @@ When a HubSpot contact becomes a customer, their conversion is sent to Google Ad
 
 **Based on:** [Send customer conversion to ad platform after update](https://zapier.com/automations/marketing/advertising-ppc/google-ads-management/send-customer-conversion-to-ad-platform-after-update) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/send-customer-conversion-to-ad-platform-after-update/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/send-customer-conversion-to-ad-platform-after-update
+
+The agent follows `SKILL.md`: it asks you which Google Ads conversion action gets the conversions and which account sends them, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
 - `connections/`: the accounts it uses (`google-ads`, `hubspot`)
 - `triggers/`: what starts it

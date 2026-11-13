@@ -1,6 +1,6 @@
 ---
 name: create-daily-crawl-health-check-ticket-for-monitoring
-description: Build a Zapier Next Gen Zap that opens a Zendesk ticket every morning at 9:00 AM with a templated crawl health checklist, so monitoring staff can triage crawl issues from one ticket. Use when a team runs a daily crawl or site-health check and wants a consistent ticket each day instead of a manual one.
+description: Build a Zap on Zapier that opens a Zendesk ticket every morning at 9:00 AM with a templated crawl health checklist, so monitoring staff can triage crawl issues from one ticket. Use when a team runs a daily crawl or site-health check and wants a consistent ticket each day instead of a manual one.
 license: MIT
 metadata:
   author: zapier
@@ -13,58 +13,48 @@ metadata:
 
 # Create daily crawl health check ticket for monitoring
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/create-daily-crawl-health-check-ticket-for-monitoring. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** Schedule by Zapier fires every day at 9:00 AM (account timezone), weekends included.
-2. **Code step:** builds the ticket subject (`Daily crawl health check: <date>`) and a checklist comment with the run time and a fixed list of checklist items. Plain code, no app call.
-3. **Zendesk** creates one ticket with that subject and checklist as its first comment, assigned to the monitoring group, normal priority, type incident, with the monitoring tags. The requester is your service account.
+1. **Trigger:** `schedule` (`everyDay`) fires every day at 9:00 AM in the account timezone, weekends included.
+2. **Code:** builds the ticket subject (`Daily crawl health check: <date>`) and a checklist comment with the run time and a fixed list of checklist items. No app call.
+3. **Zendesk** (`zendesk`) creates one ticket with that subject and checklist as its first comment, assigned to the monitoring group, with the priority, type and tags set in `config.ts`. The requester is the service account set there.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-daily-crawl-health-check-ticket-for-monitoring` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-daily-crawl-health-check-ticket-for-monitoring` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Schedule by Zapier, `everyDay` (`schedule`). It needs no connection, so its `authentication_id` is `null`. Params: `hod: "9:00 AM"`, `weekends: "yes"`, no timezone override.
-2. **Connections** (each alias in the code is the app's slug):
-   - `zendesk`: the user's Zendesk connection, for the account that owns the monitoring queue.
-3. **Settings** (in `config.ts`; an `ask(…)` is asked when each person deploys):
-   - `REQUESTER_NAME`, `REQUESTER_EMAIL`: the service account the tickets are requested by.
-   - `MONITORING_GROUP_ID`: the numeric Zendesk group ID. Replace the `0` placeholder.
-   - `TICKET_PRIORITY`, `TICKET_TYPE`, `TICKET_TAGS`: priority, type and tags on every ticket.
-   - `FIRST_COMMENT_PUBLIC`: whether the checklist comment is visible to the requester.
-   - `CHECKLIST_ITEMS`: the checklist lines in the ticket body.
+The checklist is a fixed template: the Zap does not read crawl diagnostics.
 
 ## Ask the user
 
-- Which Zendesk group should own the tickets, and what is its numeric ID?
-- Which service account is the requester (name and email)?
-- Should the tickets use a different priority, type or tags than normal, incident and `crawl-health,monitoring,daily-check`?
-- Does the checklist need different items from the four placeholders in `CHECKLIST_ITEMS`?
-- Is the account timezone the one to run at 9:00 AM? If not, set a timezone override on the trigger.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                   | What goes there                                                                                                               |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `REPLACE_REQUESTER_NAME`  | The service account the tickets are requested by: look up its name in Zendesk (`config.ts`)                                   |
+| `REPLACE_REQUESTER_EMAIL` | That same service account's email, looked up in Zendesk (`config.ts`)                                                         |
+| `MONITORING_GROUP_ID`     | The numeric ID of the Zendesk group that owns the tickets, looked up in Zendesk (`workflow.ts`, replaces the `0` placeholder) |
 
-Once the Zendesk connection exists, run it as a draft test before publishing: `run_workflow_draft` with an empty input, since the trigger sends no fields the code reads. Then check that:
+Also review the defaults with them: `TICKET_PRIORITY` (normal), `TICKET_TYPE` (incident), `TICKET_TAGS` (`crawl-health,monitoring,daily-check`), `FIRST_COMMENT_PUBLIC` (`no`, so the checklist is internal), and the checklist items in `workflow.ts`. The trigger runs at 9:00 AM in the account timezone; if that is not the time they want, set a timezone override on the trigger.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `zendesk` to the user's Zendesk connection for the account that owns the monitoring queue. Schedule by Zapier needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/every-day.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test with an empty input `{}`, since the trigger sends no fields the code reads. Check that:
 
 - one ticket appears in the monitoring group with the subject `Daily crawl health check: <today>`;
 - its first comment lists the run time and the checklist items;
-- the requester, priority, type and tags match the constants.
+- the requester, priority, type and tags match the settings.
 
-Close or delete the test ticket afterwards.
-
-## Customize
-
-- **Attach logs or monitoring snapshots:** add a step that pulls logs from cloud storage or a monitoring tool and attaches them to the ticket.
-- **Post a link on-call:** after the ticket is created, post its link to the on-call channel, so it is seen right away.
+If run-status tools aren't available, check the result in Zendesk directly. Ask the user to close or delete the test ticket; the agent doesn't delete test data. Then publish and confirm the trigger is active.
 
 ## Notes
 
-- The Zendesk ticket action needs a connection before it can run. This file was built without one.
-- The checklist is a fixed template. It does not read crawl diagnostics, because the source automation did not name a diagnostics feed.
-- Fill in every `YOUR_…` value or `0` placeholder before deploying. A ticket cannot be created with a placeholder group.
+- The checklist is a fixed template, so it carries no crawl data. To add it, pull logs or a monitoring snapshot in a step before the ticket and attach them.
+- To post the new ticket's link to an on-call channel, add a step after the ticket is created.

@@ -1,6 +1,6 @@
 ---
 name: create-it-ticket-for-updated-website-asset-record
-description: Build a Zapier Next Gen Zap that creates an IT ticket in Airtable when a website asset row is created or updated, skipping assets that already have a ticket. Use when a team tracks website assets in Airtable and wants engineers to get a ticket with the asset's context as soon as the record changes.
+description: Build a Zap on Zapier that creates an IT ticket in Airtable when a website asset row is created or updated, skipping assets that already have a ticket. Use when a team tracks website assets in Airtable and wants engineers to get a ticket with the asset's context as soon as the record changes.
 license: MIT
 metadata:
   author: zapier
@@ -13,6 +13,8 @@ metadata:
 
 # Create IT ticket for updated website asset record
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/create-it-ticket-for-updated-website-asset-record. Read the files there if this skill was installed on its own.
+
 ## What it does
 
 1. **Trigger:** Airtable's "New or Updated Record" fires when a record in the website asset table is created or changed.
@@ -20,37 +22,33 @@ metadata:
 3. **Airtable** creates a ticket: title from the asset's title and submitter, start date from the asset's date, the asset link in the description, priority from the asset (`High` or `Critical` only, otherwise `Medium`), and status `Open`.
 4. **Airtable** (optional) writes the new ticket's record ID back to the asset row, so the asset shows its ticket.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-it-ticket-for-updated-website-asset-record` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-it-ticket-for-updated-website-asset-record` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Airtable, New or Updated Record (`airtable`, `updated_record`). Set `applicationId` to the base, `tableName` to the asset table, and `filterByField` to the table's last-modified-time column.
-2. **Connections** (each alias in the code is the app's slug):
-   - `airtable`: the user's Airtable connection, for the account that owns both tables.
-3. **Constants:**
-   - `BASE_ID`, `ASSET_TABLE`, `ASSET_MODIFIED_FIELD`, `TICKETS_TABLE`: the base and table IDs or names.
-   - `ASSET_*` and `TICKET_*` field names: the column names in the user's two tables. Match them exactly, including case.
-   - `ASSET_TICKET_LINK_FIELD` and `LINK_TICKET_ON_ASSET`: the column that receives the ticket link, and whether to write it.
-   - `INITIAL_STATUS`, `DEFAULT_PRIORITY`: the ticket status for new tickets and the priority used by default.
-4. Test with the steps below, then publish, wait until the trigger is active, and give the user the editor link.
+The Zap only creates tickets. If an asset changes after its ticket exists, the existing ticket is left as it is.
 
 ## Ask the user
 
-- Which base holds the asset table and the IT tickets table? Which table is each?
-- Which asset column holds the unique asset ID, the title, the submitter, the date, the asset link and the priority? Which column is the last-modified-time field the trigger should watch?
-- Which column in the asset table should receive the ticket link, or should the link-back step be turned off?
-- What status should a new ticket get? Which priorities besides `High` and `Critical` should override the default?
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                        | What goes there                                                                       |
+| ------------------------------ | ------------------------------------------------------------------------------------- |
+| `REPLACE_BASE_ID`              | The Airtable base that holds the asset and IT tickets tables                          |
+| `REPLACE_ASSET_TABLE`          | The table of website assets. The trigger watches it for new or updated records        |
+| `REPLACE_ASSET_MODIFIED_FIELD` | The asset table's last-modified-time column, which the trigger uses to detect updates |
+| `REPLACE_TICKETS_TABLE`        | The table where IT tickets are created                                                |
 
-Run as a draft test run (`run_workflow_draft`) before publishing. Use a test asset row in a copy of the tables, not live data:
+Also review the defaults with them: the `ASSET_*` and `TICKET_*` column names in `config.ts` must match their two tables exactly, including case. `ASSET_TICKET_LINK_FIELD` is the asset column that receives the ticket link, and `LINK_TICKET_ON_ASSET` in `workflow.ts` turns that link-back step on or off. `INITIAL_STATUS` is the status for new tickets, and `DEFAULT_PRIORITY` is the priority used unless the asset is flagged `High` or `Critical`. Ask whether any priorities besides those two should override the default.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `airtable` to the user's Airtable connection for the account that owns both tables.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/updated-record.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger watches the asset table: set its base to `BASE_ID`, its table to `ASSET_TABLE`, and its `filterByField` to `ASSET_MODIFIED_FIELD`. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connection and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test (`run_workflow_draft`) with a test asset row in a copy of the tables, not live data:
 
 ```json
 {
@@ -59,22 +57,15 @@ Run as a draft test run (`run_workflow_draft`) before publishing. Use a test ass
   "Title": "Homepage hero image broken",
   "Submitter": "Test User",
   "Date": "2026-10-29",
-  "Asset link": "https://airtable.com/YOUR_BASE_ID/YOUR_ASSET_TABLE_NAME/recTESTASSET0001",
+  "Asset link": "https://airtable.com/<base-id>/<asset-table>/recTESTASSET0001",
   "Priority": "High"
 }
 ```
 
-Check that one new ticket appears in the IT tickets table with the title, date, description, `High` priority and `Open` status. Run it again with the same Asset ID and check that no second ticket is created. Check that the asset row's ticket link was written. Then delete the test rows.
-
-_Not yet run._ The sample above is the intended test input. The payload shape is not confirmed, because no sample was read from the trigger.
-
-## Customize
-
-- **Notify assignees:** add a Slack or email step after the ticket is created, to tell the team about the new ticket.
-- **Ticket templates by department or priority:** choose the ticket's fields from the asset's department or priority, using different templates for different cases.
+Check that one new ticket appears in the IT tickets table with the title, date, description, `High` priority and `Open` status. Run it again with the same Asset ID and check that no second ticket is created. Check that the asset row's ticket link was written. If run-status tools aren't available, check the result in Airtable directly. Ask the user to delete the test rows; the agent doesn't delete them.
 
 ## Notes
 
-- Updating the asset row to write the ticket link fires the trigger again. The existing-ticket check stops a second ticket from being created, but the run still happens. Turn off `LINK_TICKET_ON_ASSET` if that extra run is a problem.
-- The workflow only creates tickets. If an asset changes after its ticket exists, the existing ticket is left as it is.
-- Never commit a real base ID, table ID or spreadsheet link. Anyone with access to the workflow can see the field mapping.
+- Writing the ticket link to the asset row fires the trigger again. The existing-ticket check stops a second ticket from being created, but the run still happens. Set `LINK_TICKET_ON_ASSET` to `false` if that extra run is a problem.
+- To notify assignees, add a Slack or email step after the ticket is created. To choose ticket fields by department or priority, branch on the asset's department or priority before the create step.
+- Anyone with access to the workflow can see the field mapping, so keep real base and table IDs out of public repositories.

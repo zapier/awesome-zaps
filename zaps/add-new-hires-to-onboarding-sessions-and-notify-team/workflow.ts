@@ -13,10 +13,8 @@ const sdk = createZapierSdk();
 
 // How long to wait for BambooHR to have the hire's record before touching calendars (24 hours).
 const HR_PROPAGATION_DELAY_SECONDS = 24 * 60 * 60;
-// BambooHR location value mapped to the search term for that location's onboarding sessions.
-const LOCATION_SESSION_SEARCH_TERMS: Record<string, string> = {
-  YOUR_BAMBOOHR_LOCATION: "YOUR_LOCATION_SESSION_SEARCH_TERM",
-};
+// BambooHR location value mapped to the search term for that location's onboarding sessions. Empty means every location uses DEFAULT_SESSION_SEARCH_TERM.
+const LOCATION_SESSION_SEARCH_TERMS: Record<string, string> = {};
 // How many days after the hire date to look for onboarding sessions.
 const SESSION_WINDOW_DAYS = 30;
 
@@ -58,10 +56,9 @@ const workflow = defineDurable(
     if (!email) {
       return { skipped: true, reason: "no-account-email" };
     }
-    const userId = input.id ?? email;
     const fullName = input.name?.fullName ?? email;
 
-    await ctx.step(`notify-onboarding-channel-${userId}`, async () =>
+    await ctx.step("notify-onboarding-channel", async () =>
       sdk.runAction({
         appKey: "slack",
         actionType: "write",
@@ -80,19 +77,17 @@ const workflow = defineDurable(
 
     await ctx.wait("wait-for-hr-record", HR_PROPAGATION_DELAY_SECONDS);
 
-    const search = await ctx.step(
-      `find-bamboohr-employee-${userId}`,
-      async () =>
-        sdk.runAction({
-          appKey: "bamboohr",
-          actionType: "search",
-          actionKey: "employeeSearch",
-          connection: "bamboohr",
-          inputs: {
-            search_by: "email",
-            search_term: email,
-          },
-        }),
+    const search = await ctx.step("find-bamboohr-employee", async () =>
+      sdk.runAction({
+        appKey: "bamboohr",
+        actionType: "search",
+        actionKey: "employeeSearch",
+        connection: "bamboohr",
+        inputs: {
+          search_by: "email",
+          search_term: email,
+        },
+      }),
     );
 
     const employee = search.data?.[0] as BambooEmployee | undefined;
@@ -105,35 +100,30 @@ const workflow = defineDurable(
       LOCATION_SESSION_SEARCH_TERMS[location] ?? DEFAULT_SESSION_SEARCH_TERM;
 
     // Date math is journaled in a step: the durable runtime rejects `new Date()` in workflow scope.
-    const window = await ctx.step(
-      `compute-session-window-${userId}`,
-      async () => {
-        const parsed = employee.hireDate ? Date.parse(employee.hireDate) : NaN;
-        const fromMs = Number.isNaN(parsed) ? Date.now() : parsed;
-        return {
-          from: new Date(fromMs).toISOString(),
-          to: new Date(fromMs + SESSION_WINDOW_DAYS * DAY_MS).toISOString(),
-        };
-      },
-    );
+    const window = await ctx.step("compute-session-window", async () => {
+      const parsed = employee.hireDate ? Date.parse(employee.hireDate) : NaN;
+      const fromMs = Number.isNaN(parsed) ? Date.now() : parsed;
+      return {
+        from: new Date(fromMs).toISOString(),
+        to: new Date(fromMs + SESSION_WINDOW_DAYS * DAY_MS).toISOString(),
+      };
+    });
 
-    const found = await ctx.step(
-      `find-onboarding-sessions-${userId}`,
-      async () =>
-        sdk.runAction({
-          appKey: "google-calendar",
-          actionType: "search",
-          actionKey: "event_v2",
-          connection: "google-calendar",
-          inputs: {
-            calendarid: ONBOARDING_CALENDAR_ID,
-            search_term: searchTerm,
-            end_time: window.from,
-            start_time: window.to,
-            expand_recurring: "true",
-            ordering: "startTime",
-          },
-        }),
+    const found = await ctx.step("find-onboarding-sessions", async () =>
+      sdk.runAction({
+        appKey: "google-calendar",
+        actionType: "search",
+        actionKey: "event_v2",
+        connection: "google-calendar",
+        inputs: {
+          calendarid: ONBOARDING_CALENDAR_ID,
+          search_term: searchTerm,
+          end_time: window.from,
+          start_time: window.to,
+          expand_recurring: "true",
+          ordering: "startTime",
+        },
+      }),
     );
 
     const sessions = (found.data as CalendarEvent[]).filter(

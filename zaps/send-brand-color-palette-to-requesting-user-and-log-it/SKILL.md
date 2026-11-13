@@ -1,6 +1,6 @@
 ---
 name: send-brand-color-palette-to-requesting-user-and-log-it
-description: Build a Zapier Next Gen Zap that answers a /brand-colors slash command with the brand's color palette in Slack and logs each request to Airtable. Use when a team asks for brand colors through a chat command and you want requests tracked for audit.
+description: Build a Zap on Zapier that answers a /brand-colors slash command with the brand's color palette in Slack and logs each request to Airtable. Use when a team asks for brand colors through a chat command and you want requests tracked for audit.
 license: MIT
 metadata:
   author: zapier
@@ -13,46 +13,42 @@ metadata:
 
 # Send brand color palette to requesting user and log it
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/send-brand-color-palette-to-requesting-user-and-log-it. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a slash command payload arrives at a Webhooks by Zapier catch hook (the chat platform posts to it).
+1. **Trigger:** a slash command arrives at a Webhooks by Zapier catch hook (`webhook`, `hook_v2`). The chat platform posts the command to it.
 2. **Airtable** looks for an existing request row with the same requester ID. If there is none, it creates a row with the requester, command, text and origin channel.
-3. **Slack** posts the brand palette to a channel, with the primary and complementary colors.
+3. **Slack** posts the brand palette to the channel, with the primary and complementary colors.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/send-brand-color-palette-to-requesting-user-and-log-it` (it makes a zap project if you aren't in one), then `npx zap-pack deploy send-brand-color-palette-to-requesting-user-and-log-it` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Webhooks by Zapier, Catch Hook (`webhook`, `hook_v2`). It needs no connection, so its `authentication_id` is `null`.
-2. **Connections** (each alias in the code is the app's slug):
-   - `airtable`: the Airtable account that owns the request log.
-   - `slack`: the Slack workspace account that can post to the channel.
-3. **Constants:**
-   - `AIRTABLE_BASE_ID`: the long ID in the base's URL.
-   - `AIRTABLE_TABLE_NAME`: the table that holds one row per request.
-   - `AIRTABLE_REQUESTER_ID_FIELD`, `AIRTABLE_REQUESTER_NAME_FIELD`, `AIRTABLE_COMMAND_FIELD`, `AIRTABLE_MESSAGE_FIELD`, `AIRTABLE_ORIGIN_FIELD`: the table's column names, matched exactly.
-   - `SLACK_CHANNEL_ID`: the channel the palette is posted to.
-   - `RESOURCE_PREFIX`: a prefix on everything the workflow creates. Test runs use `[install-test] `; set it to `""` once installed.
-   - `PRIMARY_COLORS`, `COMPLEMENTARY_COLORS`: the brand's palette.
-4. Test with the steps below, then publish, wait until the trigger is active, and give the user their webhook URL to point their chat platform at.
+A requester gets one row: repeat requests post the palette again but add no second row.
 
 ## Ask the user
 
-- Which Airtable base and table hold the request log, and what are the column names for requester ID, requester name, command, message note and origin?
-- Which Slack channel should receive the palette?
-- What are the brand's primary and complementary colors?
-- Does the chat platform post the slash-command fields as `user_id`, `user_name`, `command`, `text` and `channel_id`? If not, tell them before installing; the code reads those names.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                       | What goes there                                         |
+| ----------------------------- | ------------------------------------------------------- |
+| `REPLACE_AIRTABLE_BASE_ID`    | The Airtable base that holds the request log            |
+| `REPLACE_AIRTABLE_TABLE_NAME` | The table in that base with one row per palette request |
+| `REPLACE_SLACK_CHANNEL_ID`    | The Slack channel that receives the palette             |
 
-When the connections are live, run this sample as a draft test run (`run_workflow_draft`) before publishing:
+Also review the defaults with them: the column names in `config.ts` (`AIRTABLE_REQUESTER_ID_FIELD`, `AIRTABLE_REQUESTER_NAME_FIELD`, `AIRTABLE_COMMAND_FIELD`, `AIRTABLE_MESSAGE_FIELD`, `AIRTABLE_ORIGIN_FIELD`), which must match the table's field names exactly; `RESOURCE_PREFIX`, which is `[install-test] ` for testing and `""` once installed; and `PRIMARY_COLORS` and `COMPLEMENTARY_COLORS` at the top of `workflow.ts`, which should be the brand's palette.
+
+Confirm the chat platform posts the slash-command fields as `user_id`, `user_name`, `command`, `text` and `channel_id`. If it doesn't, tell the user before installing, because the code reads those names.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `airtable` (the account that owns the request log) and `slack` (a workspace account that can post to the channel) to the user's connections. Webhooks by Zapier needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/hook.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test (`run_workflow_draft`) before publishing:
 
 ```json
 {
@@ -64,17 +60,10 @@ When the connections are live, run this sample as a draft test run (`run_workflo
 }
 ```
 
-Check that: a row is created in the request table with `[install-test] install-test` as the requester name; the palette message appears once in the test channel with the `[install-test] ` prefix; and running it again with the same `user_id` creates no second row.
-
-## Customize
-
-- **Send the palette as a direct message to the requester** instead of a channel post. This needs a DM target for the requester that isn't built here.
-- **Use Slack blocks** (header and sections) for a richer layout. The channel message action takes plain text, so this version posts mrkdwn text.
-- **Mobile summary:** send a condensed message instead of the full palette for mobile recipients.
-- **Channel log:** append a log entry when the command is invoked from a public channel.
+Check that a row is created in the request table with `[install-test] install-test` as the requester name, that the palette message appears once in the test channel with the `[install-test] ` prefix, and that running it again with the same `user_id` creates no second row. If run-status tools aren't available, check the result in Airtable and Slack directly. Then publish, confirm the trigger is active, and give the user their webhook URL to point their chat platform at. Ask the user to delete the test row and message, not the agent.
 
 ## Notes
 
-- Check them on the first real run.
-- Anyone who can post to the webhook URL can request the palette and create rows. Keep the URL private.
-- Never commit a real base ID, channel ID or webhook URL.
+- Check the defaults on the first real run.
+- Anyone who can post to the webhook URL can request the palette and create rows, so keep the URL private. Never commit a real base ID, channel ID or webhook URL.
+- Not built here: a direct message to the requester (needs a DM target), Slack blocks for a richer layout (the channel message action takes plain text), a condensed mobile summary, and a log entry for requests from public channels.

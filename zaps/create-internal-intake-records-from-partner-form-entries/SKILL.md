@@ -1,6 +1,6 @@
 ---
 name: create-internal-intake-records-from-partner-form-entries
-description: Build a Zapier Next Gen Zap that copies each new partner application from a Jotform Enterprise form into your internal intake form, so nobody rekeys it. Use when a partner channel or sales team collects applications in one Jotform and triages them in another.
+description: Build a Zap on Zapier that copies each new partner application from a Jotform Enterprise form into your internal intake form, so nobody rekeys it. Use when a partner channel or sales team collects applications in one Jotform and triages them in another.
 license: MIT
 metadata:
   author: zapier
@@ -13,43 +13,43 @@ metadata:
 
 # Create internal intake records from partner form entries
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/create-internal-intake-records-from-partner-form-entries. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a new submission arrives on the partner application form in Jotform Enterprise.
+1. **Trigger:** a new submission arrives on the partner application form in Jotform Enterprise (`jotform-enterprise`, `new_submission`).
 2. **Jotform Enterprise** creates a submission on the internal intake form, copying each partner answer into the matching intake field.
 3. **Optional:** the same submission is created on a second intake form, for a separate review queue.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**Check the fields first:** with your own Jotform Enterprise connection, inspect the trigger and the create-submission action (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches the form field keys before you publish.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-internal-intake-records-from-partner-form-entries` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-internal-intake-records-from-partner-form-entries` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Jotform Enterprise, New Submission (`new_submission`). Set it to your partner application form.
-2. **Connections** (each alias in the code is the app's slug):
-   - `jotform-enterprise`: your Jotform Enterprise connection, for the account that owns both forms.
-3. **Constants:**
-   - `WORKSPACE_ID`: the Jotform team workspace that holds the forms.
-   - `INTAKE_FORM_ID`: the internal intake form that receives each copy.
-   - `SECONDARY_INTAKE_FORM_ID`: the optional second intake form. Leave it empty to skip that step.
-   - `FIELD_MAP`: internal intake field key on the left, partner form answer key on the right. Map each intake field you need.
+The Zap only creates records. It never edits or deletes a partner submission, and it does not check for an existing intake record first, so each new submission creates one.
 
 ## Ask the user
 
-- Which Jotform workspace holds the forms, and which form is the partner application?
-- Which form is the internal intake form, and is there a secondary review-queue form?
-- Which partner answers map to which intake fields?
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                     | What goes there                                                                                                                                            |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `WORKSPACE_ID`              | The Jotform workspace that holds the partner form and the intake forms; pick it from the user's Jotform Enterprise workspaces                              |
+| `INTAKE_FORM_ID`            | The internal intake form that each partner submission is copied into                                                                                       |
+| `REPLACE_INTAKE_FIELD_KEY`  | In `workflow.ts`, `FIELD_MAP`: the key of the intake form field that receives an answer. Repeat the pair for each field you map                            |
+| `REPLACE_PARTNER_FIELD_KEY` | In `workflow.ts`, `FIELD_MAP`: the key of the partner form answer copied into that intake field. Pick both keys from the create-submission action's fields |
 
-Run a sample submission on the partner form, then check the intake form:
+Also review the default with them: `SECONDARY_INTAKE_FORM_ID` is empty, so the Zap creates only the one intake record. Set it to a second intake form to also create a copy for a separate review queue.
+
+Before building, confirm which Jotform form is the partner application. The trigger watches that form.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `jotform-enterprise` to the user's Jotform Enterprise connection for the account that owns both forms. The trigger and both create-submission actions use it.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/new-submission.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run a sample submission on the partner form, with no real data:
 
 ```json
 {
@@ -61,16 +61,11 @@ Run a sample submission on the partner form, then check the intake form:
 }
 ```
 
-Confirm that one new record appears on the intake form with the mapped fields filled in, and that the secondary form (if set) gets its own copy. Delete the test records afterwards if they are not real.
-
-## Customize
-
-- **Conditional routing:** send each submission to a different intake owner by product line or program, using a branch on the answer before the create step.
-- **Normalize fields:** add a formatting step that normalizes phone and date formats before the internal submission is created.
+Confirm that one new record appears on the intake form with the mapped fields filled in, and that the secondary form (if set) gets its own copy. If run-status tools aren't available, check the intake form in Jotform directly. Ask the user to delete the test records, not the agent.
 
 ## Notes
 
-- Jotform creates the intake submission with its own timestamp. Preserving the partner's original submit time needs a field on the intake form that takes it.
-- Attachments are copied when the partner form has a file-upload answer mapped in `FIELD_MAP`. Nothing is copied when the answer is empty.
-- Jotform Enterprise has no search action, so the workflow does not check for an existing intake record with the same submission ID. Each new partner submission creates one intake record.
+- Jotform creates the intake submission with its own timestamp. Keeping the partner's original submit time needs a field on the intake form that takes it.
+- Attachments are copied when a file-upload answer is mapped in `FIELD_MAP`. Nothing is copied when the answer is empty.
+- To route each submission to a different intake owner by product line or program, add a branch on the answer before the create step. To normalize phone and date formats, add a formatting step before it.
 - Never commit a real form ID, workspace ID or submission data. Anyone who can see the source can see where your partner applications go.

@@ -4,32 +4,17 @@ Every new review gets a reply drafted in your voice and emailed to you to approv
 
 **Apps:** Google Business Profile, Webhooks by Zapier, AI by Zapier, SMS by Zapier, Gmail, Google Sheets
 
-## How it works
+## Install
 
-**Starts with:** Google Business Profile New Review and/or Webhooks by Zapier Catch Hook
+This folder is a Zap template. Paste this into your AI agent:
 
-1. Read the review and draft a reply (AI by Zapier)
-2. **1 or 2 stars:** Text the owner right away (SMS by Zapier)
-3. Email the owner the draft to approve (Gmail)
-4. **5 stars:** Add the review to the testimonials sheet (Google Sheets)
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/google-review-reply-draft
 
-## What you need
-
-- Google Business Profile, when using the Google Business Profile trigger
-- Gmail
-- SMS by Zapier
-- Google Sheets
-
-## Install it
-
-Paste this into Claude, ChatGPT, Cursor, or any agent with [Zapier MCP](https://zapier.com/mcp) connected:
-
-> Install the Next Gen Zap at https://zapier.sh/zaps/google-review-reply-draft using Zapier MCP.
-
-If you have this repo, the files in this folder are everything the agent needs: it follows `SKILL.md` and deploys `workflow.ts`.
+The agent follows `SKILL.md`: it asks you which email gets the drafts and which sheet holds 5-star reviews, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `workflow.ts`: the Next Gen Zap code
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
 - `connections/`: the accounts it uses (`gmail`, `google-sheets`, `sms`)
-- `SKILL.md`: how an agent builds it, what to ask you, and how to test it

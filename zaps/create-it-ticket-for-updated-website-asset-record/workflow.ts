@@ -99,7 +99,13 @@ const workflow = defineDurable(
       }),
     );
 
-    const ticketId = ticket.data?.[0]?.id;
+    const createdRow: unknown = ticket.data?.[0];
+    const ticketId =
+      typeof createdRow === "object" &&
+      createdRow !== null &&
+      "id" in createdRow
+        ? createdRow.id
+        : undefined;
 
     // This update fires the trigger again. The find-existing-ticket check stops a second ticket.
     if (LINK_TICKET_ON_ASSET && input.id && ticketId) {

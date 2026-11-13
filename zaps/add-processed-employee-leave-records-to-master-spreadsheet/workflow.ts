@@ -76,7 +76,10 @@ const workflow = defineDurable(
       }),
     );
 
-    return { employeeId, row: added.data[0]?.row ?? null };
+    return {
+      employeeId,
+      row: (added.data[0] as { row?: unknown } | undefined)?.row ?? null,
+    };
   },
 );
 

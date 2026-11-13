@@ -82,7 +82,9 @@ const workflow = defineDurable(
       }),
     );
 
-    const pipelineId = started.data[0]?.json?.id;
+    const pipelineId = (
+      started.data[0] as { json?: { id?: string | number } } | undefined
+    )?.json?.id;
     if (!pipelineId) {
       return {
         skipped: true,
@@ -107,7 +109,9 @@ const workflow = defineDurable(
       }),
     );
 
-    const status = statusCheck.data[0]?.json?.status ?? "unknown";
+    const status =
+      (statusCheck.data[0] as { json?: { status?: string } } | undefined)?.json
+        ?.status ?? "unknown";
     if (!FAILED_STATUSES.includes(status)) {
       return { alerted: false, reason: "not-failed", status, pipelineId };
     }

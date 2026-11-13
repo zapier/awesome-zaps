@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import {
   SPREADSHEET_ID,
+  DEFAULT_RECIPIENTS,
   WORKSHEET_ID,
   VENDOR_COLUMN,
   TITLE_COLUMN,
@@ -17,8 +18,6 @@ const sdk = createZapierSdk();
 
 // Values in ALERT_COLUMN that count as an alert (compared case-insensitively).
 const ALERT_VALUES = ["yes", "y", "true", "x", "alert"];
-// Crisis team inbox used when a row has no recipients of its own.
-const DEFAULT_RECIPIENTS = ["YOUR_CRISIS_TEAM_EMAIL"];
 // Maximum characters of the details column quoted in the email.
 const EXCERPT_LENGTH = 500;
 

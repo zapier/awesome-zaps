@@ -6,16 +6,18 @@ When a marketing system posts a campaign ID for a deal, that ID is saved on the 
 
 **Based on:** [Add external campaign identifier to CRM deal record](https://zapier.com/automations/sales/crm-management/crm-data-enrichment/add-external-campaign-identifier-to-crm-deal-record) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/add-external-campaign-identifier-to-crm-deal-record/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/add-external-campaign-identifier-to-crm-deal-record
+
+The agent follows `SKILL.md`: it asks you which Pipedrive deal field holds the campaign ID, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
-- `connections/`: the accounts it uses (`pipedrive`)
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
+- `connections/`: the account it uses (`pipedrive`)
 - `triggers/`: what starts it

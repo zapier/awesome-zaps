@@ -1,6 +1,6 @@
 ---
 name: create-sku-level-product-records-from-each-online-order
-description: Build a Zapier Next Gen Zap that turns each new paid Shopify order into one row per line item in a product performance table, with product name, SKU, quantity, unit price, total revenue, order date and order reference. Use when an online store wants SKU-level sales visibility for merchandising or inventory teams without copying orders by hand.
+description: Build a Zap on Zapier that turns each new paid Shopify order into one row per line item in a product performance table, with product name, SKU, quantity, unit price, total revenue, order date and order reference. Use when an online store wants SKU-level sales visibility for merchandising or inventory teams without copying orders by hand.
 license: MIT
 metadata:
   author: zapier
@@ -13,42 +13,42 @@ metadata:
 
 # Create SKU-level product records from each online order
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/create-sku-level-product-records-from-each-online-order. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a new paid order in Shopify (New Paid Order). The full order payload, including its line items, starts the run.
-2. **Zapier Tables** creates one record per line item in your product performance table: product name, SKU, quantity, unit price, total revenue (unit price × quantity), order date (the order's timestamp, ISO format), order reference (the order name, such as `#1001`) and customer reference (the Shopify customer ID).
-3. Each line item is written on its own. If one fails, the others still get written, and the run reports how many failed.
+1. **Trigger:** a new paid order in Shopify (`shopify`, `new_paid_order_v3`). The full order payload, including its line items, starts the run.
+2. **Zapier Tables** creates one record per line item in the product performance table: product name, SKU, quantity, unit price, total revenue (unit price × quantity), order date (the order's timestamp, ISO format), order reference (the order name, such as `#1001`) and customer reference (the Shopify customer ID).
+3. Each line item is written on its own. If one fails, the others still get written, and the run reports how many failed. An order with no line items writes nothing and says so in the run output.
 
-An order with no line items writes nothing and says so in the run output.
-
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-sku-level-product-records-from-each-online-order` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-sku-level-product-records-from-each-online-order` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Shopify, New Paid Order (`shopify`, `new_paid_order_v3`). It needs the user's Shopify connection, so its `authentication_id` is that connection.
-2. **Connections** (each alias in the code is the app's slug):
-   - `zapier-tables`: the user's Zapier Tables connection, for the account that owns the product performance table.
-3. **Constants:**
-   - `TABLE_ID`: the ID of the product performance table, from the table's URL. Replace `YOUR_TABLE_ID` with it.
-4. The table needs eight columns, in this order: Product Name (text), SKU (text), Quantity (number), Unit Price (number), Total Revenue (number), Order Date (date & time), Order Reference (text), Customer Reference (text).
-5. Test with the steps below, then publish, wait until the trigger is active, and point the user at the workflow in the editor.
+The Zap only adds records. It never edits or deletes existing ones, and it does not subtract refunds or cancellations.
 
 ## Ask the user
 
-- Which Zapier table is the product performance table, and do its columns match the eight above? If the names differ, the field keys in `workflow.ts` must change to match.
-- Should the order reference be the Shopify order name (`#1001`) or its internal ID? The workflow uses the name.
-- Should orders that were already written be skipped if the same order comes through twice? The workflow always creates a record; it does not look for an existing one first.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting            | What goes there                                                                                                               |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| `REPLACE_TABLE_ID` | The product performance table: ask the user which Zapier table it is, then look up its ID with their Zapier Tables connection |
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing. Use a test order that exists in the user's Shopify store, or a copy of this payload:
+Also review these with the user:
+
+- The table needs eight columns, in this order: Product Name (text), SKU (text), Quantity (number), Unit Price (number), Total Revenue (number), Order Date (date & time), Order Reference (text), Customer Reference (text). If their names differ, the field keys in `workflow.ts` must change to match.
+- The order reference is the Shopify order name (`#1001`), not its internal ID.
+- The Zap always creates a record. If the same order comes through twice, it creates a second set of rows; it does not look for existing ones first.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `zapier-tables` to the user's Zapier Tables connection, for the account that owns the product performance table. The Shopify trigger's `shopify` account is set in step 2. No other app needs an account.
+2. **Source:** publish `workflow.ts` and `config.ts`, with `REPLACE_TABLE_ID` replaced by the user's answer. `triggers/new-paid-order.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections (and sample the trigger, if it has one) before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run this sample as a draft test before publishing, using this payload rather than a real order:
 
 ```json
 {
@@ -75,16 +75,11 @@ Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before 
 }
 ```
 
-Check that the table gained two rows, one per line item. The first should show quantity 2, unit price 25.00 and total revenue 50.00, and the second quantity 1, unit price 18.50 and total revenue 18.50. Both should show the order date, order reference `#1001` and customer reference `207119551`. Then tell the user to delete the two test rows if they were real data.
-
-## Customize
-
-- **Weekly SKU totals:** add a step after the records are written that adds up the week's sales by SKU for a merchandising dashboard.
-- **Low-stock alerts:** add a check that compares weekly SKU sales with a configured limit, and sends an alert or creates an inventory task when the limit is passed.
+Check that the table gained two rows, one per line item. The first should show quantity 2, unit price 25.00 and total revenue 50.00, and the second quantity 1, unit price 18.50 and total revenue 18.50. Both should show the order date, order reference `#1001` and customer reference `207119551`. If run-status tools aren't available, check the result in Zapier Tables directly. Ask the user to delete the two test rows; the agent doesn't delete them. Publish only after the test passes, and confirm the trigger is active.
 
 ## Notes
 
-- Orders are read at the time they are paid. Refunds and cancellations are not subtracted from the table.
+- To add weekly SKU totals or low-stock alerts, add a step after the records are written.
 - Dates are stored as the order's own timestamp. The table may show them in its own format and time zone.
-- Shopify's order and line-item fields are read by name, so a store whose Shopify app version changes them may need the keys updated.
-- Never commit a real table ID. Anyone who can edit the table can change the records it creates.
+- Shopify's order and line-item fields are read by name. If a Shopify app version changes them, update the keys in `workflow.ts`.
+- Anyone who can edit the table can change the records it creates, so never commit a real table ID.

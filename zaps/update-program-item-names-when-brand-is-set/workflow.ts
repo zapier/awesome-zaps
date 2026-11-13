@@ -2,15 +2,15 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { BOARD_ID, BRAND_COLUMN_ID, TITLE_SEPARATOR } from "./config.ts";
+import {
+  BOARD_ID,
+  BRAND_COLUMN_ID,
+  TITLE_PART_COLUMN_IDS,
+  TITLE_SEPARATOR,
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
-// Column IDs of the dropdowns that come before the Brand value in the title, in order.
-const TITLE_PART_COLUMN_IDS = [
-  "YOUR_TITLE_PART_COLUMN_ID_1",
-  "YOUR_TITLE_PART_COLUMN_ID_2",
-];
 // Start of the update note posted when an item is renamed. The new name is appended.
 const CHANGE_NOTE =
   "Item name updated automatically when Brand was set. New name:";

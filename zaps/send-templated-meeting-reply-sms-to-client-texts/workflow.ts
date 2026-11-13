@@ -22,6 +22,9 @@ const InputSchema = z
   .loose();
 type Input = z.infer<typeof InputSchema>;
 
+// A found template's body. Anything else in the record is ignored, and a missing or non-text body falls back.
+const TemplateSchema = z.object({ old__data__f2: z.string().nullish() });
+
 function normalizeInput(rawInput: unknown): unknown {
   if (typeof rawInput === "string") {
     return JSON.parse(rawInput);
@@ -56,7 +59,7 @@ const workflow = defineDurable<Input, unknown>(
       }),
     );
 
-    const template = lookup.data[0];
+    const template = TemplateSchema.safeParse(lookup.data[0]).data;
     const templateBody =
       typeof template?.old__data__f2 === "string" &&
       template.old__data__f2.trim()

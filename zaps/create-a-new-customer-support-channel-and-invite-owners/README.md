@@ -6,16 +6,18 @@ When another automation hands it a new customer, a Slack channel is created for 
 
 **Based on:** [Create a new customer support channel and invite owners](https://zapier.com/automations/business-owners/team-communication/slack-integration/create-a-new-customer-support-channel-and-invite-owners) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/create-a-new-customer-support-channel-and-invite-owners/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/create-a-new-customer-support-channel-and-invite-owners
+
+The agent follows `SKILL.md`: it asks you for your Slack workspace, the support members to invite and how owners are identified, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
 - `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings, such as the channel name prefix
 - `connections/`: the accounts it uses (`slack`, `sub-zap-by-zapier`)
 - `triggers/`: what starts it

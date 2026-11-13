@@ -1,10 +1,10 @@
 // This zap's settings. Each "REPLACE_…" value is set per person before deploying; its comment says how to get it.
 // The other values are defaults you can change.
 
-export const BASE_ID = "REPLACE_BASE_ID"; // Airtable base ID (starts with "app") that holds the asset and IT tickets tables.
-export const ASSET_TABLE = "REPLACE_ASSET_TABLE"; // Website asset table. The trigger watches this table for new or updated records.
-export const ASSET_MODIFIED_FIELD = "REPLACE_ASSET_MODIFIED_FIELD"; // Last-modified-time column in the asset table that the trigger uses to detect updates.
-export const TICKETS_TABLE = "REPLACE_TICKETS_TABLE"; // IT tickets table where new tickets are created.
+export const BASE_ID = "REPLACE_BASE_ID"; // Ask the user which base holds the asset and IT tickets tables, then look up its ID (starts with "app") with their Airtable connection.
+export const ASSET_TABLE = "REPLACE_ASSET_TABLE"; // Ask the user which table holds the website assets, then look up its name with their Airtable connection. The trigger watches this table for new or updated records.
+export const ASSET_MODIFIED_FIELD = "REPLACE_ASSET_MODIFIED_FIELD"; // Ask the user which column in the asset table holds the last-modified time, then look up its name with their Airtable connection. The trigger uses it to detect updates.
+export const TICKETS_TABLE = "REPLACE_TICKETS_TABLE"; // Ask the user which table holds the IT tickets, then look up its name with their Airtable connection. New tickets are created here.
 
 // Asset column holding the unique asset ID. Tickets are matched on it.
 export const ASSET_ID_FIELD = "Asset ID";

@@ -6,17 +6,22 @@ import {
   BOARD_ID,
   ALLOCATION_COLUMN_ID,
   TOTAL_PERCENTAGE_COLUMN_ID,
+  SPLIT_1_COLUMN_ID,
+  SPLIT_2_COLUMN_ID,
+  SPLIT_3_COLUMN_ID,
+  SPLIT_4_COLUMN_ID,
+  SPLIT_5_COLUMN_ID,
 } from "./config.ts";
 
 const sdk = createZapierSdk();
 
 // Split percentage columns, one per contributor slot, in order. Up to 5 contributors.
 const SPLIT_COLUMN_IDS = [
-  "YOUR_SPLIT_1_COLUMN_ID",
-  "YOUR_SPLIT_2_COLUMN_ID",
-  "YOUR_SPLIT_3_COLUMN_ID",
-  "YOUR_SPLIT_4_COLUMN_ID",
-  "YOUR_SPLIT_5_COLUMN_ID",
+  SPLIT_1_COLUMN_ID,
+  SPLIT_2_COLUMN_ID,
+  SPLIT_3_COLUMN_ID,
+  SPLIT_4_COLUMN_ID,
+  SPLIT_5_COLUMN_ID,
 ];
 
 const InputSchema = z

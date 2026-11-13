@@ -42,10 +42,11 @@ const workflow = defineDurable(
       }),
     );
 
+    const copied = copy.data?.[0] as { id?: string } | undefined;
     return {
       sourceId: input.id,
       releaseName,
-      copyId: copy.data?.[0]?.id ?? null,
+      copyId: copied?.id ?? null,
     };
   },
 );

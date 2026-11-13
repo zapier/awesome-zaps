@@ -1,6 +1,6 @@
 ---
 name: create-po-records-from-new-purchase-order-pd-fs
-description: Build a Zapier Next Gen Zap that reads each new purchase order PDF dropped into a OneDrive folder, pulls out the company name and PO number, and adds one record per PO to a Zapier Table, skipping POs already logged. Use when a finance or procurement team keeps a PO register in a table and wants new POs logged without retyping them.
+description: Build a Zap on Zapier that reads each new purchase order PDF dropped into a OneDrive folder, pulls out the company name and PO number, and adds one record per PO to a Zapier Table, skipping POs already logged. Use when a finance or procurement team keeps a PO register in a table and wants new POs logged without retyping them.
 license: MIT
 metadata:
   author: zapier
@@ -13,48 +13,49 @@ metadata:
 
 # Create PO records from new purchase orders
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/create-po-records-from-new-purchase-order-pd-fs. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a file is created or changed in the chosen OneDrive folder (`New or Updated File`). The spec says "new file"; the closest OneDrive trigger that takes a folder is this one, so a re-saved PO can fire it again.
-2. **PDF4me** extracts the text of the PDF, page by page.
-3. **ChatGPT** reads that text and returns the company name and PO number. Missing values come back as `Not Found`.
+1. **Trigger:** a file is created or changed in the chosen OneDrive folder (`onedrive`, `new_or_updated_file`). The trigger brings the file's name, download link and date.
+2. **PDF4me** (`pdf4me`) extracts the text of the PDF, page by page.
+3. **ChatGPT** (`chatgpt`) reads that text and returns the company name and PO number. Missing values come back as `Not Found`.
 4. **Filter:** the run stops if there is no PO number (or it is `Not Found`).
-5. **Zapier Tables** looks for an existing record with the same PO number. If one exists, the run stops.
+5. **Zapier Tables** (`zapier-tables`) looks for an existing record with the same PO number. If one exists, the run stops, so a PO already logged is skipped, never overwritten.
 6. **Zapier Tables** creates a record with the file's date, a link to the file, the company and the PO number.
-
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-po-records-from-new-purchase-order-pd-fs` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-po-records-from-new-purchase-order-pd-fs` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** OneDrive, `New or Updated File` (`new_or_updated_file`). Set the folder parameter to the PO folder; it is blank here, which watches the root folder. It needs the user's OneDrive connection.
-2. **Connections** (each alias in the code is the app's slug):
-   - `pdf4me`: the user's PDF4me connection. Not bound in this draft.
-   - `chatgpt`: the user's ChatGPT (OpenAI) connection. Not bound in this draft.
-   - `zapier-tables`: the user's Zapier Tables connection. Bound in this draft.
-   - OneDrive: the trigger's connection. Not bound in this draft.
-3. **Constants:**
-   - `PO_TABLE_ID`: the ID of the Zapier Table that holds the PO register.
-   - `DATE_FIELD`, `ATTACHMENT_FIELD`, `COMPANY_FIELD`, `PO_NUMBER_FIELD`: the table's field keys, not header names. They are placeholders here.
-   - `NOT_FOUND`: the value the prompt uses for a missing field. Defaults to `"Not Found"`.
-4. Test with the steps below, then publish, wait until the trigger is active, and tell the user where to put their PO files.
 
 ## Ask the user
 
-- Which OneDrive folder holds the purchase orders? (Blank watches the root.)
-- Which Zapier Table holds the PO register, and what are its field keys for the date, file link, company and PO number?
-- Should PO numbers be matched exactly, or ignoring case and spaces?
-- Connect PDF4me, ChatGPT (OpenAI) and OneDrive in the user's account. None of them is connected here.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                    | Where       | What goes there                                    |
+| -------------------------- | ----------- | -------------------------------------------------- |
+| `REPLACE_PO_TABLE_ID`      | `config.ts` | The Zapier Table that holds the PO register        |
+| `REPLACE_DATE_FIELD`       | `config.ts` | The table field key that gets the file's date      |
+| `REPLACE_ATTACHMENT_FIELD` | `config.ts` | The table field key that gets the link to the file |
+| `REPLACE_COMPANY_FIELD`    | `config.ts` | The table field key that gets the company name     |
+| `REPLACE_PO_NUMBER_FIELD`  | `config.ts` | The table field key that gets the PO number        |
 
-Testing needs the OneDrive trigger to fire, which needs a OneDrive connection, and the PDF4me and ChatGPT steps need their own. The sample to use once those are connected is a one-page PDF whose text contains a company name and a PO number, such as `PO-2026-0412` and `Northwind Traders`, in a folder the user owns.
+Also ask:
+
+- Which OneDrive folder holds the purchase orders? Set it as the trigger's folder; blank watches the root.
+- Should PO numbers match exactly, or ignoring case and spaces? The workflow matches the PO number as extracted, so ignoring case and spaces needs a code change.
+- Connect PDF4me, ChatGPT (OpenAI) and OneDrive in the user's account. The Zap can't run without all three.
+
+Review the default `NOT_FOUND` (`"Not Found"`) with them. It is the value the prompt writes for a missing field, so keep it unless the prompt changes.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `pdf4me` (PDF4me, for the text extraction), `chatgpt` (ChatGPT, for reading the PO fields), and `zapier-tables` (the Zapier Tables account that holds the PO register) to the user's connections. Bind `onedrive` to the user's OneDrive connection for the trigger. Every app here needs a connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/new-or-updated-file.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test with a one-page PDF in a folder the user owns. Its text should contain a company name and a PO number, such as `Northwind Traders` and `PO-2026-0412`.
 
 Check that:
 
@@ -63,13 +64,11 @@ Check that:
 - A second run with the same file skips with `duplicate-po`.
 - A PDF with no PO number skips with `po-number-not-found`, and writes nothing.
 
-## Customize
-
-- **Filter out "Not Found":** already done by default, since a missing PO number stops the run. A separate check for other placeholder values can be added.
-- **Alert fulfillment on a duplicate PO:** when the lookup finds a match, send a Slack or email message for human review.
+If run-status tools aren't available, check the result in Zapier Tables directly. Then publish, confirm the trigger is active, and tell the user where to put their PO files. The user deletes the test records and the test file, not the agent.
 
 ## Notes
 
 - Zapier Tables field keys are set by the table. Check them against the table before the first run, since a wrong key writes to the wrong column.
 - The ChatGPT step returns text; the code reads it as JSON with keys `company` and `po_number`. If the model returns other text, both values become `Not Found`.
-- Never commit a real table ID or folder path. The file is a template.
+- A re-saved PO fires the trigger again, and the duplicate check skips it.
+- To extend it: send a Slack or email message for human review when a duplicate PO is found, or add a check for other placeholder values beyond `Not Found`.

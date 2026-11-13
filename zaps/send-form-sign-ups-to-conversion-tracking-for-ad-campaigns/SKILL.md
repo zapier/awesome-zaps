@@ -1,6 +1,6 @@
 ---
 name: send-form-sign-ups-to-conversion-tracking-for-ad-campaigns
-description: Build a Zapier Next Gen Zap that sends each new HubSpot form submission to a LinkedIn Conversions API conversion, so LinkedIn ad campaigns get sign-up attribution without manual uploads. Use when a marketing team runs HubSpot forms as lead capture for LinkedIn ads and wants sign-ups reported to LinkedIn automatically.
+description: Build a Zap on Zapier that sends each new HubSpot form submission to a LinkedIn Conversions API conversion, so LinkedIn ad campaigns get sign-up attribution without manual uploads. Use when a marketing team runs HubSpot forms as lead capture for LinkedIn ads and wants sign-ups reported to LinkedIn automatically.
 license: MIT
 metadata:
   author: zapier
@@ -13,59 +13,52 @@ metadata:
 
 # Send form sign-ups to conversion tracking for ad campaigns
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/send-form-sign-ups-to-conversion-tracking-for-ad-campaigns. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** HubSpot, New Form Submission, for one form. The submission ID and email come from the trigger.
-2. **Code** skips the run if the submission has no ID or no email. There is no duplicate check: see Notes.
+1. **Trigger:** HubSpot, New Form Submission (`hubspot`, `form_submission_resthook_v3`), for one form. The submission ID and email come from the trigger.
+2. **Code** skips the run if the submission has no ID or no email. Duplicate submissions are not filtered; see Notes.
 3. **LinkedIn Conversions** sends a conversion event for that email to one LinkedIn conversion, with the HubSpot submission ID as the event ID.
-
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/send-form-sign-ups-to-conversion-tracking-for-ad-campaigns` (it makes a zap project if you aren't in one), then `npx zap-pack deploy send-form-sign-ups-to-conversion-tracking-for-ad-campaigns` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** HubSpot, `form_submission_resthook_v3` (New Form Submission), `selected_api` `hubspot`. Set the trigger's `form_guid` param to the form's ID. It needs the HubSpot connection.
-2. **Connections** (each alias in the code is the app's slug):
-   - `hubspot`: the HubSpot connection for the portal that owns the form.
-   - `linkedin-conversions`: the LinkedIn connection for the Campaign Manager account that owns the conversion.
-3. **Settings** (in `config.ts`; an `ask(…)` is asked when each person deploys):
-   - `LINKEDIN_AD_ACCOUNT`: the LinkedIn ad account ID.
-   - `LINKEDIN_CONVERSION`: the Conversions API conversion to report to. Create it in Campaign Manager first; it must be of type "Conversions API".
-4. Test with the steps below, then publish, wait until the trigger is active, and give the user the trigger's webhook details if the editor shows any. Nothing runs until the form submits.
 
 ## Ask the user
 
-- Which HubSpot form should trigger the conversions, and what is its form ID?
-- Which LinkedIn ad account and which Conversions API conversion should receive them?
-- Should a sign-up with no email still be sent? The template skips it.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                     | Where                                               | What goes there                                                                                                                       |
+| --------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `REPLACE_HUBSPOT_FORM_GUID` | `triggers/form-submission-resthook.ts`, `form_guid` | The HubSpot form whose sign-ups get reported                                                                                          |
+| `LINKEDIN_AD_ACCOUNT`       | `config.ts`                                         | The LinkedIn ad account that owns the conversion                                                                                      |
+| `LINKEDIN_CONVERSION`       | `config.ts`                                         | The Conversions API conversion each sign-up is reported to. Create it in Campaign Manager first; it must be of type "Conversions API" |
 
-Run this sample as a draft test run (`run_workflow_draft`) before publishing. Use a submission that exists in the user's HubSpot test form, and a LinkedIn conversion that is marked as a test:
+Also review the default with them: the Zap skips a submission with no email. Ask whether a sign-up without one should still be sent; the template skips it.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `hubspot` to the HubSpot connection for the portal that owns the form, and `linkedin-conversions` to the LinkedIn connection for the Campaign Manager account that owns the conversion. The trigger and the action use the same accounts.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/form-submission-resthook.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections (and sample the trigger, if it has one) before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test with a submission from the user's HubSpot test form, and a LinkedIn conversion marked as a test:
 
 ```json
 {
-  "id": "YOUR_TEST_SUBMISSION_ID",
-  "Email": "YOUR_TEST_EMAIL",
-  "vid": "YOUR_TEST_CONTACT_VID"
+  "id": "900000000001",
+  "Email": "test.signup@example.com",
+  "vid": "900001"
 }
 ```
 
-Check that the run finished, that the LinkedIn step returned a status, and that the conversion shows in Campaign Manager's conversion tracking with the submission ID as the event ID. Do not run it with a real customer's email.
-
-## Customize
-
-- **Add or update a contact in HubSpot** before the conversion, so the lead exists in the CRM.
-- **Parse UTM and campaign fields** from the submission to add campaign detail to the conversion.
+Check that the run finished, that the LinkedIn step returned a status, and that the conversion shows in Campaign Manager's conversion tracking with the submission ID as the event ID. If run-status tools aren't available, check the result in LinkedIn Campaign Manager directly. Then publish, confirm the trigger is active, and ask the user to delete the test data, not the agent. Never run it with a real customer's email.
 
 ## Notes
 
-- The HubSpot form trigger declares only `id`, `vid` and `Email`. Name, company and UTM fields are not mapped; see the template's lossy list in the result.
-- Duplicate submissions are not filtered. A durable workflow has no shared store to remember past submission IDs. LinkedIn may deduplicate on the event ID; check that for the user's conversion before relying on it.
-- Never commit a real form ID, ad account ID, conversion ID or test email. The constants in `workflow.ts` are placeholders on purpose.
+- Duplicate submissions are not filtered: a durable workflow has no shared store of past submission IDs. LinkedIn may deduplicate on the event ID; check that for the user's conversion before relying on it.
+- The trigger declares only `id`, `vid` and `Email`, so name, company and UTM fields are not mapped.
+- To add campaign detail, parse the UTM fields from the submission. To make sure the lead exists in HubSpot first, add or update a contact before the conversion.
+- Never commit a real form ID, ad account ID, conversion ID or test email. The values in `config.ts` and the trigger are placeholders on purpose.

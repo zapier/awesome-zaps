@@ -5,10 +5,10 @@ import { FOLDER_ID, WORKSHEET_TITLE, SUBJECT } from "./config.ts";
 
 const sdk = createZapierSdk();
 
-// Stakeholder email addresses for the To field.
-const RECIPIENTS = ["YOUR_STAKEHOLDER_EMAIL"];
-// Ops owner email address for the CC field.
-const CC_RECIPIENTS = ["YOUR_OPS_OWNER_EMAIL"];
+// Ask the user for the stakeholders' email addresses, for the To field.
+const RECIPIENTS = ["REPLACE_STAKEHOLDER_EMAIL"];
+// Ask the user for the ops owner's email address, for the CC field.
+const CC_RECIPIENTS = ["REPLACE_OPS_OWNER_EMAIL"];
 
 const workflow = defineDurable(
   "send-daily-sales-ops-list-to-regional-stakeholders",

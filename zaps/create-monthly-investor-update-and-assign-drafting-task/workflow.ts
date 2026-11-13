@@ -12,8 +12,8 @@ import {
 
 const sdk = createZapierSdk();
 
-// Addresses that get the ready email. Email by Zapier sends from zapiermail.com.
-const COLLABORATOR_EMAILS = ["YOUR_COLLABORATOR_EMAIL@example.com"];
+// Email by Zapier sends from zapiermail.com.
+const COLLABORATOR_EMAILS = ["REPLACE_COLLABORATOR_EMAIL"]; // Ask the user who gets the ready email, one address per entry.
 // Days after the run date that the drafting task is due.
 const DUE_OFFSET_DAYS = 7;
 
@@ -65,7 +65,7 @@ const workflow = defineDurable(
         },
       }),
     );
-    const doc = created.data[0];
+    const doc = created.data[0] as { alternateLink?: string } | undefined;
     if (!doc?.alternateLink) {
       return { skipped: true, reason: "doc-not-created" };
     }

@@ -2,12 +2,10 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { GOOGLE_ADS_ACCOUNT_ID } from "./config.ts";
+import { CUSTOMER_LIST_ID, GOOGLE_ADS_ACCOUNT_ID } from "./config.ts";
 
 const sdk = createZapierSdk();
 
-// Google Ads customer list the contacts are added to (a number, from Google Ads).
-const CUSTOMER_LIST_ID = 0;
 // Case statuses that qualify a row. Rows with any other status are skipped.
 const CASE_STATUSES = ["Qualified"];
 

@@ -57,9 +57,9 @@ const workflow = defineDurable(
 
     const results: { term: string; status: string }[] = [];
 
-    for (const [index, term] of terms.entries()) {
+    for (const term of terms) {
       try {
-        const existing = await ctx.step(`find-term-${index}`, async () =>
+        const existing = await ctx.step(`find-term-${term}`, async () =>
           sdk.runAction({
             appKey: "zapier-tables",
             actionType: "search",
@@ -73,7 +73,7 @@ const workflow = defineDurable(
           continue;
         }
 
-        const thesaurus = await ctx.step(`fetch-synonyms-${index}`, async () =>
+        const thesaurus = await ctx.step(`fetch-synonyms-${term}`, async () =>
           sdk.runAction({
             appKey: "webhook",
             actionType: "write",
@@ -93,7 +93,7 @@ const workflow = defineDurable(
           .map((synonym) => synonym.trim())
           .filter(Boolean);
 
-        await ctx.step(`create-term-${index}`, async () =>
+        await ctx.step(`create-term-${term}`, async () =>
           sdk.runAction({
             appKey: "zapier-tables",
             actionType: "write",

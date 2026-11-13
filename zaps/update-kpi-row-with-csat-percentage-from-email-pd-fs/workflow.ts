@@ -48,7 +48,9 @@ const workflow = defineDurable(
       }),
     );
 
-    const reply = String(extraction.data[0]?.output ?? "");
+    const reply = String(
+      (extraction.data[0] as { output?: unknown } | undefined)?.output ?? "",
+    );
     const percent = reply.match(/\d+(?:\.\d+)?%/)?.[0];
     if (!percent) {
       return { skipped: true, reason: "no-percentage-found", fileName };

@@ -1,6 +1,6 @@
 ---
 name: create-monthly-investor-update-and-assign-drafting-task
-description: Build a Zapier Next Gen Zap that, on the first of each month, copies an investor update template into a dated Google Doc, creates a ClickUp drafting task that links to it, and emails collaborators the link. Use when a founder or finance lead produces a monthly investor or board update from a standard template and wants the drafting task and distribution handled automatically.
+description: Build a Zap on Zapier that, on the first of each month, copies an investor update template into a dated Google Doc, creates a ClickUp drafting task that links to it, and emails collaborators the link. Use when a founder or finance lead produces a monthly investor or board update from a standard template and wants the drafting task and distribution handled automatically.
 license: MIT
 metadata:
   author: zapier
@@ -13,50 +13,50 @@ metadata:
 
 # Create monthly investor update and assign drafting task
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/create-monthly-investor-update-and-assign-drafting-task. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** Schedule by Zapier, every month on day 1 at 12:00 PM, America/New_York. It sends no data, so the workflow reads the date itself.
-2. **Google Docs** copies your template into a new document titled `Investor update <Month YYYY>`, fills its `{{report_date}}` placeholder with the same month, and sets organization-only edit sharing.
-3. **ClickUp** looks for a task with the same title. If none exists, it creates one that links to the document, starts on the run date, is due 7 days later, and is assigned to the drafting owner. If one exists, it creates nothing.
-4. **Email by Zapier** sends collaborators a short email with the document link and the month.
+1. **Trigger:** `schedule`, every month on day 1 at 12:00 PM, America/New_York. It sends no data, so the workflow reads the date itself.
+2. **`google-docs`** copies the template into a new document titled `Investor update <Month YYYY>`, fills its `{{report_date}}` placeholder with the same month, and sets organization-only edit sharing.
+3. **`clickup`** looks for a task with the same title. If none exists, it creates one that links to the document, starts on the run date, is due 7 days later, and is assigned to the drafting owner. If one exists, it creates nothing.
+4. **`email`** sends the collaborators a short email with the document link and the month.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-monthly-investor-update-and-assign-drafting-task` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-monthly-investor-update-and-assign-drafting-task` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Schedule by Zapier, Every Month (`schedule` / `everyMonth`). Parameters: `dom: ["1"]`, `hod: "12:00 PM"`, `timezone_override: "America/New_York"`. It needs no connection, so its `authentication_id` is `null`.
-2. **Connections** (each alias in the code is the app's slug):
-   - `google-docs`: the Google account that owns the template and the output folder.
-   - `clickup`: the ClickUp account that owns the workspace.
-   - `email`: no connection. Email by Zapier sends from zapiermail.com.
-3. **Constants:**
-   - `TEMPLATE_DOC_ID`: the template's ID, from its URL.
-   - `DOC_FOLDER`: the Drive folder for new documents, or `"root"`.
-   - `ORG_DOMAIN`: your Google Workspace domain, needed for the sharing setting.
-   - `TITLE_PREFIX`: empty for real use.
-   - `CLICKUP_WORKSPACE_ID`: the ClickUp workspace (team) ID.
-   - `DRAFTER_EMAIL`: the ClickUp user who gets the drafting task.
-   - `COLLABORATOR_EMAILS`: the addresses that get the ready email.
-   - `DUE_OFFSET_DAYS`: days after the run date that the task is due.
-4. Test with the steps below, then publish, wait until the trigger is active, and tell the user the trigger's schedule (nothing needs pasting; it runs on its own).
+The document is shared with your organization only, never publicly.
 
 ## Ask the user
 
-- Which Google Doc is the template? It must contain a `{{report_date}}` placeholder, and the output folder should be a Drive folder ID or `"root"`.
-- Which ClickUp workspace and list should the drafting task go in? The Create Task step's list field must be set in the editor (see Notes).
-- Who is the drafting owner in ClickUp, and who gets the ready email?
-- Is the schedule right: day 1 at noon New York time, and is a due date 7 days after the run date what they want?
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                        | What goes there                                                                                   |
+| ------------------------------ | ------------------------------------------------------------------------------------------------- |
+| `REPLACE_TEMPLATE_DOC_ID`      | The Google Doc copied each month, in `config.ts`. It must contain a `{{report_date}}` placeholder |
+| `REPLACE_DOC_FOLDER`           | The Drive folder for new documents, in `config.ts`, or `"root"`                                   |
+| `REPLACE_ORG_DOMAIN`           | The Google Workspace domain used for the organization sharing setting, in `config.ts`             |
+| `REPLACE_CLICKUP_WORKSPACE_ID` | The ClickUp workspace that gets the drafting task, in `config.ts`                                 |
+| `REPLACE_DRAFTER_EMAIL`        | The email of the ClickUp user who gets the drafting task, in `config.ts`                          |
+| `REPLACE_COLLABORATOR_EMAIL`   | The addresses that get the ready email, in `COLLABORATOR_EMAILS` in `workflow.ts`, one per entry  |
 
-No trigger payload is used. The sample input was the direct Google Docs call that the Test run stood in for:
+Also review the defaults with them:
+
+- `TITLE_PREFIX` (`config.ts`) is empty for real use.
+- `DUE_OFFSET_DAYS` (`workflow.ts`) is 7: the drafting task is due that many days after the run date.
+- The schedule in `triggers/every-month.ts` is day 1 at 12:00 PM, America/New_York.
+
+Ask which ClickUp list gets the drafting task. The Create Task step needs one and the code does not set it (see Notes). Confirm the schedule is right: day 1 at noon New York time, with a due date 7 days after the run date.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `google-docs` to the Google account that owns the template and the output folder, and `clickup` to the ClickUp account that owns the workspace. Schedule by Zapier (`schedule`) and Email by Zapier (`email`) need no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/every-month.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections (and sample the trigger, if it has one) before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+No trigger payload is used. Run the Google Docs step once as a draft test with this sample input, with `file` set to a copy of the template so the real one is not touched. The run sets the title and report date from the run month, so the sample's month is only an example:
 
 ```json
 {
@@ -70,18 +70,16 @@ No trigger payload is used. The sample input was the direct Google Docs call tha
 }
 ```
 
-Check that the new document's title matches, that its body reads `Period: October 2026` (the placeholder filled), and that the document is shared as the sharing setting says. The test doc and template were both named `[install-test] …` and should be deleted by the user.
+For the test, set `TITLE_PREFIX` to `"[install-test] "` in the draft, and leave it empty when publishing.
 
-Still to check on a real run, because they did not run here: that the ClickUp task appears with the document link, the due date and the assignee; that a second run in the same month creates no duplicate task; and that the email arrives with the document link.
+Check that the new document's title is `[install-test] Investor update <Month YYYY>`, that its body reads `Period: <Month YYYY>` (the placeholder filled), and that the document is shared as the sharing setting says. If run-status tools aren't available, check Google Docs directly. The user deletes the test document and template, not the agent.
 
-## Customize
-
-- **Reminder:** add a reminder two days before the due date.
-- **Financial snapshot:** attach a current financial snapshot to the new document automatically.
+Still to check on a real run: that the ClickUp task appears with the document link, the due date and the assignee; that a second run in the same month creates no duplicate task; and that the email arrives with the document link. Then publish, and confirm the trigger is active.
 
 ## Notes
 
 - Email by Zapier sends from zapiermail.com, not your own address, and is limited to 10 emails per hour on paid plans.
-- The ClickUp Create Task step's list field could not be read without a ClickUp connection, so the code does not set a list. Set the list in the editor before publishing.
-- Sharing uses "Anyone at your organization with the link can edit" so no document is public. The Google Docs response did not confirm the sharing was applied on the test doc, so check the document's sharing once.
-- The document title and task title carry `TITLE_PREFIX`. The deployed test copy used `"[install-test] "`; this copy has it empty.
+- The code does not set the ClickUp list for the Create Task step. Set it in the editor before publishing.
+- Sharing is "Anyone at your organization with the link can edit", so no document is public. The Google Docs response does not confirm the sharing setting, so check it once after the first run.
+- `TITLE_PREFIX` is added to the document, task and email titles.
+- To extend it: add a reminder two days before the due date, or attach a current financial snapshot to the new document.

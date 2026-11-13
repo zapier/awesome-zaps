@@ -43,7 +43,9 @@ const workflow = defineDurable(
         }),
     );
 
-    return { submissionId, status: conversion.data?.[0]?.status ?? null };
+    const status = (conversion.data?.[0] as { status?: string } | undefined)
+      ?.status;
+    return { submissionId, status: status ?? null };
   },
 );
 

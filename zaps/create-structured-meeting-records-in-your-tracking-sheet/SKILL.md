@@ -1,6 +1,6 @@
 ---
 name: create-structured-meeting-records-in-your-tracking-sheet
-description: Build a Zapier Next Gen Zap that appends a normalized meeting record to a Google Sheets tracker each time a Google Calendar event is created or updated. Use when a team keeps a central sheet of meetings for reporting and wants every event captured in a consistent row without manual entry.
+description: Build a Zap on Zapier that appends a normalized meeting record to a Google Sheets tracker each time a Google Calendar event is created or updated. Use when a team keeps a central sheet of meetings for reporting and wants every event captured in a consistent row without manual entry.
 license: MIT
 metadata:
   author: zapier
@@ -13,41 +13,38 @@ metadata:
 
 # Create structured meeting records in your tracking sheet
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/create-structured-meeting-records-in-your-tracking-sheet. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a Google Calendar event is created or updated (`New or Updated Event`) on the calendar you choose.
-2. **Normalize:** the workflow keeps the event ID, title, organizer email, start time (with the calendar's own UTC offset) and attendee emails as one comma-separated string. It also keeps the created and updated timestamps from the event. Events without an ID are skipped.
+1. **Trigger:** a Google Calendar event is created or updated (`google-calendar`, `event_updated`) on the calendar you choose.
+2. **Normalize:** the Zap keeps the event ID, title, organizer email, start time (with the calendar's own UTC offset) and attendee emails as one comma-separated string. It also keeps the created and updated timestamps from the event. Events without an ID are skipped.
 3. **Google Sheets** appends one new row to the worksheet you choose, with each field in its column. Every update adds a new row, so the sheet keeps a history; match rows on the event ID when you report.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-structured-meeting-records-in-your-tracking-sheet` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-structured-meeting-records-in-your-tracking-sheet` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Google Calendar, New or Updated Event (`google-calendar`, action `event_updated`). Set `calendarid` to the calendar to watch and leave `expand_recurring` on, so each instance of a recurring event is recorded.
-2. **Connections** (each alias in the code is the app's slug):
-   - `google-sheets`: the user's Google Sheets connection, for the account that owns the tracking sheet.
-   - The trigger uses the user's Google Calendar connection, chosen when the trigger is set up.
-3. **Constants:**
-   - `CALENDAR_ID`: the calendar the trigger watches. Set the same value in the trigger's Calendar setting; the code does not read it.
-   - `SPREADSHEET_ID`: the long ID in the sheet's URL.
-   - `WORKSHEET_ID`: the audit tab. Use a dedicated tab; the first tab is `"0"`.
-   - `EVENT_ID_COLUMN`, `TITLE_COLUMN`, `ORGANIZER_COLUMN`, `START_COLUMN`, `ATTENDEES_COLUMN`, `CREATED_COLUMN`, `UPDATED_COLUMN`: column keys such as `COL$A`, not header names. Map the user's headers to their column letters.
-4. Publish, wait until the trigger is active, and give the user their workflow's editor link. Calendar events arrive from Google, so nothing else needs a webhook.
+The Zap only appends rows. It never edits or deletes existing ones.
 
 ## Ask the user
 
-- Which calendar should the trigger watch?
-- Which sheet and tab hold the tracker? Should the tab be dedicated to these records?
-- Which columns hold the event ID, title, organizer, start time, attendees, created time and updated time?
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                  | What goes there                                                                                                                        |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `REPLACE_CALENDAR_ID`    | The calendar the trigger watches, as its email or ID. Set the same value as the trigger's Calendar setting; the code does not read it. |
+| `REPLACE_SPREADSHEET_ID` | The tracker spreadsheet: the long ID in its URL                                                                                        |
+| `REPLACE_WORKSHEET_ID`   | The tab for these records. Use a dedicated tab; the first tab is `"0"`.                                                                |
+
+Also review the defaults with them: the column constants `EVENT_ID_COLUMN`, `TITLE_COLUMN`, `ORGANIZER_COLUMN`, `START_COLUMN`, `ATTENDEES_COLUMN`, `CREATED_COLUMN` and `UPDATED_COLUMN` are column keys such as `COL$A`, not header names. Map the user's headers to their column letters.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `google-sheets` to the user's Google Sheets connection for the account that owns the tracking sheet. Bind the trigger to the user's `google-calendar` connection for the calendar it watches. No other apps are used.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/event-updated.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect the Google Sheets action's fields with the user's connection, and sample the trigger, before the first test run. Fix any key in `workflow.ts` that doesn't match.
+
+## Test it
 
 Run this sample as a draft test run before publishing, with a calendar you own and a worksheet you can safely write to:
 
@@ -63,15 +60,12 @@ Run this sample as a draft test run before publishing, with a calendar you own a
 }
 ```
 
-Confirm that one new row appears with each field in its column, the start time keeps its offset, and the attendees sit in one cell. Then delete the test row if it was real data.
-
-## Customize
-
-- **Record only some events:** add a filter so only events with attendees, or with a chosen visibility, are written.
-- **Flag missing organizers:** add a Slack or email step for events with no organizer email.
+Check that one new row appears with each field in its column, that the start time keeps its offset, and that the attendees sit in one cell. If run-status tools aren't available, check the result in Google Sheets directly. Then ask the user to delete the test row; the user deletes test data, not the agent.
 
 ## Notes
 
+- The Zap watches the chosen calendar with `expand_recurring` on, so each instance of a recurring event is recorded.
 - Google Sheets may show the start time in the sheet's own format and time zone, depending on the column's formatting.
-- The trigger's field names (such as `start__dateTime` and `organizer__email`) come from the Google Calendar trigger's output. If they differ in your account, update the names in `InputSchema` and `record`.
+- The trigger's field names (such as `start__dateTime` and `organizer__email`) come from the Google Calendar trigger's output. If they differ in the user's account, fix the keys in `workflow.ts` as step 4 says.
+- To record only some events, add a filter so only events with attendees, or with a chosen visibility, are written. To flag events with no organizer email, add a Slack or email step.
 - Never commit a real calendar ID, spreadsheet ID or worksheet ID.

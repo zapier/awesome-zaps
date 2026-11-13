@@ -6,16 +6,18 @@ Every new free-trial signup is added to your sales outreach list automatically, 
 
 **Based on:** [Add free trial buyers to sales outreach list](https://zapier.com/automations/sales/outbound-sales/prospecting/add-free-trial-buyers-to-sales-outreach-list) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/add-free-trial-buyers-to-sales-outreach-list/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/add-free-trial-buyers-to-sales-outreach-list
+
+The agent follows `SKILL.md`: it asks you for your sales outreach list and whether to tag trial buyers, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
-- `connections/`: the accounts it uses (`activecampaign`)
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
+- `connections/`: the account it uses (`activecampaign`)
 - `triggers/`: what starts it

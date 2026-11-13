@@ -20,8 +20,9 @@ const workflow = defineDurable(
       }),
     );
 
-    const payload = fx.data[0]?.json as
-      { rates?: Record<string, number> } | undefined;
+    const payload = (
+      fx.data[0] as { json?: { rates?: Record<string, number> } } | undefined
+    )?.json;
     const rates = payload?.rates ?? {};
     const missing = TARGET_CURRENCIES.filter(
       (code) => rates[code] === undefined,

@@ -1,6 +1,6 @@
 ---
 name: send-approval-nudge-for-procurement-requests-to-approver
-description: Build a Zapier Next Gen Zap that catches a procurement request webhook and sends the named approver a Slack direct message with the request's title, vendor, cost center, a short summary and a link to the record. Use when purchase requests wait on an approver and someone needs a quick nudge the moment a request reaches the approval phase.
+description: Build a Zap on Zapier that catches a procurement request webhook and sends the named approver a Slack direct message with the request's title, vendor, cost center, a short summary and a link to the record. Use when purchase requests wait on an approver and someone needs a quick nudge the moment a request reaches the approval phase.
 license: MIT
 metadata:
   author: zapier
@@ -13,67 +13,65 @@ metadata:
 
 # Send approval nudge for procurement requests to approver
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/send-approval-nudge-for-procurement-requests-to-approver. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a procurement system posts a request to a Webhooks by Zapier catch hook.
+1. **Trigger:** a procurement system posts a request to the Webhooks by Zapier catch hook (`webhook`, `hook_v2`). The payload must carry `record_id`, `approver_email` and `phase`.
 2. **Phase check:** if the request's `phase` is not the approval phase, the run stops and sends nothing.
 3. **Slack** finds the approver by the `approver_email` in the payload. If no Slack user matches, the run stops and sends nothing.
 4. **Slack** sends the approver a direct message: the request title, vendor, cost center, requester, the summary if there is one, and a link to the record.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/send-approval-nudge-for-procurement-requests-to-approver` (it makes a zap project if you aren't in one), then `npx zap-pack deploy send-approval-nudge-for-procurement-requests-to-approver` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Webhooks by Zapier, Catch Hook (`webhook`, `hook_v2`). It needs no connection, so its `authentication_id` is `null`.
-2. **Connections** (each alias in the code is the app's slug):
-   - `slack`: the Slack connection for the workspace where approvers sit. The build used a test workspace connection; use your own workspace connection in production.
-3. **Constants:**
-   - `APPROVAL_PHASE`: the exact phase string that triggers a nudge. Defaults to `"Awaiting approval"`.
-   - `RECORD_URL_PREFIX`: the start of your procurement system's request URL. The record ID is appended to it.
-
-The payload must carry `record_id`, `approver_email` and `phase`. `title`, `vendor`, `cost_center`, `requester_email` and `summary` are optional and show as "not given" when missing.
+Anyone with the catch-hook URL can post requests into this Zap, so keep that URL private.
 
 ## Ask the user
 
-- Which procurement system sends the webhook, and what is the URL of a request page there? That becomes `RECORD_URL_PREFIX`.
-- What are the payload's field names? The code assumes `record_id`, `approver_email`, `phase`, `title`, `vendor`, `cost_center`, `requester_email` and `summary`. If the sender uses other names, rename them in the code before installing.
-- What exact string does the request carry when it is waiting for approval? The default is `Awaiting approval`.
-- Should the nudge go to the approver directly (the default here), or to a team channel for group approvals?
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                     | Where       | What goes there                                                                                    |
+| --------------------------- | ----------- | -------------------------------------------------------------------------------------------------- |
+| `REPLACE_RECORD_URL_PREFIX` | `config.ts` | The start of the procurement system's request page URL, up to the request ID and ending in a slash |
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing. Use an approver email that has a Slack account in the connected workspace, and replace the test values with your own where needed:
+Defaults worth reviewing with them:
+
+- `APPROVAL_PHASE`: the exact phase string that means "waiting for approval" in their system. Defaults to `"Awaiting approval"`.
+
+Prerequisite questions:
+
+- Does the procurement system send the payload's fields as `record_id`, `approver_email`, `phase`, `title`, `vendor`, `cost_center`, `requester_email` and `summary`? If it uses other names, rename them in `workflow.ts` before building.
+- Should the nudge go to each approver directly (the default), or to a team channel for group approvals?
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `slack` to the user's Slack connection for the workspace where approvers sit. Webhooks by Zapier needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/hook.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect the Slack action's fields with the user's connection before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test with an approver email that has a Slack account in the connected workspace, and with the request URL pointed at a page the user controls:
 
 ```json
 {
   "record_id": "PR-INSTALL-TEST-1001",
-  "approver_email": "YOUR_APPROVER_EMAIL",
+  "approver_email": "approver@example.com",
   "title": "[install-test] Office chairs",
   "phase": "Awaiting approval",
   "vendor": "[install-test] Example Furniture Co",
   "cost_center": "CC-000 (test)",
-  "requester_email": "YOUR_REQUESTER_EMAIL",
+  "requester_email": "requester@example.com",
   "summary": "[install-test] 12 ergonomic chairs, $4,800 total"
 }
 ```
 
-Check that the run finishes with both steps completed, that the output has `sent: true`, and that the approver receives one direct message containing the title, vendor, cost center, requester, summary and the `Open request PR-INSTALL-TEST-1001` link. The link points at the placeholder `RECORD_URL_PREFIX` in the test copy, so it will not open a real page until you set the prefix.
-
-## Customize
-
-- **Team channel for group approvals:** send to a team channel instead of a direct message.
-- **Manager on high-value requests:** add the requester's manager as an extra recipient when the request is over a threshold.
+Check that the run finishes with both steps completed, that the output has `sent: true`, and that the approver receives one direct message with the title, vendor, cost center, requester, summary and an `Open request PR-INSTALL-TEST-1001` link. If run-status tools aren't available, check the result in Slack directly. Then publish, confirm the trigger is active, and do the real thing once. Ask the user to delete the test message, not the agent.
 
 ## Notes
 
 - A request whose approver is not in Slack is skipped, not retried. The run output says `approver-not-found`, so check the run log if nudges go missing.
-- The source automation first calls the procurement system's API with the record ID to get the full request. No system was named in the source, so this zap reads everything from the webhook payload instead. Add a `sdk.runAction` or `sdk.fetch` step if the payload is too thin.
-- The source's Formatter and Code steps (turning a field list into text, then parsing it) are replaced by reading the payload's fields directly, since a webhook can send JSON.
-- Anyone with the catch-hook URL can post requests into this flow, so keep that URL private.
+- The Zap reads everything from the webhook payload and doesn't call the procurement system. Add a step that fetches the full request if the payload is too thin.
+- To send to a team channel instead of a direct message, change the Slack action to post to that channel.
+- To copy the requester's manager on high-value requests, add a second Slack message gated on a cost threshold.

@@ -1,6 +1,6 @@
 ---
 name: create-and-update-access-records-for-purchased-product
-description: Build a Zapier Next Gen Zap that creates or updates a user's access record in your user management API when a paid Shopify order includes the configured product. Use when a store sells a product that should grant a user account or access, and onboarding should start as soon as the order is paid.
+description: Build a Zap on Zapier that creates or updates a user's access record in your user management API when a paid Shopify order includes the configured product. Use when a store sells a product that should grant a user account or access, and onboarding should start as soon as the order is paid.
 license: MIT
 metadata:
   author: zapier
@@ -13,44 +13,46 @@ metadata:
 
 # Create and update access records for purchased product
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/create-and-update-access-records-for-purchased-product. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a paid order arrives from Shopify (New Paid Order).
+1. **Trigger:** a paid order arrives from Shopify (`shopify`, `new_paid_order_v3`).
 2. **Filter:** the workflow continues only if one of the order's line items has the configured product ID. Otherwise it stops with `skipped`.
 3. **Email check:** the workflow needs an email address (customer email, then order email). Without one it stops with `skipped`.
 4. **Webhooks by Zapier POST:** sends the email, name, `access_status` (`active`), and billing and shipping address summaries as JSON to your user management API. The API creates the user when no match exists, or updates the existing user with the same email.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-and-update-access-records-for-purchased-product` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-and-update-access-records-for-purchased-product` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Shopify, New Paid Order (`shopify` / `new_paid_order_v3`). Needs a Shopify connection for the store.
-2. **Connections:**
-   - `shopify`: the store's Shopify connection, used by the trigger.
-   - Webhooks by Zapier needs no connection (`webhook`, action `post`).
-3. **Settings** (in `config.ts`; an `ask(…)` is asked when each person deploys):
-   - `QUALIFYING_PRODUCT_ID`: the Shopify product ID that grants access.
-   - `USER_API_URL`: the endpoint of your user management API that accepts a JSON POST.
-   - `ACCESS_STATUS`: the status sent with each record. Defaults to `"active"`.
+The workflow never matches or updates users itself; the user management API must match on email.
 
 ## Ask the user
 
-- Which Shopify product should grant access, and what is its product ID?
-- What is the user management API's endpoint, and does it create or update the user when the email already exists? If it only creates, add a lookup step before the POST.
-- Does the API need an authorization header? Keep the token out of the source. Add it through a connection, not as a constant.
-- Should a status other than `active` be sent?
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
+
+| Setting                 | What goes there                                                                                       |
+| ----------------------- | ----------------------------------------------------------------------------------------------------- |
+| `QUALIFYING_PRODUCT_ID` | The Shopify product whose paid orders grant access; look up its ID with the user's Shopify connection |
+| `USER_API_URL`          | The endpoint of the user management API that accepts a JSON POST                                      |
+
+Also review the default `ACCESS_STATUS` (`"active"`) with them: it is the status sent with each record.
+
+Before building, confirm:
+
+- Does the user management API create or update the user when the email already exists? If it only creates, add a lookup step before the POST.
+- Does the API need an authorization header? Add the token through a connection, never as a constant.
 - Does the API expect the address summaries in a different shape?
 
-## Test
+## Build it
 
-Run this sample as a test run before publishing. It does not contain the qualifying product, so it exercises the filter and makes no external call:
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `shopify` to the store's Shopify connection, which the trigger uses. Webhooks by Zapier needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/new-paid-order.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match. In particular, confirm the trigger's `customer`, `line_items`, `billing_address` and `shipping_address` fields.
+
+## Test it
+
+Run this sample as a draft test before publishing. It does not contain the qualifying product, so it exercises the filter and makes no external call:
 
 ```json
 {
@@ -77,15 +79,10 @@ Run this sample as a test run before publishing. It does not contain the qualify
 }
 ```
 
-Expect `{ "skipped": true, "reason": "no-qualifying-product" }` and no webhook call. Then run a paid order for the qualifying product on a test store. The user management API should receive one POST with `email`, `name`, `access_status: "active"`, and the address summaries. Check the trigger's field names against that real order, since the sample above assumes them.
-
-## Customize
-
-- **Notify onboarding:** add an Email by Zapier or Slack step after the POST to alert onboarding specialists on each provisioning.
-- **Record the order:** append the Shopify order reference to the user record or notes for audit and reconciliation.
+Expect `{ "skipped": true, "reason": "no-qualifying-product" }` and no webhook call. Then run a paid order for the qualifying product on a test store. The user management API should receive one POST with `email`, `name`, `access_status: "active"`, and the address summaries. If run-status tools aren't available, check the result in your user management API directly. The user deletes any test records, not the agent. Publish only after both checks pass, and confirm the trigger is active.
 
 ## Notes
 
-- The Shopify trigger's output fields are assumed to be `customer`, `line_items[].product_id`, `billing_address` and `shipping_address`. Confirm them against a real order before relying on the workflow.
-- The workflow does not match or update users itself. That is left to the user management API, which must match on email.
-- Never commit a real product ID, API URL, or customer data.
+- Confirm the trigger's output fields against a real order before relying on the workflow.
+- Never commit a real product ID, API URL, token, or customer data.
+- To extend it, alert onboarding with an Email by Zapier or Slack step after the POST, or record the Shopify order ID on the user record for audit and reconciliation.

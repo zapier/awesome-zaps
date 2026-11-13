@@ -103,8 +103,8 @@ const workflow = defineDurable(
     return {
       rowId,
       customer,
-      messageTs: message.data[0]?.ts ?? null,
-      markedRow: marked.data[0]?.row ?? null,
+      messageTs: (message.data[0] as { ts?: string } | undefined)?.ts ?? null,
+      markedRow: (marked.data[0] as { row?: number } | undefined)?.row ?? null,
     };
   },
 );

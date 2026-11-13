@@ -42,7 +42,8 @@ const workflow = defineDurable(
         actionKey: "get",
         inputs: { url: OKR_ENDPOINT_URL },
       });
-      const content = response.data[0]?.content;
+      const content = (response.data[0] as { content?: unknown } | undefined)
+        ?.content;
       return z.array(GoalSchema).parse(JSON.parse(String(content ?? "[]")));
     });
 
@@ -50,7 +51,7 @@ const workflow = defineDurable(
     let updated = 0;
     let failed = 0;
 
-    for (const [index, goal] of goals.entries()) {
+    for (const goal of goals) {
       try {
         const externalId = String(goal.id).trim();
         const fields = {
@@ -61,24 +62,26 @@ const workflow = defineDurable(
           [FIELDS.initiativeType]: goal.type ?? null,
         };
 
-        const match = await ctx.step(`find-strategic-plan-${index}`, async () =>
-          sdk.runAction({
-            appKey: "salesforce",
-            actionType: "search",
-            actionKey: "find_record_by_query",
-            connection: "salesforce",
-            inputs: {
-              object: STRATEGIC_PLAN_OBJECT,
-              whereClause: `${EXTERNAL_ID_FIELD} = '${externalId.replace(/'/g, "\\'")}'`,
-              limit: 1,
-            },
-          }),
+        const match = await ctx.step(
+          `find-strategic-plan-${externalId}`,
+          async () =>
+            sdk.runAction({
+              appKey: "salesforce",
+              actionType: "search",
+              actionKey: "find_record_by_query",
+              connection: "salesforce",
+              inputs: {
+                object: STRATEGIC_PLAN_OBJECT,
+                whereClause: `${EXTERNAL_ID_FIELD} = '${externalId.replace(/'/g, "\\'")}'`,
+                limit: 1,
+              },
+            }),
         );
 
         const existing = match.data[0] as { Id?: string } | undefined;
         if (existing?.Id) {
           const recordId = existing.Id;
-          await ctx.step(`update-strategic-plan-${index}`, async () =>
+          await ctx.step(`update-strategic-plan-${externalId}`, async () =>
             sdk.runAction({
               appKey: "salesforce",
               actionType: "write",
@@ -93,7 +96,7 @@ const workflow = defineDurable(
           );
           updated += 1;
         } else {
-          await ctx.step(`create-strategic-plan-${index}`, async () =>
+          await ctx.step(`create-strategic-plan-${externalId}`, async () =>
             sdk.runAction({
               appKey: "salesforce",
               actionType: "write",

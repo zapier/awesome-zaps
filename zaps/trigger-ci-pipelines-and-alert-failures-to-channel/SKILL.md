@@ -1,6 +1,6 @@
 ---
 name: trigger-ci-pipelines-and-alert-failures-to-channel
-description: Use when a Git push to main or master should start a CI pipeline and a failed run should post an alert to a team Slack channel. Triggered by a catch-hook POST from your repo or CI system.
+description: Build a Zap on Zapier that starts a CI pipeline when a Git push lands on main or master, and posts an alert to a team Slack channel when the run fails. Use when a Git push to main or master should start a CI pipeline and a failed run should post an alert to a team Slack channel. Triggered by a catch-hook POST from your repo or CI system.
 license: MIT
 metadata:
   author: zapier
@@ -13,6 +13,8 @@ metadata:
 
 # Trigger CI pipelines and alert failures to channel
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/trigger-ci-pipelines-and-alert-failures-to-channel. Read the files there if this skill was installed on its own.
+
 ## What it does
 
 1. **Trigger:** a Webhooks by Zapier catch hook receives a POST with the repository name, owner, branch and topics.
@@ -21,45 +23,36 @@ metadata:
 4. **Wait and poll:** waits 90 seconds, then GETs the pipeline status.
 5. **Alert:** if the status is `failed` or `error`, posts one message to a Slack channel with the status and a link to the pipeline. Other statuses post nothing.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/trigger-ci-pipelines-and-alert-failures-to-channel` (it makes a zap project if you aren't in one), then `npx zap-pack deploy trigger-ci-pipelines-and-alert-failures-to-channel` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Webhooks by Zapier, Catch Hook (`webhook` / `hook_v2`). No connection, so `authentication_id` is `null`.
-2. **Connections** (the alias is the app key):
-   - `slack`: your Slack workspace connection, for the account that posts alerts.
-3. **Settings** (in `config.ts`; an `ask(…)` is asked when each person deploys):
-   - `CI_BRANCHES`: branches that start a run. Default `["main", "master"]`.
-   - `EXCLUDED_TOPICS`: repository topics that skip the run. Default `["no-ci"]`.
-   - `ALLOWED_TOPICS`: if set, only repositories with one of these topics run. Empty means all.
-   - `POLL_DELAY_SECONDS`: wait before polling. Default `90`.
-   - `CI_PIPELINE_URL`: your CI endpoint that starts a pipeline and returns JSON with an `id`.
-   - `CI_STATUS_URL`: your CI status endpoint. The pipeline id is appended as a path segment, and the reply has a `status` field.
-   - `FAILED_STATUSES`: statuses that count as failed. Default `["failed", "error"]`.
-   - `SLACK_CHANNEL`: the Slack channel ID for alerts.
-   - `MESSAGE_PREFIX`: leave empty.
-   - `MENTION_ON_FAILURE` and `MENTION_TEXT`: off by default. Turn on only if you want a user group mentioned.
+Anyone with the catch-hook URL can start a CI run, so keep it private.
 
 ## Ask the user
 
-- Which CI system runs the pipelines, and what are its start and status endpoints? The code assumes a start endpoint that returns JSON with `id`, and a status endpoint that returns JSON with `status`.
-- Which Slack channel gets alerts? Use its channel ID.
-- Should repositories be filtered by topic, and which topics mark a repository as excluded?
-- Should the alert mention anyone? If so, which user group?
-- Does the sender post `repository`, `owner`, `branch` and `topics` in the body? If it uses other field names, change the input schema before installing.
+Each `REPLACE_…` value is set per person. Resolve channel names to IDs with the user's Slack connection; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting           | What goes there                                                                                                                 |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `CI_PIPELINE_URL` | The endpoint of your CI system that starts a pipeline. The workflow POSTs to it, and it must return JSON with the pipeline `id` |
+| `CI_STATUS_URL`   | Your CI status endpoint. The pipeline id is appended as a path segment, and the JSON reply has a `status` field                 |
+| `SLACK_CHANNEL`   | The channel that gets failure alerts, looked up to its ID (C…) with the user's Slack connection                                 |
 
-Draft test runs (`run_workflow_draft`), with the workflow disabled:
+Also review the defaults with them: `CI_BRANCHES` (default `main` and `master`), `EXCLUDED_TOPICS` (default `no-ci`), `ALLOWED_TOPICS` (empty means all repositories), `POLL_DELAY_SECONDS` (default 90), `FAILED_STATUSES` (default `failed` and `error`), and `MENTION_ON_FAILURE` (off; turn on only to mention a Slack user group, with `MENTION_TEXT`).
 
-Run 1, non-CI branch:
+Confirm two things before building. The CI system's endpoints must match the shape above: a start endpoint returning JSON with `id`, and a status endpoint returning JSON with `status`. The sender must post `repository`, `owner`, `branch` and `topics` in the body; if it uses other field names, change the input schema in `workflow.ts` first.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `slack` to the user's Slack connection for the workspace with the alert channel. Webhooks by Zapier needs no connection; the catch hook and the CI calls are unauthenticated.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/hook.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections (and sample the trigger, if it has one) before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it as a draft test (`run_workflow_draft`) with the workflow disabled. These two samples should skip without calling any app:
+
+Sample 1, a non-CI branch:
 
 ```json
 {
@@ -70,9 +63,9 @@ Run 1, non-CI branch:
 }
 ```
 
-Expected: `{ "skipped": true, "reason": "branch-not-ci" }`, no operations.
+Expected: `{ "skipped": true, "reason": "branch-not-ci" }`, with no operations run.
 
-Run 2, excluded repository on `main`:
+Sample 2, an excluded repository on `main`:
 
 ```json
 {
@@ -83,17 +76,12 @@ Run 2, excluded repository on `main`:
 }
 ```
 
-Expected: `{ "skipped": true, "reason": "repo-excluded" }`, no operations.
+Expected: `{ "skipped": true, "reason": "repo-excluded" }`, with no operations run.
 
-Both runs completed as expected. The end-to-end path (CI POST, status GET, Slack alert) still needs a test: point `CI_PIPELINE_URL` and `CI_STATUS_URL` at a test pipeline, run a `main` payload with a failing pipeline, and confirm one `[install-test]` message in the test channel.
-
-## Customize
-
-- **Variation:** add a repository-specific queue delay for large services.
-- **Variation:** route failure posts to on-call users or multiple channels based on service tags.
+Then test the full path. Point `CI_PIPELINE_URL` and `CI_STATUS_URL` at a test pipeline, run a `main` payload whose pipeline fails, and check that one alert with the status and the pipeline link appears in the test channel. If run-status tools aren't available, check the test channel in Slack directly. Ask the user to delete the test messages; the agent does not delete them. Then publish, confirm the trigger is active, and turn the Zap on.
 
 ## Notes
 
-- The original spec's GitHub "Find Repository" step is not included. The repository topics must come from the sender's payload.
-- The workflow was published enabled, then disabled. Turn it on only after setting the constants above and testing the full path.
-- Anyone with the catch-hook URL can start a CI run, so keep it private.
+- The repository topics must come from the sender's payload. The GitHub "Find Repository" step from the original spec is not included.
+- To vary it, add a repository-specific queue delay for large services, or route failure posts to on-call users or several channels by service tag.
+- Turn the Zap on only after the full path has been tested.

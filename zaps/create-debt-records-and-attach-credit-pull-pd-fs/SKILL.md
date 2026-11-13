@@ -1,6 +1,6 @@
 ---
 name: create-debt-records-and-attach-credit-pull-pd-fs
-description: Use when a credit-pull request arrives by webhook and you want the credit report requested and its PDF captured, with the client's debt records created in your CRM and the PDF stored in Drive. Use it when accounts receivable teams pull credit reports on new clients and file them by hand.
+description: Build a Zap on Zapier that receives a credit-pull request at a webhook and requests the client's credit report from your credit-report API, so its PDF is captured without a manual pull. Use when accounts receivable teams pull credit reports on new clients by hand.
 license: MIT
 metadata:
   author: zapier
@@ -13,41 +13,40 @@ metadata:
 
 # Create debt records and attach credit pull PDFs
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/create-debt-records-and-attach-credit-pull-pd-fs. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a credit-pull request arrives at a Webhooks by Zapier catch hook (a CRM or intake form posts the client's details to it).
-2. **Webhooks by Zapier (POST)** sends the client's identity and contact fields to your credit-report API. The response is meant to carry the report's PDF.
+1. **Trigger:** a credit-pull request arrives at a Webhooks by Zapier catch hook (`webhook`, `hook_v2`). A CRM or intake form posts the client's details to it.
+2. **Webhooks by Zapier** sends the client's identity and contact fields to your credit-report API. The response is meant to carry the report's PDF.
 3. If no report comes back, the run stops and says so.
 
-The spec also has the PDF uploaded to Google Drive and a HubSpot deal updated with the client's credit fields. Those steps are not built yet (see Notes).
-
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-debt-records-and-attach-credit-pull-pd-fs` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-debt-records-and-attach-credit-pull-pd-fs` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Webhooks by Zapier, Catch Hook (`webhook`, `hook_v2`). It needs no connection, so its `authentication_id` is `null`.
-2. **Connections:** none bound in this draft. The Drive and HubSpot steps will need their own connections when they are added.
-3. **Constants:**
-   - `CREDIT_PULL_URL`: the endpoint of your credit-report API. Replace `YOUR_CREDIT_PULL_API_URL`.
-   - `DEFAULT_COUNTRY_CODE`: added to 10-digit phone numbers. Defaults to `+1`.
-4. Test with the steps below, then publish, wait until the trigger is active, and give the user their webhook URL to point their intake system at.
+The SSN and date of birth go only to the credit API.
 
 ## Ask the user
 
-- Which credit-report provider and endpoint? The request format and the response field that carries the PDF must match it.
-- Which Google Drive folder should hold the PDFs, and which CRM (HubSpot, Salesforce or other) holds the debt records?
-- Should phone numbers default to a country code other than `+1`?
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting           | What goes there                                                                                                                                                                                       |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CREDIT_PULL_URL` | The endpoint of the user's credit-report API, which receives the pull request. The spec doesn't name a provider, and the request format and the response field that carries the PDF must match theirs |
 
-When you test, use a fake client with no real identity data, in this shape:
+Also review the default with them: `DEFAULT_COUNTRY_CODE` (`+1`) is added to 10-digit phone numbers; change it for non-US clients.
+
+Before the Drive and HubSpot steps are added, ask which Google Drive folder should hold the PDFs, and which CRM (HubSpot, Salesforce or other) holds the debt records.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** none. The catch hook and the POST step need no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/hook.ts` is a setting, not code: set the workflow's trigger from it. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect the POST action's fields and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test with a fake client that has no real identity data:
 
 ```json
 {
@@ -61,16 +60,11 @@ When you test, use a fake client with no real identity data, in this shape:
 }
 ```
 
-Check that the POST reached the credit API with these fields, and that the run stops cleanly if the response has no report. The Drive and HubSpot checks come after those steps are built.
-
-## Customize
-
-- **Notify the team** on failed pulls or missing tokens: add a Slack or email step after the credit-pull step.
-- **Create a case-manager task** for debts above a threshold: add a step after the HubSpot update that compares the debt total to a configured limit.
+Check that the POST reached the credit API with these fields, and that the run stops with `credit-pull-returned-no-report` if the response has no report. If run-status tools aren't available, check the result in your credit-report API directly. Then publish, confirm the trigger is active, and give the user the webhook URL to point their intake system at. The user deletes any test data, not the agent.
 
 ## Notes
 
 - **Not built:** the Google Drive PDF upload and the HubSpot deal update. HubSpot has no connection. Both steps need a connection and an enabled action before they can be added.
 - **Not built:** the Zapier Tables lookup for the credit API key. Keep that key in a secret store, not in the workflow source.
-- The client's SSN and date of birth are sent to the credit API only. They are not written to Drive or to step output.
 - Never commit a real credit API URL or any credentials. Anyone with the webhook URL can start a credit pull.
+- To extend it: notify the team on failed pulls or missing tokens with a Slack or email step after the credit-pull step, or create a case-manager task for debts above a threshold with a step that compares the debt total to a limit.

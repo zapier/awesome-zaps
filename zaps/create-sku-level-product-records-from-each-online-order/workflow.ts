@@ -62,13 +62,13 @@ const workflow = defineDurable(
     let failed = 0;
 
     // One record per line item. Each item has its own step so a failure is recorded and the rest still run.
-    for (const [index, item] of lineItems.entries()) {
+    for (const item of lineItems) {
       const quantity = Number(item.quantity ?? 0);
       const unitPrice = Number(item.price ?? 0);
       const totalRevenue = (unitPrice * quantity).toFixed(2);
 
       const outcome = await ctx.step(
-        `create-product-record-${index}`,
+        `create-product-record-${item.id}`,
         async () => {
           try {
             const result = await sdk.runAction({
@@ -88,7 +88,9 @@ const workflow = defineDurable(
                 new__data__f8: customerReference,
               },
             });
-            return { ok: true, recordId: result.data?.[0]?.record_id ?? null };
+            const record = result.data?.[0] as
+              { record_id?: string } | undefined;
+            return { ok: true, recordId: record?.record_id ?? null };
           } catch (error) {
             return {
               ok: false,

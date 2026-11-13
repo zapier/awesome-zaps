@@ -2,14 +2,16 @@ import { defineDurable } from "@zapier/zapier-durable";
 import { createZapierSdk } from "@zapier/zapier-sdk";
 import { z } from "zod";
 
-import { ROUTING_WEBHOOK_URL, FALLBACK_ROTATION } from "./config.ts";
+import {
+  ROUTING_WEBHOOK_URL,
+  DEFAULT_CONTACTS,
+  FALLBACK_ROTATION,
+} from "./config.ts";
 
 const sdk = createZapierSdk();
 
 // Canonical rotation identifiers the routing workflow knows (after normalization).
 const KNOWN_ROTATIONS = ["platform-primary", "platform-secondary"];
-// Default contact set: sent as the group members input and as the fallback.
-const DEFAULT_CONTACTS = ["YOUR_DEFAULT_CONTACT_EMAIL"];
 
 const PersonSchema = z
   .object({ email: z.string().nullable().optional() })

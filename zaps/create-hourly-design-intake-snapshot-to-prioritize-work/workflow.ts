@@ -46,7 +46,8 @@ const workflow = defineDurable(
       }),
     );
 
-    const rawRows = intake.data[0]?.raw_rows;
+    const rawRows = (intake.data[0] as { raw_rows?: unknown } | undefined)
+      ?.raw_rows;
     const cells: unknown[][] =
       typeof rawRows === "string" ? JSON.parse(rawRows) : (rawRows ?? []);
 
@@ -131,7 +132,8 @@ const workflow = defineDurable(
       unassigned: unassigned.length,
       listed: top.length,
       subject,
-      emailId: email.data?.[0]?.id ?? null,
+      emailId:
+        (email.data?.[0] as { id?: string | number } | undefined)?.id ?? null,
     };
   },
 );

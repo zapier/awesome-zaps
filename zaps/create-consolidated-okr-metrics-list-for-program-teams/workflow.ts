@@ -22,7 +22,7 @@ const workflow = defineDurable(
     );
 
     const recordIds = records.data
-      .map((record) => String(record.id ?? "").trim())
+      .map((record) => String((record as { id?: unknown }).id ?? "").trim())
       .filter((id) => id.length > 0);
     const uniqueIds = [...new Set(recordIds)];
 

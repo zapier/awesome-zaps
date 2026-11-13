@@ -1,6 +1,6 @@
 ---
 name: create-delay-log-for-deals-entering-document-delay-stage
-description: Build a Zapier Next Gen Zap that logs a row in a Zapier Table each time a Pipedrive deal moves into the document delay stage, so the team can triage and resolve paperwork holds. Use when a sales team tracks deals stuck on documents and wants every entry into that stage recorded in one place without manual logging.
+description: Build a Zap on Zapier that logs a row in a Zapier Table each time a Pipedrive deal moves into the document delay stage, so the team can triage and resolve paperwork holds. Use when a sales team tracks deals stuck on documents and wants every entry into that stage recorded in one place without manual logging.
 license: MIT
 metadata:
   author: zapier
@@ -13,62 +13,54 @@ metadata:
 
 # Create delay log for deals entering document delay stage
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/create-delay-log-for-deals-entering-document-delay-stage. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a Pipedrive deal's stage is updated (Pipedrive, Updated Deal Stage).
-2. The workflow stops unless the deal moved into the document-delay stage you set.
-3. **Zapier Tables** looks for a row with the same deal ID. If one exists, the run stops and writes nothing, so each deal gets one log row.
+1. **Trigger:** a Pipedrive deal's stage is updated (Pipedrive, Updated Deal Stage: `pipedrive`, `updated_deal_stage_v3`). Its stage setting is left empty, because the workflow filters on the stage itself.
+2. The workflow stops unless the deal moved into the document-delay stage set in `DELAY_STAGE_ID`.
+3. **Zapier Tables** looks for a row with the same deal ID. If one exists, the run stops and writes nothing.
 4. **Zapier Tables** creates a row: the deal ID, the update time from Pipedrive, the stage ID as the delay status, and `Open` in the triage status column.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-delay-log-for-deals-entering-document-delay-stage` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-delay-log-for-deals-entering-document-delay-stage` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Pipedrive, Updated Deal Stage (`pipedrive`, `updated_deal_stage_v3`). Leave its stage parameter empty; the workflow filters on the stage itself, so it works with any stage picker.
-2. **Connections** (each alias in the code is the app's slug):
-   - `pipedrive`: the user's Pipedrive connection, for the account that owns the deals.
-   - `zapier-tables`: the user's Zapier Tables connection.
-3. **Table:** create a table with four columns, in this order: `Deal ID` (Text), `Updated at` (Date & Time), `Delay status` (Text), `Triage status` (Text). Use its ID for the table constant.
-4. **Constants:**
-   - `DELAY_STAGE_ID`: the Pipedrive stage ID of the document-delay stage.
-   - `DELAY_LOG_TABLE_ID`: the ID of the Zapier Table that holds the log.
-   - `INITIAL_TRIAGE_STATUS`: the text put in each new row's triage column. Defaults to `"Open"`.
-5. Publish, wait until the trigger is active, and confirm the trigger on the workflow page.
+Each deal gets one log row, so a deal that re-enters the delay stage later adds nothing.
 
 ## Ask the user
 
-- Which Pipedrive stage is the document-delay stage? Its ID goes in `DELAY_STAGE_ID`.
-- Which Zapier Table holds the delay log, and do its columns match the four above?
-- Should the triage status start at something other than `Open`?
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting              | What goes there                                                                                                                                                                                                                |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `DELAY_STAGE_ID`     | The Pipedrive stage that holds deals waiting on documents. Look it up with the user's Pipedrive connection; deals moving into any other stage are skipped.                                                                     |
+| `DELAY_LOG_TABLE_ID` | The Zapier Table that holds the delay log. Its columns, in order, must be `Deal ID` (Text), `Updated at` (Date & Time), `Delay status` (Text) and `Triage status` (Text). Look it up with the user's Zapier Tables connection. |
 
-Run this sample as a draft test run before publishing, with a deal ID that is not yet in the log and the stage ID you set:
+Also review the default with them: `INITIAL_TRIAGE_STATUS` (`"Open"`) is the text written to each new row's Triage status column. Ask whether they want new deals to start at something else.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `zapier-tables` to the user's Zapier Tables connection, which holds the delay log. The trigger uses `pipedrive`, the user's Pipedrive connection for the account that owns the deals.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/updated-deal-stage.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test with a deal ID that is not yet in the log, and with `stage_id` set to the `DELAY_STAGE_ID` you chose so the run is not skipped:
 
 ```json
 {
   "id": "1001",
-  "stage_id": "YOUR_DELAY_STAGE_ID",
+  "stage_id": "5",
   "update_time": "2026-10-29T10:15:00Z"
 }
 ```
 
-Confirm that the log gained one row for that deal, with the update time, the stage in delay status, and `Open` in triage status. Run it again with the same deal ID and confirm no second row appears. Then delete the test row if it was real data.
-
-## Customize
-
-- **Only log some pipelines or deal types:** add a check on the deal's pipeline or type before the lookup step.
-- **Flag high-value deals for expedited triage:** add a check on the deal's value and write a higher-priority triage status for deals above your threshold.
+Check that the log gained one row for that deal, with the update time, the stage in Delay status, and `Open` in Triage status. Run it again with the same deal ID and check that no second row appears. If run-status tools aren't available, check the result in Zapier Tables directly. Ask the user to delete the test rows; the agent does not delete data. Then publish, and confirm the trigger is active.
 
 ## Notes
 
-- Each deal gets one log row. A deal that re-enters the delay stage later does not add a second row.
 - Zapier Tables shows the update time in the table's own format and time zone.
+- To log only some pipelines or deal types, add a check on the deal's pipeline or type before the lookup step.
+- To flag high-value deals for expedited triage, add a check on the deal's value and write a higher-priority status for deals above the threshold.
 - Never commit a real table ID or stage ID to a shared copy of this workflow.

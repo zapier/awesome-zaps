@@ -76,7 +76,10 @@ const workflow = defineDurable(
           },
         }),
     );
-    const analysis = analysisResult.data[0];
+    const analysis = (analysisResult.data[0] ?? {}) as Record<
+      string,
+      string | undefined
+    >;
 
     const companyText = [row.f8, row.f4, row.f5]
       .map((part) => (part ?? "").trim())
@@ -104,7 +107,10 @@ const workflow = defineDurable(
         },
       }),
     );
-    const companies = companyResult.data[0];
+    const companies = (companyResult.data[0] ?? {}) as Record<
+      string,
+      string | undefined
+    >;
 
     const sections: [string, string | null | undefined][] = [
       ["Gist", row.f4],

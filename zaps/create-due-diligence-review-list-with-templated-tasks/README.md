@@ -6,16 +6,18 @@ When a due-diligence review request arrives, a dated ClickUp list is created fro
 
 **Based on:** [Create due diligence review list with templated tasks](https://zapier.com/automations/executives/corporate-development/due-diligence-management/create-due-diligence-review-list-with-templated-tasks) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/create-due-diligence-review-list-with-templated-tasks/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/create-due-diligence-review-list-with-templated-tasks
+
+The agent follows `SKILL.md`: it asks you for your ClickUp workspace, space, list template and the custom fields for each detail, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
-- `connections/`: the accounts it uses (`clickup`)
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
+- `connections/`: the account it uses (`clickup`)
 - `triggers/`: what starts it

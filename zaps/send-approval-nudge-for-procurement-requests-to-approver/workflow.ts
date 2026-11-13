@@ -41,7 +41,7 @@ const workflow = defineDurable(
       }),
     );
 
-    const approverId = approver.data[0]?.id;
+    const approverId = (approver.data[0] as { id?: string } | undefined)?.id;
     if (!approverId) {
       return { skipped: true, reason: "approver-not-found", recordId };
     }

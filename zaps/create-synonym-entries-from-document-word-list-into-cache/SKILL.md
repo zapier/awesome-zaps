@@ -1,6 +1,6 @@
 ---
 name: create-synonym-entries-from-document-word-list-into-cache
-description: Build a Zapier Next Gen Zap that reads a new word-list document from a Google Drive folder, looks up synonyms for each term in a thesaurus, and writes one entry per new term into a Zapier Table. Use when a content or SEO team keeps a word list in Google Docs and wants a shared, de-duplicated table of terms and synonyms without copying by hand.
+description: Build a Zap on Zapier that reads a new word-list document from a Google Drive folder, looks up synonyms for each term in a thesaurus, and writes one entry per new term into a Zapier Table. Use when a content or SEO team keeps a word list in Google Docs and wants a shared, de-duplicated table of terms and synonyms without copying by hand.
 license: MIT
 metadata:
   author: zapier
@@ -13,56 +13,51 @@ metadata:
 
 # Create synonym entries from a document word list
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/create-synonym-entries-from-document-word-list-into-cache. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a new file is added to the watched Google Drive folder.
+1. **Trigger:** a new file is added to the watched Google Drive folder (`google-drive`, `file_in_folder_v2`).
 2. **Google Docs** reads the document's text.
-3. Plain code splits the text into one term per line, lowercased and de-duplicated, capped at `MAX_WORDS` (50).
+3. Plain code splits the text into one term per line, lowercased and de-duplicated, capped at 50 terms.
 4. For each term, in turn:
    - **Zapier Tables** looks for an existing record with the same term. If one exists, the term is skipped.
    - Otherwise **Webhooks by Zapier** (GET) queries the thesaurus with the term as `word`, and the synonyms are joined into one string.
    - **Zapier Tables** creates a record with the term and its synonyms.
 5. The run returns counts of created, existing and failed terms. One failed term does not stop the others.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-synonym-entries-from-document-word-list-into-cache` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-synonym-entries-from-document-word-list-into-cache` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Google Drive, New File in Folder (`google-drive`, `file_in_folder_v2`). It needs a Google Drive connection, so its `authentication_id` is that connection's ID.
-2. **Connections** (each alias in the code is the app's slug):
-   - `google-docs`: the Google Docs connection for the account that owns the word-list documents.
-   - `zapier-tables`: the Zapier Tables connection, for the account that owns the synonym table.
-   - `webhook`: none. It is a no-auth app.
-3. **Constants:**
-   - `WATCHED_FOLDER_ID`: the Drive folder's ID from its URL.
-   - `TABLE_ID`: the Zapier Table's ID.
-   - `TERM_COLUMN`, `SYNONYMS_COLUMN`: the table's column keys for the term and the synonyms. Read them from the table's fields once it is connected.
-   - `THESAURUS_URL`: your thesaurus endpoint. The code sends the term as the `word` query parameter and reads `json.synonyms` from the JSON response; change that if your API returns a different shape.
-   - `MAX_WORDS`: the most terms processed per document. Defaults to `50`.
-   - `SYNONYM_SEPARATOR`: what goes between synonyms in the cell. Defaults to `", "`.
-4. Test with the steps below, then publish, wait until the trigger is active, and tell the user the folder the trigger watches.
+The Zap only adds records. It never edits or deletes an existing entry.
 
 ## Ask the user
 
-- Which Drive folder receives the word-list documents?
-- Which Zapier Table holds the synonyms, and what are its term and synonyms column keys?
-- Which thesaurus API should be queried, and what does its response look like?
-- Should a new entry also send a notification email to the owner? (The original recipe marks this optional. It is left out here.)
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                     | What goes there                                                                                                       | Where                                                     |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| `REPLACE_WATCHED_FOLDER_ID` | The Google Drive folder that receives the word-list documents                                                         | `config.ts`, and `folder` in `triggers/file-in-folder.ts` |
+| `REPLACE_TABLE_ID`          | The Zapier Table that holds the synonym entries                                                                       | `config.ts`                                               |
+| `REPLACE_TERM_COLUMN`       | The table column that stores the term; existing entries are matched on it                                             | `config.ts`                                               |
+| `REPLACE_SYNONYMS_COLUMN`   | The table column that stores the synonyms, joined into one string                                                     | `config.ts`                                               |
+| `REPLACE_THESAURUS_URL`     | The thesaurus API URL. Each term is sent as the `word` query parameter, and `json.synonyms` is read from the response | `config.ts`                                               |
+
+Also review the defaults with them: `SYNONYM_SEPARATOR` in `config.ts` (`", "`, between synonyms in the cell) and `MAX_WORDS` in `workflow.ts` (50 terms per document).
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `google-docs` (the account that owns the word-list documents) and `google-drive` (the account that owns the watched folder) to the user's connections. Webhooks by Zapier and Zapier Tables take no connection alias, so there is nothing to bind for them.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/file-in-folder.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match. The synonyms column key comes from the table's fields.
+
+## Test it
 
 Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing. Use a Google Doc that holds the word list, with a few lines and at least one term that already exists in the table:
 
 ```json
 {
-  "id": "YOUR_TEST_DOCUMENT_ID",
+  "id": "TEST_DOCUMENT_ID",
   "name": "[install-test] synonym word list"
 }
 ```
@@ -73,19 +68,14 @@ Check that:
 - Terms that already had a record were skipped, and no duplicate was created.
 - The returned counts match the document: `created + existing + failed = total`.
 
-Then delete the test records if they were created for testing.
+If run-status tools aren't available, check the result in Zapier Tables directly. Ask the user to delete the test records; the agent doesn't delete them.
 
-The draft has no working Drive or Zapier Tables connection, and the constants are placeholders.
-
-## Customize
-
-- **Offline synonym list:** use an internal synonym list instead of the external API, so the Zap works offline.
-- **Language and tagging:** add tagging or language fields to records for regional keyword variants.
-- **Team notification:** add an email step after the create step to alert owners of new entries.
+Then publish, confirm the trigger is active, and tell the user which folder it watches.
 
 ## Notes
 
 - Matching is exact and lowercase. "Run" and "running" are different terms.
 - A term with no synonyms still creates a record, with an empty synonyms cell.
 - Anyone who can edit the table can change the synonyms, so keep the table shared only with the content team.
+- To extend it: use an internal synonym list instead of the external API, add tagging or language fields to records, or add an email step after the create step to alert owners of new entries.
 - Never commit a real folder ID, table ID, thesaurus key or webhook URL.

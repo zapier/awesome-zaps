@@ -1,6 +1,6 @@
 ---
 name: aggregate-topic-videos-into-a-searchable-content-table
-description: Build a Zapier Next Gen Zap that watches YouTube for new videos matching a topic and adds each matching video as a row in a Zapier Tables content table, so the library stays searchable for tagging and editorial scheduling. Use when you curate videos on a topic and want them collected in one searchable table instead of saved by hand.
+description: Build a Zap on Zapier that watches YouTube for new videos matching a topic and adds each matching video as a row in a Zapier Tables content table, so the library stays searchable for tagging and editorial scheduling. Use when you curate videos on a topic and want them collected in one searchable table instead of saved by hand.
 license: MIT
 metadata:
   author: zapier
@@ -13,40 +13,36 @@ metadata:
 
 # Aggregate topic videos into a searchable content table
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/aggregate-topic-videos-into-a-searchable-content-table. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** YouTube, New Video by Search. It fires for each new video uploaded that matches your topic search string.
-2. **Filter:** the run continues only if the video title contains your topic keyword. Other videos are skipped without writing anything.
+1. **Trigger:** YouTube, New Video by Search (`youtube`, `video_search`). It fires for each new video uploaded that matches your topic search string.
+2. **Filter:** the run continues only if the video title contains your keyword. Other videos are skipped without writing anything.
 3. **Zapier Tables** creates one record in your content table with the video's title, channel name, permalink, publish date and description.
-
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/aggregate-topic-videos-into-a-searchable-content-table` (it makes a zap project if you aren't in one), then `npx zap-pack deploy aggregate-topic-videos-into-a-searchable-content-table` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** YouTube, New Video by Search (`video_search`). Its `query` parameter is `TOPIC_QUERY`.
-2. **Connections** (each alias in the code is the app's slug):
-   - `zapier-tables`: the user's Zapier Tables connection, for the account that owns the content table.
-   - The YouTube trigger needs the user's YouTube connection.
-3. **Constants:**
-   - `TOPIC_QUERY`: the search string for new YouTube uploads, for example a topic name.
-   - `TITLE_KEYWORD`: a word the video title must contain for the video to be kept. Usually the same as the topic.
-   - `TABLE_ID`: the ID of the content table in Zapier Tables.
-4. Test with the steps below, then publish, wait until the trigger is active, and check that new matching videos arrive in the table.
 
 ## Ask the user
 
-- Which search topic should the trigger watch?
-- Which keyword must a title contain for the video to be kept?
-- Which Zapier Tables table is the content database, and does it have columns for title, channel, permalink, publish date and description?
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting         | What goes there                                                                             |
+| --------------- | ------------------------------------------------------------------------------------------- |
+| `TOPIC_QUERY`   | The search string the YouTube trigger watches for new uploads: your topic                   |
+| `TITLE_KEYWORD` | A word the video title must contain for the video to be kept. Usually the same as the topic |
+| `TABLE_ID`      | The content table in Zapier Tables that receives rows                                       |
+
+The content table needs columns for title, channel, permalink, publish date and description.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `zapier-tables` to the user's Zapier Tables connection for the account that owns the content table. The YouTube trigger uses the user's `youtube` connection, set from `connections/youtube.ts`.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/video-search.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger, if it has one, before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
 
 Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing. Use a video whose title contains the keyword:
 
@@ -60,14 +56,13 @@ Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before 
 }
 ```
 
-Confirm that one new row appears in the content table with the five values filled in. Then run it again with a title that lacks the keyword and check that no row is added. Delete any test row afterwards.
+Confirm that one new row appears in the content table with the five values filled in. Then run it again with a title that lacks the keyword and check that no row is added. If run-status tools aren't available, check the result in Zapier Tables directly. The user deletes the test row afterwards, not the agent.
 
-## Customize
-
-- **Normalize the data:** add a Formatter step to tidy the publish date or shorten the description before the row is created.
-- **Notify editors:** add a Slack or email step after the row is created to alert editors about high-priority matches.
+Then publish, confirm the trigger is active, and check that new matching videos arrive in the table.
 
 ## Notes
 
 - Each run creates a row for each new matching video. If the same video is found twice, it creates a second row. Add a duplicate check on the permalink before creating the row if that happens.
-- Never commit a real table ID or a real topic that you do not want shared.
+- To tidy the data, add a Formatter step to shorten the description or format the publish date before the row is created.
+- To alert editors, add a Slack or email step after the row is created for high-priority matches.
+- Keep real table IDs and topics you do not want shared out of commits.

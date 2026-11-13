@@ -1,7 +1,7 @@
 // This zap's settings. Each "REPLACE_…" value is set per person before deploying; its comment says how to get it.
 // The other values are defaults you can change.
 
-export const SPREADSHEET_ID = "REPLACE_SPREADSHEET_ID"; // Google Sheets spreadsheet ID for the central billing sheet (the long ID in the sheet's URL).
+export const SPREADSHEET_ID = "REPLACE_SPREADSHEET_ID"; // Ask the user which spreadsheet is the central billing sheet, then look up its ID (the long ID in its URL) with their Google Sheets connection.
 
 // Worksheet (tab) ID; the first tab is "0".
 export const WORKSHEET_ID = "0";

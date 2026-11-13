@@ -6,16 +6,18 @@ When a meeting row is added or updated in a Zapier Table, this turns it into a d
 
 **Based on:** [Generate meeting summary docs and action items for projects](https://zapier.com/automations/executives/meeting-management/action-item-tracking/generate-meeting-summary-docs-and-action-items-for-projects) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/generate-meeting-summary-docs-and-action-items-for-projects/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/generate-meeting-summary-docs-and-action-items-for-projects
+
+The agent follows `SKILL.md`: it asks you for your meeting tracker table, the Drive folder for the docs and the Google account that owns them, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
 - `connections/`: the accounts it uses (`google-docs`, `zapier-tables`)
 - `triggers/`: what starts it

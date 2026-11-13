@@ -160,7 +160,8 @@ const workflow = defineDurable(
       }),
     );
 
-    const vendorId = vendor.data?.[0]?.id;
+    const vendorId = (vendor.data?.[0] as { id?: string | number } | undefined)
+      ?.id;
     if (!vendorId) {
       await ctx.step("notify-procurement-no-vendor", async () =>
         notifyProcurement(

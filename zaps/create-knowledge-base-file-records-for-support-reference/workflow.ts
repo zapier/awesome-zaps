@@ -42,9 +42,9 @@ const workflow = defineDurable(
     }
 
     const results = await Promise.all(
-      files.map(async (file, index) => {
+      files.map(async (file) => {
         const found = await ctx
-          .step(`find-table-record-${index}`, async () =>
+          .step(`find-table-record-${file.id}`, async () =>
             sdk.runAction({
               appKey: "zapier-tables",
               actionType: "search",
@@ -71,7 +71,7 @@ const workflow = defineDurable(
         }
 
         const created = await ctx
-          .step(`create-table-record-${index}`, async () =>
+          .step(`create-table-record-${file.id}`, async () =>
             sdk.runAction({
               appKey: "zapier-tables",
               actionType: "write",

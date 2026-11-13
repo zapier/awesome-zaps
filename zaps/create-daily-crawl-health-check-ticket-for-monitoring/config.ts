@@ -1,8 +1,8 @@
 // This zap's settings. Each "REPLACE_…" value is set per person before deploying; its comment says how to get it.
 // The other values are defaults you can change.
 
-export const REQUESTER_NAME = "REPLACE_REQUESTER_NAME"; // Name of the service account the ticket is requested by (Zendesk requester name).
-export const REQUESTER_EMAIL = "REPLACE_REQUESTER_EMAIL"; // Email of that service account (Zendesk requester email).
+export const REQUESTER_NAME = "REPLACE_REQUESTER_NAME"; // Look up with the user's Zendesk connection the service account the tickets are requested by, then take its name.
+export const REQUESTER_EMAIL = "REPLACE_REQUESTER_EMAIL"; // Look up with the user's Zendesk connection the email of that same service account.
 
 // Ticket priority: "urgent", "high", "normal" or "low".
 export const TICKET_PRIORITY = "normal";

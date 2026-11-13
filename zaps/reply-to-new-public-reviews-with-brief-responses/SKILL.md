@@ -1,6 +1,6 @@
 ---
 name: reply-to-new-public-reviews-with-brief-responses
-description: Build a Zapier Next Gen Zap that posts a short, friendly public reply to each new Google Business Profile review. Use when a local business wants every new review answered quickly with a templated thank-you, without writing each reply by hand.
+description: Build a Zap on Zapier that posts a short, friendly public reply to each new Google Business Profile review. Use when a local business wants every new review answered quickly with a templated thank-you, without writing each reply by hand.
 license: MIT
 metadata:
   author: zapier
@@ -13,40 +13,43 @@ metadata:
 
 # Reply to new public reviews with brief responses
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/reply-to-new-public-reviews-with-brief-responses. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** Google Business Profile, New Review (`new_review_v3`), for one location. Each new review starts a run with its review name, ID, comment, star rating and reviewer display name.
+1. **Trigger:** a new review on the watched location in Google Business Profile (`google-business-profile`, `new_review_v3`). The trigger brings the review's name, ID, comment, star rating and reviewer display name.
 2. **Code** builds a short reply from a fixed template, addressed to the reviewer's first name (or "there" if no name is given).
-3. **Google Business Profile** posts the reply under the review (`create_reply`).
+3. **Google Business Profile** posts the reply under the review.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/reply-to-new-public-reviews-with-brief-responses` (it makes a zap project if you aren't in one), then `npx zap-pack deploy reply-to-new-public-reviews-with-brief-responses` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Google Business Profile, New Review (`google-business-profile`, `new_review_v3`, read). Set `location` to the location to watch. Its `authentication_id` is the Google Business Profile connection ID.
-2. **Connections** (the alias in the code is the app's slug):
-   - `google-business-profile`: the Google Business Profile connection for the account that manages the location.
-3. **Constants:**
-   - `REPLY_TEMPLATE`: the public reply text. `{name}` is replaced by the reviewer's first name. Keep it short and on-brand; Google's content policy applies.
-   - `NAME_FALLBACK`: the word used when the reviewer has no display name. Defaults to `"there"`.
-4. Test with the steps below, then publish, wait until the trigger is active, and leave it enabled only once the test has passed.
+The reply is public, so keep the template short and on-brand. Google's content policy applies.
 
 ## Ask the user
 
-- Which Google Business Profile location should the trigger watch? (`location` is a dropdown on the trigger; choose it there.)
-- Which Google account should be connected? It must be the account that manages the location.
-- Is the template text right? Edit `REPLY_TEMPLATE` before publishing if not.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting               | Where                                       | What goes there                                                |
+| --------------------- | ------------------------------------------- | -------------------------------------------------------------- |
+| `REPLACE_LOCATION_ID` | `triggers/new-review.ts`, `params.location` | The Google Business Profile location whose reviews get replies |
 
-To test once a connection exists, run this sample as a draft test run (`run_workflow_draft`). It posts a real reply, so use a review you are happy to answer, or a test location:
+Confirm the Google account to connect manages that location. It is the account bound to `google-business-profile` in step 1 of Build it.
+
+Also review the defaults with them:
+
+- `REPLY_TEMPLATE` in `workflow.ts`: the public reply text. `{name}` becomes the reviewer's first name. Check it reads right before publishing.
+- `NAME_FALLBACK` in `config.ts`: `"there"`, used when the reviewer has no display name.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `google-business-profile` to the user's Google Business Profile connection for the account that manages the location. No other app needs a connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/new-review.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them, and set the trigger's `location` from the user's answer. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connection and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test with a sample review on a location the user controls, since the reply is public:
 
 ```json
 {
@@ -58,15 +61,11 @@ To test once a connection exists, run this sample as a draft test run (`run_work
 }
 ```
 
-Confirm that the review shows a reply starting "Hi Sam," in Google Business Profile, and that the run's output has `reply` and `updated` set.
-
-## Customize
-
-- **Rating branch:** for low star ratings, send a team alert or skip the auto-reply and let a person respond. Not built.
-- **Location-specific templates:** use a different `REPLY_TEMPLATE` per location for multi-site brands. Not built.
+Check that the review shows a reply starting "Hi Sam," in Google Business Profile, and that the run's output has `reply` and `updated` set. If run-status tools aren't available, check the review in Google Business Profile directly. Ask the user to delete the test reply; the agent doesn't delete test data. Then publish, confirm the trigger is active, and leave it on only once the test has passed.
 
 ## Notes
 
-- The reply is public and visible to everyone on Google. Test on a location you control.
-- `create_reply` replaces an existing reply rather than skipping the review. The trigger only fires on new reviews, so this is rare, but a re-delivered review will get the template again.
+- The reply is public and visible to everyone on Google. Test on a location the user controls.
+- Posting a reply replaces any reply already on the review. The trigger fires only on new reviews, so this is rare, but a re-delivered review gets the template again.
 - Reviewers' names come from Google. The workflow uses only the first word of the display name.
+- Not built, and worth adding for some brands: a low-rating branch that alerts a person instead of auto-replying, and a different `REPLY_TEMPLATE` per location for multi-site brands.

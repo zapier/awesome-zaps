@@ -6,16 +6,18 @@ When a new user intake item appears on a monday.com board, the customer's store 
 
 **Based on:** [Create new e-store user and assign access roles](https://zapier.com/automations/it/identity-access-management/user-provisioning/create-new-e-store-user-and-assign-access-roles) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/create-new-e-store-user-and-assign-access-roles/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/create-new-e-store-user-and-assign-access-roles
+
+The agent follows `SKILL.md`: it asks you for your intake board, the customer platform's API URL, role IDs and onboarding links, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
 - `connections/`: the accounts it uses (`microsoft-outlook`, `monday`)
 - `triggers/`: what starts it

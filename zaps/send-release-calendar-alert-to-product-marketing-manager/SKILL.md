@@ -1,6 +1,6 @@
 ---
 name: send-release-calendar-alert-to-product-marketing-manager
-description: Build a Zapier Next Gen Zap that sends the event owner a Slack direct message with the time and link when a release event is added to a Google Calendar. Use when a product team plans launches on a shared calendar and wants the product marketing owner alerted quickly enough to start launch comms.
+description: Build a Zap on Zapier that sends the event owner a Slack direct message with the time and link when a release event is added to a Google Calendar. Use when a product team plans launches on a shared calendar and wants the product marketing owner alerted quickly enough to start launch comms.
 license: MIT
 metadata:
   author: zapier
@@ -13,42 +13,43 @@ metadata:
 
 # Send release calendar alert to product marketing manager
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/send-release-calendar-alert-to-product-marketing-manager. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** a new event is created on the release calendar (Google Calendar, New Event).
+1. **Trigger:** a new event is created on the release calendar (`google-calendar`, `new_event`).
 2. The workflow stops without doing anything unless the event title contains a release keyword (`release` or `launch` by default).
-3. **Slack** looks up the Slack user whose email matches the event organizer. If there is no match, the team fallback recipient is used.
+3. **Slack** looks up the Slack user whose email matches the event organizer. If there is no match, the fallback recipient is used.
 4. The workflow formats the event's date and time, then **Slack** sends that person a direct message with the event title, the time, the event description (tags removed) and the calendar link.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/send-release-calendar-alert-to-product-marketing-manager` (it makes a zap project if you aren't in one), then `npx zap-pack deploy send-release-calendar-alert-to-product-marketing-manager` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Google Calendar, New Event (`google-calendar`, `new_event`). Set the trigger's **Calendar** parameter to the release calendar's ID (in the Google Calendar calendar list, the calendar's ID is its address, such as `YOUR_CALENDAR_ID`). Pick the Google Calendar connection for the account that can read that calendar. It is set in the trigger configuration, not in the code.
-2. **Connections** (each alias in the code is the app's slug):
-   - `slack`: the user's Slack connection for their own workspace. It must be able to look up users by email and send direct messages.
-   - The Google Calendar trigger connection, from step 1.
-3. **Settings** (in `config.ts`; an `ask(…)` is asked when each person deploys):
-   - `RELEASE_KEYWORDS`: words that mark an event as a release. Defaults to `["release", "launch"]`.
-   - `FALLBACK_SLACK_USER_ID`: the Slack user ID that receives the message when no one matches the organizer's email. Use the team's launch owner, not a channel.
-   - `SEND_MENTIONS`: keep `false` so the message never notifies anyone. Set `true` only if the user wants `@mentions` in the text to ping people.
+The Zap only sends a direct message. It never changes the calendar event, and it does not ping anyone with mentions unless `SEND_MENTIONS` is `true`.
 
 ## Ask the user
 
-- Which Google Calendar is the release calendar?
-- Which words in an event title mark it as a release? Keep the defaults if they don't say.
-- Who should get the alert when the organizer has no Slack account with the same email? Their Slack user ID goes in `FALLBACK_SLACK_USER_ID`.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting                          | Where                                 | What goes there                                                                                                     |
+| -------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `REPLACE_CALENDAR_ID`            | `triggers/new-event.ts`, `calendarid` | The Google Calendar that holds the release events                                                                   |
+| `REPLACE_FALLBACK_SLACK_USER_ID` | `config.ts`, `FALLBACK_SLACK_USER_ID` | The Slack user who gets the alert when no one matches the organizer's email: the team's launch owner, not a channel |
 
-Run this sample as a test run before publishing, with a release event that exists on the user's own calendar:
+Also review the defaults with them, in `workflow.ts`:
+
+- `RELEASE_KEYWORDS` (`["release", "launch"]`): the words that mark an event title as a release. Matching is case-insensitive. Keep the defaults unless they name others.
+- `SEND_MENTIONS` (`false`): keep it off so the message never notifies anyone. Set it to `true` only if they want `@mentions` in the text to ping people.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `slack` (the user's own workspace; it must look up users by email and send direct messages) to the user's Slack connection. Bind `google-calendar` (the account that can read the release calendar) for the trigger. Both apps use a connection; this Zap has no app that needs none.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/new-event.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them, and set the trigger's `calendarid` to the calendar the user chose. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections and sample the trigger before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test with a release event that exists on the user's own calendar:
 
 ```json
 {
@@ -74,14 +75,10 @@ Check that:
 - The direct message arrives in that Slack user's DMs with the title, a readable time (for example `Mon, Nov 3, 2026, 10:00 AM – 10:30 AM EST`), the description and the link, and it does not notify anyone.
 - A non-release title such as "Team lunch" stops the run without sending anything.
 
-## Customize
-
-- **Send to a team channel** instead of a DM for cross-functional launches: change the Slack action to a channel message.
-- **Create a follow-up task** in the team's project tool instead of a Slack message, so the owner gets an assignment.
+If run-status tools aren't available, check the result in Slack directly. Then publish, confirm the trigger is active, and ask the user to delete the test message. The user deletes test data, not the agent.
 
 ## Notes
 
-- Matching on the organizer's email only works when the organizer has the same email in Slack.
-- Google Calendar events without a start time are sent with "Time not set" as the time.
-- Keep `SEND_MENTIONS` off unless the user wants the alert to ping people.
+- Matching uses the organizer's email, so it only works when the organizer has the same email in Slack. Google Calendar events without a start time are sent with "Time not set" as the time.
+- To send to a team channel instead of a DM for cross-functional launches, change the Slack action to a channel message. To create a follow-up task in the team's project tool, add a step that creates it.
 - Never commit a real Slack user ID or calendar ID into a shared copy of this file.

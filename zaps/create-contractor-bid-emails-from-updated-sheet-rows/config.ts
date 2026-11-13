@@ -1,7 +1,7 @@
 // This zap's settings. Each "REPLACE_…" value is set per person before deploying; its comment says how to get it.
 // The other values are defaults you can change.
 
-export const SPREADSHEET_ID = "REPLACE_SPREADSHEET_ID"; // Google Sheets spreadsheet ID (the long ID in the sheet's URL). Also set it in the trigger's spreadsheet param.
+export const SPREADSHEET_ID = "REPLACE_SPREADSHEET_ID"; // Ask the user which sheet holds the bid requests, then look up its ID with their Google Sheets connection. Also set it in the trigger's spreadsheet param.
 
 // Worksheet (tab) ID; the first tab is "0". Also set it in the trigger's worksheet param.
 export const WORKSHEET_ID = "0";

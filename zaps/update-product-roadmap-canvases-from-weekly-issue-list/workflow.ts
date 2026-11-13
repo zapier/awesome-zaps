@@ -9,8 +9,8 @@ const sdk = createZapierSdk();
 const MAX_ITEMS = 100;
 // Jira project key -> product roadmap canvas ID. Issues from a project with no entry are skipped.
 const CANVAS_ID_BY_PROJECT_KEY: Record<string, string> = {
-  // Replace PROJ and YOUR_CANVAS_ID with your project key and canvas ID.
-  PROJ: "YOUR_CANVAS_ID",
+  // Ask the user which Jira project key maps to which roadmap canvas, then look up that canvas's ID in the canvas app. Add one entry per project.
+  REPLACE_PROJECT_KEY: "REPLACE_CANVAS_ID",
 };
 
 type JiraIssue = {

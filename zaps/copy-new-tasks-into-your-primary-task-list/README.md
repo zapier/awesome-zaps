@@ -6,16 +6,18 @@ When you add a task to a secondary Google Tasks list, it is copied into your pri
 
 **Based on:** [Copy new tasks into your primary task list](https://zapier.com/automations/personal-productivity/personal-administration/personal-task-management/copy-new-tasks-into-your-primary-task-list) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/copy-new-tasks-into-your-primary-task-list/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/copy-new-tasks-into-your-primary-task-list
+
+The agent follows `SKILL.md`: it asks you which list gets the new tasks and which is your primary list, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
-- `connections/`: the accounts it uses (`google-tasks`)
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
+- `connections/`: the account it uses (`google-tasks`)
 - `triggers/`: what starts it

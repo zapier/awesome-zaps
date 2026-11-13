@@ -1,6 +1,6 @@
 ---
 name: post-reaction-tagged-support-requests-to-ops-triage-channel
-description: Build a Zapier Next Gen Zap that posts a Slack message to an ops triage channel whenever a teammate adds a support reaction to a message, with the requester, a permalink and the raw message text. Use when support requests are raised in Slack by reacting to a message and a triage coordinator needs them in one place without copying links by hand.
+description: Build a Zap on Zapier that posts a Slack message to an ops triage channel whenever a teammate adds a support reaction to a message, with the requester, a permalink and the raw message text. Use when support requests are raised in Slack by reacting to a message and a triage coordinator needs them in one place without copying links by hand.
 license: MIT
 metadata:
   author: zapier
@@ -13,48 +13,39 @@ metadata:
 
 # Post reaction-tagged support requests to ops triage channel
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/post-reaction-tagged-support-requests-to-ops-triage-channel. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** Slack, New Reaction Added in a Channel (`new_reaction_added_v3`). It fires when the support reaction is added to a message in the source channel. It attaches the message's text, its author's ID, its channel and a permalink.
+1. **Trigger:** a new reaction in Slack (`slack`, `new_reaction_added_v3`). It fires when the support reaction is added to a message in the source channel and attaches the message's text, its author's ID, its channel and a permalink.
 2. **Slack** looks up the message author by ID and takes their real name. If the lookup fails, the run carries on with the author's ID instead.
-3. **Slack** posts one bot message to the triage channel: the source channel name, the requester, the permalink and the raw message text. Mentions are off, so the post pings nobody.
+3. **Slack** posts one bot message to the triage channel: the source channel name, the requester, the permalink and the raw message text.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/post-reaction-tagged-support-requests-to-ops-triage-channel` (it makes a zap project if you aren't in one), then `npx zap-pack deploy post-reaction-tagged-support-requests-to-ops-triage-channel` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Slack, New Reaction Added in a Channel (`slack`, action `new_reaction_added_v3`). Set its parameters:
-   - Channel ID: the value of `SOURCE_CHANNEL`.
-   - Reaction: `ticket`, or whatever `SUPPORT_REACTION` says.
-   - Reacted message detail: `content` (raw text, no extra API calls).
-   - Include additional data: `permalink`.
-2. **Connections** (each alias in the code is the app's slug, as in the reference):
-   - `slack`: the user's Slack connection, the workspace where the source and triage channels live. The same connection is used for the trigger and both actions.
-3. **Settings** (in `config.ts`; an `ask(…)` is asked when each person deploys):
-   - `TRIAGE_CHANNEL`: the Slack channel ID to post triage messages to. Use the ID, not the channel name.
-   - `SOURCE_CHANNEL`: the Slack channel ID the reaction is watched in. It must also be the trigger's Channel ID.
-   - `SUPPORT_REACTION`: the reaction name, without colons. Defaults to `ticket`.
-   - `BOT_NAME` and `BOT_ICON`: the name and icon the bot posts under.
-   - `ALLOW_MENTIONS`: `false` by default. Set to `true` only if triage posts should ping people.
-4. Test with the steps below, then publish, wait until the trigger is active, and give the user nothing to paste: a Slack trigger needs no webhook URL.
+The Zap only posts to the triage channel. It never messages the requester or changes the original message. Mentions are off, so the post pings nobody.
 
 ## Ask the user
 
-- Which Slack channel is the support-request source, and which is the triage channel? Get both channel IDs (the `C…` IDs in the channel's details).
-- Which reaction marks a support request? The default is `ticket`.
-- Should triage posts use the default bot name and icon, or a different one?
-- Should triage posts @-mention anyone? The default is no.
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting          | What goes there                                                                                                             | Where                                                                         |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `TRIAGE_CHANNEL` | The Slack channel the triage messages are posted to: look up its ID (starts with `C`) from the channel name the user gives  | `config.ts`                                                                   |
+| `SOURCE_CHANNEL` | The Slack channel the support reaction is watched in: look up its ID (starts with `C`) from the channel name the user gives | `config.ts`, and the trigger's Channel ID in `triggers/new-reaction-added.ts` |
 
-Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing. Use a channel you control for both the source and triage channel, and a message author who is a real member of the workspace:
+Also review the defaults with them: `SUPPORT_REACTION` (`ticket`, the reaction name without colons), `BOT_NAME` and `BOT_ICON` (the name and icon the bot posts under), and `ALLOW_MENTIONS` in `workflow.ts` (`false`; set it to `true` only if triage posts should ping people).
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `slack` to the user's Slack connection, the workspace where the source and triage channels live. The same connection serves the trigger and both posting and lookup steps.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/<file>.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections (and sample the trigger, if it has one) before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test run (`run_workflow_draft` in Zapier MCP) before publishing. Use a test channel you control for both the source and triage channels, and a message author who is a real member of the workspace:
 
 ```json
 {
@@ -69,16 +60,12 @@ Run this sample as a draft test run (`run_workflow_draft` in Zapier MCP) before 
 }
 ```
 
-Replace the channel and user IDs with real ones from the test channel. Then confirm: the run finishes, the requester lookup returns a real name, and one bot message appears in the triage channel with that name, the permalink and the raw text. Then tell the user to delete the test message.
-
-## Customize
-
-- **Create a helpdesk ticket** for qualifying requests: add a step after the post that creates a ticket in the helpdesk app, filtered on the message text or the channel.
-- **Acknowledge the requester:** add a direct message step to the original author, sent after the triage post, once the request is in the triage channel.
+Check that the run finishes, the requester lookup returns a real name, and one bot message appears in the triage channel with that name, the permalink and the raw text. If run-status tools aren't available, check the result in Slack directly. The user deletes the test message, not the agent.
 
 ## Notes
 
 - The trigger fires on the reaction, not on the message. A reaction on a thread reply posts the reply's text; the permalink opens the exact reply only if the trigger's message detail is set to a level above `content`.
-- The workflow reads only the source channel. A reaction in another channel is skipped by the trigger filter and, as a second check, by the code.
-- The requester lookup is wrapped so a failed lookup never stops the post. If it fails, the triage message shows the author's Slack user ID instead of a name.
-- Never commit real channel IDs, user IDs or webhook URLs; `config.ts` here carries placeholders only.
+- Only the source channel is read. A reaction in another channel is skipped by the trigger filter and, as a second check, by the code.
+- A failed requester lookup never stops the post. The triage message then shows the author's Slack user ID instead of a name.
+- To extend it: create a helpdesk ticket for qualifying requests, or send the original author a direct message after the post.
+- Never commit real channel IDs, user IDs or webhook URLs; `config.ts` carries placeholders only.

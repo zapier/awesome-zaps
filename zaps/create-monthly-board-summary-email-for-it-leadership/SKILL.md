@@ -1,6 +1,6 @@
 ---
 name: create-monthly-board-summary-email-for-it-leadership
-description: Build a Zapier Next Gen Zap that emails IT leadership a monthly summary of the open cards on a Trello board, ahead of the governance meeting. Use when a team tracks work in a Trello board and wants leadership to get a recurring list of open items with status, last activity and links, without anyone compiling it by hand.
+description: Build a Zap on Zapier that emails IT leadership a monthly summary of the open cards on a Trello board, ahead of the governance meeting. Use when a team tracks work in a Trello board and wants leadership to get a recurring list of open items with status, last activity and links, without anyone compiling it by hand.
 license: MIT
 metadata:
   author: zapier
@@ -13,44 +13,40 @@ metadata:
 
 # Create monthly board summary email for IT leadership
 
+The Zap's code lives at https://github.com/zapier/awesome-zaps/tree/main/zaps/create-monthly-board-summary-email-for-it-leadership. Read the files there if this skill was installed on its own.
+
 ## What it does
 
-1. **Trigger:** on the first day of each month at 9:00 AM, a Schedule by Zapier trigger starts the run.
+1. **Trigger:** on the first day of each month at 9:00 AM, Schedule by Zapier (`schedule`, `everyMonth`) starts the run.
 2. **Trello** searches the configured board for open cards, up to 200. For each card it reads the title, the list it sits in (its status), the last-activity date and the card link.
 3. The workflow turns those cards into one plain-text list, one line per card, with a count at the top. An empty board still gets an email saying there are no open cards.
 4. **Gmail** sends that list to the configured leadership address, with a subject line that gives the card count and a sender name for clarity.
 
-## Build it
-
-**Check the fields first:** with the user's own connections, inspect each action's input fields (`inspect_zapier_actions`) and make sure every key and value in `workflow.ts` matches before the first test run.
-
-**How to build:** with Zapier MCP, load the `zapier:build-workflows` skill (`list_zapier_skills`, then `get_zapier_skill`) and follow it to create, test and publish the workflow. This file says _what_ to build; that skill says _how_, and has the current tool names.
-
-**Source:** the files in this folder are the whole zap. `workflow.ts` is the workflow. It imports its settings from `config.ts` and each account from `connections/<alias>.ts`, and `triggers/` holds what starts it.
-
-- **With the zap CLI:** `npx zap-pack add awesome-zaps/create-monthly-board-summary-email-for-it-leadership` (it makes a zap project if you aren't in one), then `npx zap-pack deploy create-monthly-board-summary-email-for-it-leadership` from that project. Deploy asks for each open setting and account, and sets the trigger.
-- **With Zapier MCP:** publish every `.ts` file outside `triggers/` as `sourceFiles`, with three changes: write `config.ts` as plain values (`export const NAME = "value";`), write each `connections/<alias>.ts` as `export default "<alias>";`, and write each `@/name` import as a relative path ending in `.ts` (`./config.ts`, `./connections/<alias>.ts`). Set the trigger from the file in `triggers/`.
-
-1. **Trigger:** Schedule by Zapier, Every Month (`schedule` / `everyMonth`). Params: `dom: ["1"]`, `hod: "9:00 AM"`. No connection, so `authentication_id` is `null`. No timezone override is set, so the account's timezone applies.
-2. **Connections** (each alias in the code is the app's slug):
-   - `trello`: the Trello connection for the account that can read the board. The builder's account had none.
-   - `gmail`: the Gmail connection whose address the summary is sent from.
-3. **Constants:**
-   - `TRELLO_BOARD_ID`: the board's ID, from its URL or the board dropdown.
-   - `MAX_CARDS`: the most cards to include. Defaults to `200`.
-   - `RECIPIENT_EMAIL`: the leadership alias or board owner who receives the summary.
-   - `FROM_NAME`: the sender name on the email.
-   - `SUBJECT_PREFIX`: text before the subject. Leave it empty.
+The Zap only reads the board and sends one email; it never changes a card.
 
 ## Ask the user
 
-- Which Trello board is the source, and is it open-cards only, or should archived cards be excluded too? The workflow sends open cards only.
-- Who gets the summary: a leadership alias, or the board owner?
-- Should the send time or timezone change from 9:00 AM on the 1st in the account timezone?
+Each `REPLACE_…` value is set per person. Resolve names to IDs with the user's own connections; don't ask them to paste an ID you can look up.
 
-## Test
+| Setting           | What goes there                                                                                           |
+| ----------------- | --------------------------------------------------------------------------------------------------------- |
+| `TRELLO_BOARD_ID` | The Trello board to summarize. Look it up with the user's Trello connection; its ID is in the board's URL |
+| `RECIPIENT_EMAIL` | The address the summary is emailed to: a leadership alias or the board owner                              |
 
-Once a Trello connection exists, run the draft as a test (`run_workflow_draft`) with no input, since the trigger supplies none. Use a board you own and a `RECIPIENT_EMAIL` you control.
+Also review the defaults with them: the send time (9:00 AM on the 1st, in the account's timezone, set in `triggers/every-month.ts`) and `FROM_NAME`, the sender name on the email. The workflow sends open cards only, so there is nothing to choose about archived cards.
+
+## Build it
+
+Build with Zapier MCP. If the user wants the Zap kept in their project, copy this folder into `zaps/` there first, then deploy those files. No Zapier MCP tools? Read https://docs.zapier.com/mcp/get-started/quickstart.md and follow the page for the app you are running in to get the user connected, then continue with this build.
+
+1. **Accounts:** bind `trello` to the user's Trello connection for the account that can read the board, and `gmail` to the Gmail connection whose address the summary is sent from. Schedule by Zapier needs no connection.
+2. **Source:** publish `workflow.ts` and `config.ts`, with each `REPLACE_…` replaced by the user's answer. `triggers/every-month.ts` and `connections/` are settings, not code: set the workflow's trigger and connection bindings from them. The trigger file names the app by its slug; for the trigger's `selected_api`, call `search_triggers` with that slug, find the row whose `key` is the trigger's `event`, and use `<app_key>@<app_version>` from it.
+3. **Build guide:** load Zapier's build guide with `get_zapier_skill("zapier:build-workflows")` and follow it to create, test and publish the workflow.
+4. **Fields:** inspect each action's fields with the user's connections (and sample the trigger, if it has one) before the first test run, and fix any key in `workflow.ts` that doesn't match.
+
+## Test it
+
+Run it once as a draft test (`run_workflow_draft`) with no input, since the trigger supplies none. Use a board you own and a `RECIPIENT_EMAIL` you control.
 
 Check that:
 
@@ -58,14 +54,12 @@ Check that:
 - The body lists one line per open card, each with its title, list name, last-activity date and link.
 - A board with no open cards still sends the email, saying `No open cards.`
 
-## Customize
-
-- **Post to a team channel** instead of email: replace the Gmail step with a Slack message to the channel.
-- **Attach the summary** as a CSV or PDF for archive or distribution: add a step that builds the file from the same card list and attaches it to the email.
+If run-status tools aren't available, check the result in Gmail directly. Ask the user to delete the test email; the agent doesn't delete test data.
 
 ## Notes
 
-- The original spec used Zapier's own "Email by Zapier" step. It sends from Zapier's domain. This version sends through Gmail from a connected account, so the email comes from that address.
+- The email comes from the connected Gmail address, not Zapier's domain. The original spec used Zapier's own "Email by Zapier" step.
 - Card status is the Trello list name. Trello has no separate status field.
 - The date on each line is the card's last-activity date, cut to the day. It is not the creation date.
+- To post to a team channel instead of email, replace the Gmail step with a Slack message. To attach the summary as a CSV or PDF, add a step that builds the file from the same card list.
 - Never commit a real board ID, recipient address or webhook URL.

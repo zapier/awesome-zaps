@@ -1,7 +1,7 @@
 // This zap's settings. Each "REPLACE_…" value is set per person before deploying; its comment says how to get it.
 // The other values are defaults you can change.
 
-export const TABLE_ID = "REPLACE_TABLE_ID"; // Zapier Table holding the chatbot's FAQ records (the ID in the table's URL).
+export const TABLE_ID = "REPLACE_TABLE_ID"; // Ask the user which Zapier Table the chatbot reads, then take its ID from the table's URL.
 
 // Sheet column holding the question text (COL$A = column A).
 export const QUESTION_COLUMN = "COL$A";

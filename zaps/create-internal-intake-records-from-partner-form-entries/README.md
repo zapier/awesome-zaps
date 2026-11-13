@@ -6,16 +6,18 @@ Copy each new partner application from a Jotform Enterprise form into your inter
 
 **Based on:** [Create internal intake records from partner form entries](https://zapier.com/automations/sales/partner-channel-sales/partner-onboarding/create-internal-intake-records-from-partner-form-entries) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/create-internal-intake-records-from-partner-form-entries/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/create-internal-intake-records-from-partner-form-entries
+
+The agent follows `SKILL.md`: it asks you for your Jotform workspace, the partner and intake forms, and which partner answers map to which intake fields, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
-- `connections/`: the accounts it uses (`jotform-enterprise`)
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
+- `connections/`: the account it uses (`jotform-enterprise`)
 - `triggers/`: what starts it

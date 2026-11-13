@@ -146,7 +146,7 @@ const workflow = defineDurable(
     // One step per line item; a failed line is recorded and does not stop the others.
     const lineResults = await Promise.all(
       lines.map((line) =>
-        ctx.step(`create-sales-order-line-${line.index}`, async () => {
+        ctx.step(`create-sales-order-line-${line.external_id}`, async () => {
           try {
             await sdk.runAction({
               appKey: "webhook",

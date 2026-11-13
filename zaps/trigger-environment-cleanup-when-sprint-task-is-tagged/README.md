@@ -6,16 +6,18 @@ When a teardown tag is added to a sprint task in Asana, your removal API is sent
 
 **Based on:** [Trigger environment cleanup when sprint task is tagged](https://zapier.com/automations/engineering/dev-ops/environment-management/trigger-environment-cleanup-when-sprint-task-is-tagged) on zapier.com
 
-## Build it
+## Install
 
-Paste this into any AI agent with [Zapier MCP](https://zapier.com/mcp) connected:
+This folder is a Zap template. Paste this into your AI agent:
 
-> Build me this Next Gen Zap using Zapier MCP: https://zapier.sh/zapier/community-skills/trigger-environment-cleanup-when-sprint-task-is-tagged/
+> Build me this Zap, read how here: https://github.com/zapier/awesome-zaps/tree/main/zaps/trigger-environment-cleanup-when-sprint-task-is-tagged
+
+The agent follows `SKILL.md`: it asks you for the Asana workspace, sprint project and teardown tag, and your removal API's URL, then builds, tests and turns on the Zap in your account.
 
 ## Files
 
-- `SKILL.md`: what the agent builds, asks and tests
-- `workflow.ts`: the Next Gen Zap code
-- `config.ts`: its settings
-- `connections/`: the accounts it uses (`asana`)
+- `SKILL.md`: what the agent asks, builds and tests
+- `workflow.ts`: the Zap's code
+- `config.ts`: its settings; the `REPLACE_…` values are filled in for each person
+- `connections/`: the account it uses (`asana`)
 - `triggers/`: what starts it

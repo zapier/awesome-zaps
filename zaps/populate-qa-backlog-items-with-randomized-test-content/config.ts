@@ -1,7 +1,7 @@
 // This zap's settings. Each "REPLACE_…" value is set per person before deploying; its comment says how to get it.
 // The other values are defaults you can change.
 
-export const SPREADSHEET_ID = "REPLACE_SPREADSHEET_ID"; // Google Sheets spreadsheet ID of the test-content library (the long ID in the sheet's URL).
+export const SPREADSHEET_ID = "REPLACE_SPREADSHEET_ID"; // Ask the user which sheet is the test-content library, then look up its ID (the long ID in the sheet's URL) with their Google Sheets connection.
 
 // Notion property whose value picks the content rows (select, multi-select, status or text).
 export const CATEGORY_PROPERTY = "Category";
