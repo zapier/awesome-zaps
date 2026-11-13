@@ -2,7 +2,7 @@
 
 Instructions for AI agents working on this repository.
 
-This repo holds Zaps written as code (Zapier SDK durables). This file holds the rules for working here. Anything with an owner elsewhere is linked, not restated.
+This repo holds Zaps written as code. This file holds the rules for working here. Anything with an owner elsewhere is linked, not restated.
 
 ## Where to work
 
@@ -10,6 +10,7 @@ This repo holds Zaps written as code (Zapier SDK durables). This file holds the 
 | -------------------- | ----------------------------------------------------------------------------------------- |
 | `zaps/<zap>/`        | One zap: `workflow.ts`, `config.ts`, `connections/`, `triggers/`, `SKILL.md`, `README.md` |
 | `scripts/`           | The `zap:deploy` and `zap:status` scripts, and the zap catalog test                       |
+| `skills/`            | Skills for working on zaps, such as `create-zap-template`                                 |
 | `docs/TESTING.md`    | How to test a zap against Zapier                                                          |
 | `docs/DEPLOY.md`     | What to expect when deploying a zap                                                       |
 | `eslint.config.js`   | ESLint rules                                                                              |
@@ -56,10 +57,16 @@ Everything else is in the root `package.json`. The repo root is a zap-pack proje
 
 ### Workflows
 
-- **A zap is its folder, in the zap-pack layout.** `workflow.ts` imports nothing but `@zapier/zapier-durable`, `@zapier/zapier-sdk`, `zod`, its settings from `@/config` and its accounts from `@/connections/<alias>`. `triggers/` holds what starts it. The zap CLI deploys the folder as is; `SKILL.md` says how to publish it with Zapier MCP. Types, lint and fallow skip zap folders, and `scripts/catalog.test.ts` checks them instead.
+- **A zap is its folder of plain files, with no zap-pack imports.** An agent builds it with Zapier MCP by following its `SKILL.md`, so every file must read correctly as committed. Types, lint and fallow skip zap folders, and `scripts/catalog.test.ts` checks them instead.
+  - `workflow.ts` imports nothing but `@zapier/zapier-durable`, `@zapier/zapier-sdk`, `zod` and `./config.ts`, and names each account by its alias as a string (`connection: "slack"`).
+  - Each alias is a file in `connections/` whose default export is `{ app, description }`. The description says what the account must be able to do.
+  - `triggers/` holds what starts it, as a plain object: `app`, `event`, `connection` (the alias) and `params`.
 - **Parse the input with zod on the first line of the handler.** That schema is the contract for what the trigger delivers.
-- **Wrap each side effect in its own `ctx.step`**, and end the step name with the record's primary id so a retry skips work that already succeeded. Never use an array index as the suffix.
-- **Put IDs and settings in `config.ts`**, one export each, with a comment naming what each one refers to. A value each person sets is an `ask("…")`. Lists and maps stay as constants at the top of `workflow.ts`.
+- **Wrap each side effect in its own `ctx.step`**, named with a fixed kebab-case verb-noun (`post-to-triage`), so the Zapier editor shows it as an app step. When a step runs once per record in a loop, end its name with the record's primary id so each one is journaled on its own; never use an array index as the suffix.
+- **Put IDs and settings in `config.ts`**, one export each, with a comment naming what each one refers to. Lists and maps stay as constants at the top of `workflow.ts`.
+  - A value each person sets is `"REPLACE_<NAME>"`, listed first, with a same-line comment that starts with how to get it, then what it is: `// Ask the user which channel gets the posts, then look up its ID with their Slack connection.` Defaults come after, with the reason on the line above.
+  - A value worked out from another one is also a `REPLACE_` value, with "Look up from `<NAME>`", so the two can't disagree.
+  - A per-person trigger setting is a `"REPLACE_…"` value in the trigger file, with the same kind of comment. A value used in both the trigger and `config.ts` takes the same `REPLACE_` name in both files, so one answer fills both.
 - **Pin exact dependency versions.** Zapier's sandbox rejects a dependency published less than 24 hours ago.
 
 ### New code
@@ -88,7 +95,9 @@ There are no baselines and no suppression files, so nothing is grandfathered in.
 
 ### Documentation
 
-- **Every zap folder gets a `SKILL.md` and a `README.md`** next to `workflow.ts`. The `SKILL.md` is what an agent follows to build the zap. The `README.md` states what the zap does in one line, then lists each file and what it holds.
+- **Every zap folder gets a `SKILL.md` and a `README.md`** next to `workflow.ts`. The zaps in `zaps/` are examples; look at a few before writing one.
+  - `SKILL.md` is what an agent follows to build the zap, and must work when installed on its own (skills.sh installs it without the rest of the folder). It links to the zap's folder on GitHub, then has: What it does, Ask the user (a table of every `REPLACE_` value and where it lives), Build it (with Zapier MCP), Test it (with a sample input) and Notes.
+  - `README.md` is for people browsing GitHub: what the zap does in one line, its apps, an Install section with the one-line prompt for an agent, then each file and what it holds.
 - **One document owns a topic.** Before adding a file, find the one that already covers it and extend it. A second document on the same subject is a second thing to maintain, and the pair will drift.
 - **Never restate another document.** Link to it. If you find yourself summarizing a file "for convenience," delete the summary and link instead.
 - **Never copy a command into prose.** `pnpm` commands live in `package.json`, and a copy will drift. The exceptions are the [Commands](#commands) table above and the commands in [docs/TESTING.md](docs/TESTING.md) and [docs/DEPLOY.md](docs/DEPLOY.md), which own those topics.

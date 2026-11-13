@@ -1,10 +1,7 @@
-import type { Trigger } from "zap-pack";
-
-import greenhouse from "@/connections/greenhouse";
-
+// What starts the zap: every new application in the Greenhouse account. workflow.ts skips other jobs.
 export default {
   app: "greenhouse",
   event: "candidate_v2List",
-  connection: greenhouse,
+  connection: "greenhouse",
   params: {},
-} satisfies Trigger;
+};
